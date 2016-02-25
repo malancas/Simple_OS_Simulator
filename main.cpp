@@ -27,7 +27,9 @@ int main(){
   parseInput(input, d);
 
   //running
-  
+  CPU c;
+  c.waitForInput();
+
   /*
     Use hash for processes
     Must be accesible by ready queue, device queues, CPU
