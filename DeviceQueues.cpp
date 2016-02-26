@@ -15,7 +15,7 @@ struct DeviceQueues{
   DeviceQueues();
 
   //FUNCTIONS
-  makeQueues(int& pNum, int& dNum, int& cNum){
+  void makeQueues(int& pNum, int& dNum, int& cNum){
     printerQueues.resize(pNum);
     diskQueues.resize(dNum);
     cdQueues.resize(cNum);

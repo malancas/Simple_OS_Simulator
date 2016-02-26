@@ -1,19 +1,39 @@
 #include <unordered_map>
+#include <queue>
+#include <vector>
+#include <stdlib.h>
+#include <iostream>
 #include "Process.cpp"
+#include "SystemCall.cpp"
+using namespace std;
 
 struct Memory {
   //VARIABLES
-  static unordered_map<Process> processes
-  static int pidCounter;
+  unordered_map<int, Process> processes;
+  unordered_map<int, SystemCall> systemCalls;
+  int pidCounter;
+  int pcbCounter;
+  int systemCallCounter;
   queue<int> readyQueue;
+  vector<queue<int>> printerQueues;
+  vector<queue<int>> diskQueues;
+  vector<queue<int>> cdQueues;
+
   //PCB index?
 
   //CONSTRUCTORS
-  Memory m { pidCounter = 0 };
 
   //FUNCTIONS
   void addProcesstoQueue(){
-    processes.add(Process(pidCounter))
-    readyQueue.push_back()
+    processes.insert (make_pair(pidCounter, Process(pidCounter, pcbCounter)));
+    readyQueue.push(pidCounter);
+    ++pidCounter;
+    ++pcbCounter;
+  }
+
+  void makeQueues(string& inP, string& inD, string& inC){
+    printerQueues.resize(stoi(inP));
+    diskQueues.resize(stoi(inD));
+    cdQueues.resize(stoi(inC));
   }
 };

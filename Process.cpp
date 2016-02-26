@@ -1,11 +1,14 @@
+using namespace std;
+
 struct Process {
   //VARIABLES
-  int PID;
-  string name;
-  //PCB p or int PCB
+  int pid;
+  int pcb;
 
   //CONSTRUCTORS
-  Process() { PID=-1, name = "default" };
+  Process() : pid(-1), pcb(-1) {}
+
+  Process(int id, int cb) : pid(id), pcb(cb) {}
 
   //FUCNTIONS
   
