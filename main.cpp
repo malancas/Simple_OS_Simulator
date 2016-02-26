@@ -19,7 +19,11 @@ int main(){
 
   Memory m;
   m.makeQueues(inP, inD, inC);
+  
   //running
+  CPU c;
+
+  c.waitForInput();
 
   /*
     Use hash for processes

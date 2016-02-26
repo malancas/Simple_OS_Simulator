@@ -12,16 +12,13 @@ struct CPU : public Memory {
   CPU() : currProcess(-1), emptyCPU(true) {}
 
   //FUNCTIONS
-  //main run function
-  void run(){
-    waitForInput();
-  }
-
   //A, t, p<num>, P<num>, d<num>, D<num>, c<num>, C<num>
   //system calls: S -> s, d, c, r
   void waitForInput(){
+    cout << "CPU empty, waiting for input..." << '\n';
     string input = "";
-    while (input != "t"){
+
+    while (input != "q"){
       cin >> input;
       if (emptyCPU && input != "A"){
         cout << "No processes running. Add processes and try again" << '\n';
@@ -72,5 +69,6 @@ struct CPU : public Memory {
         } 
       }
     }
+    return;
   }
 };
