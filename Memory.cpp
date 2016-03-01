@@ -10,7 +10,6 @@ using namespace std;
 struct Memory {
   //VARIABLES
   unordered_map<int, Process> processes;
-  //unordered_map<int, SystemCall> systemCalls;
   int pidCounter;
   int systemCallCounter;
   queue<int> readyQueue;
@@ -27,9 +26,9 @@ struct Memory {
     ++pidCounter;
   }
 
-  void makeQueues(string& inP, string& inD, string& inC){
-    printerQueues.resize(stoi(inP));
-    diskQueues.resize(stoi(inD));
-    cdQueues.resize(stoi(inC));
+  void makeQueues(const int& inP, const int& inD, const int& inC){
+    printerQueues.resize(inP);
+    diskQueues.resize(inD);
+    cdQueues.resize(inC);
   }
 };

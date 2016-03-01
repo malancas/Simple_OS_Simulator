@@ -1,35 +1,62 @@
 #include <iostream>
-//long_opts
 #include <string>
 #include "Memory.cpp"
 #include "CPU.cpp"
 #include <cassert>
 using namespace std;
 
+class NegativeError {};
+
 int main(){
   //sysgen
-  string inP, inD, inC;
+  int inP, inD, inC;
   
   //Include try/catch for input, error catching
   //Ask for number of printer, disk, CD devices, respectively
-  cout << "Enter devices in format '<number of p>, <number of d>, <number of c>' " << '\n';
-  cin >> inP;
-  cin >> inD;
-  cin >> inC;
+  bool goodInput = false;
+  while (!goodInput) {
+    cout << "Enter number of printer devices: " << '\n';
+    cin >> inP;
+    if (inP < 0){
+      cerr << "Negative number entered. Try again." << '\n' << '\n';
+    }
+    else {
+      goodInput = true;
+    }
+  }
+
+  goodInput = false;
+  while (!goodInput){
+    cout << "Enter number of disk devices: " << '\n';
+    cin >> inD;
+    if (inD < 0){
+      cerr << "Negative number entered. Try again." << '\n' << '\n';
+    }
+    else {
+      goodInput = true;
+    }
+  }
+
+  goodInput = false;
+  while (!goodInput){
+    cout << "Enter number of CD devices: " << '\n';
+    cin >> inC;
+    if (inC < 0){
+      cerr << "Negative number entered. Try again." << '\n' << '\n';
+    }
+    else {
+      goodInput = true;
+    }
+  }
 
   Memory m;
   m.makeQueues(inP, inD, inC);
+
   
   //running
   CPU c;
 
   c.waitForInput();
 
-  /*
-    Use hash for processes
-    Must be accesible by ready queue, device queues, CPU
-    Sits in main or should it exist as static in base class
-    and can be inherited/accessed by all objects
-  */
   return 0;
 }
