@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Process.cpp"
-#include "SystemCall.cpp"
 using namespace std;
 
 struct Memory {
@@ -16,8 +15,6 @@ struct Memory {
   vector<queue<int>> printerQueues;
   vector<queue<int>> diskQueues;
   vector<queue<int>> cdQueues;
-
-  //CONSTRUCTORS
 
   //FUNCTIONS
   void addProcesstoQueue(){

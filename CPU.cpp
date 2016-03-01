@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <iterator>
 using namespace std;
 
 struct CPU : public Memory {
