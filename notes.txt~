@@ -1,0 +1,31 @@
+http://www.cs.hunter.cuny.edu/~eschweit/340HWscans.html
+
+fix: reset values in process after leaving device queue, what should values be if ready queue is called in snapshot?
+fix: truncate file/name length for output
+
+Tests:
+	Device queues: two empty (non-zero) queues and one full queue
+	Device queues: empty queue vector - TESTED
+	Device queues: ending process in empty queues - TESTED
+	Device quques: adding/ending process in empty vector - TESTED
+	Device queues: parameter number offset, including 0 - TESTED
+	Device queues: enqueing/dequing to proper vector/deque - TESTED
+	Device queues: each process has proper parameters, ie. write files need file length - TESTED
+	Device queues: removing correct process, adding to ready queue - TESTED
+	CPU: adding process from empty ready queue - TESTED 
+	CPU: terminating process - TESTED
+	CPU: removing process with empty ready queue waiting - TESTED
+	CPU: removing process with non-empty ready queue waiting - TESTED
+	CPU: Issuing system call start/end with empty CPU - TESTED
+	CPU: removing process, adding to device queue - TESTED
+	ready queue: adding correct number of process - TESTED
+	Snapshot: garbage parameters - TESTED
+	Snapshot: Printing read processes should not print file length - TESTED
+	Snapshot: Error catching for printing empty vector - TESTED
+	Snapshot: truncating long names
+	Sysgen: non numeric, negative parameters - TESTED
+
+ASSIGNMENT 2:
+Are cylinderCount, history parameter, burst, CPU time usage doubles or ints?
+Can these values be zero?
+What are allowable values for these variables?
