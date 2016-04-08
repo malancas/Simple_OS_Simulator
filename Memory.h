@@ -41,7 +41,7 @@ struct Memory {
   /*
     Number of cylinders in the hard drive
   */
-  static int cylinderCount;
+  static vector<int> cylinderCount;
   
   /*
     The ready queue contains process PIDS

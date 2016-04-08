@@ -68,7 +68,7 @@ struct Sysgen : public Memory {
     while (!goodInput){
       checkInputForErrors("Enter the number of cylinders: ");
     }
-    cylinderCount = num;
+    cylinderCount.resize(num);
     cout << '\n';
   } 
 

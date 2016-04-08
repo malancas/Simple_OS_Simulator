@@ -12,7 +12,7 @@ using namespace std;
   deque<int> Memory::readyQueue;
   int Memory::historyParameter = 0;
   int Memory::initialBurstEstimate = 0;
-  int Memory::cylinderCount = 0;
+vector<int> Memory::cylinderCount;
   vector<deque<int>> Memory::printerQueues;
   vector<deque<int>> Memory::diskQueues;
   vector<deque<int>> Memory::cdQueues;
