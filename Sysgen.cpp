@@ -11,11 +11,10 @@ struct Sysgen : public Memory {
     to determine if the user's
     input was valid
   */
-  bool goodInput;
   int num;
 
   //CONSTRUCTORS
-  Sysgen() : goodInput(false), num(0) {}
+  Sysgen() : num(0) {}
 
   //FUNCTIONS
   /*
@@ -25,59 +24,38 @@ struct Sysgen : public Memory {
     queue vectors will be resized appropriately
   */
   void getInstallerInput(){
-    while (!goodInput){
-      checkInputForErrors("Enter the number of printer devices: ");
-    }
+    getInstallerInput_aux("Enter the number of printer devices: ", false);
     printerQueues.resize(num);
-    goodInput = false;
 
-    cout << '\n';
-    num = 0;
-    while (!goodInput){
-      checkInputForErrors("Enter the number of disk devices: ");      
-    }
+    getInstallerInput_aux("Enter the number of disk devices: ", false);
     diskQueues.resize(num);
-    goodInput = false;
     
-    cout << '\n';  
-    num = 0;
-    while (!goodInput){
-      checkInputForErrors("Enter the number of CD devices: ");
-    }
+    getInstallerInput_aux("Enter the number of CD devices: ", false);
     cdQueues.resize(num);
-    goodInput = false;
     
-    cout << '\n';
-    num = 0;
-    while (!goodInput){
-      checkInputForErrors("Enter the history parameter: ");
-    }
+    getInstallerInput_aux("Enter the history parameter: ", true);
     historyParameter = num;
-    goodInput = false;
 
-    cout << '\n';
-    num = 0;
-    while (!goodInput){
-      checkInputForErrors("Enter the initial burst estimate: ");
-    }
+    getInstallerInput_aux("Enter the initial burst estimate: ", false);
     initialBurstEstimate = num;
-    goodInput = false;
 
-    cout << '\n';
-    num = 0;
-    while (!goodInput){
-      checkInputForErrors("Enter the number of cylinders: ");
-    }
+    getInstallerInput_aux("Enter the number of cylinders: ", false);
     cylinderCount.resize(num);
-    cout << '\n';
   } 
 
+  void getInstallerInput_aux(const string& userMessage, const bool& checkingHistoryParameter){
+    num = 0;
+    cout << userMessage << '\n';
+    while(!checkInputForErrors(checkingHistoryParameter)){
+      cout << userMessage;
+    }
+    cout << '\n';
+  }
   /*
     Prints userMessage to user before receiving input before
     parsing and checking for errors.
   */
-  void checkInputForErrors(const string& userMessage){
-    cout << userMessage;
+  bool checkInputForErrors(const bool& checkingHistoryParameter){
     string line;
     if (getline(cin, line)) {
       istringstream iss{line};
@@ -87,19 +65,42 @@ struct Sysgen : public Memory {
         //If it was successfully converted, then checks if
         //num is negative
         if (num < 0){
-          cerr << '\n' << "Negative number entered. Please try again" << '\n' << '\n';
-        }
-          
-        //If num is not negative, goodInput is set to true and loop breaks
-        //meaning that num can be used to set how many devices there will
-        //be of a certain type
-        else{
-          goodInput = true;            
-        }
+          cerr << '\n' << "Negative number entered. Please try again" << '\n';
+	  return false;
+	}
+	
+	/*
+	  If the function is being used to error check input for the history parameter,
+	  checkingHistoryParameter = true. If this is the case and the input entered
+	  is a valid integer, an additional function will be called to determine if the
+	  history parameter >= 0 and <= 1
+	*/
+	if (checkingHistoryParameter){
+
+	  if (!isHistoryParameterInRange()){
+	    cerr << "Chosen number isn't in the acceptable >= 0 and <= 1 range." << '\n';
+	    cerr << "Please enter a new number and try again." << '\n';
+	    return false;
+	  }
+	}
+	
+        //If num is not negative and if representing a history parameter
+	//in the correct range, then the function will return true
+        return true;            
       }
       else {
-        cerr << '\n' << "Non numeric character entered. Please try again." << '\n' << '\n';
+        cerr << '\n' << "Non numeric character entered. Please try again." << '\n';
+	return false;
       }  
-    }   
+    }
+    return false;
+  }
+
+  /*
+    Checks whether num is >= 0 and <= 1,
+    which is necessary to be valid history parameter
+  */
+  bool isHistoryParameterInRange(){
+    return (num >= 0 && num <= 1);
   }
 };
