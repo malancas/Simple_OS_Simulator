@@ -11,7 +11,7 @@ using namespace std;
   int Memory::pidCounter = 0;
   deque<int> Memory::readyQueue;
   int Memory::historyParameter = 0;
-  int Memory::initialBurstEstimate = 0;
+  double Memory::initialBurstEstimate = 0;
 vector<int> Memory::cylinderCount;
   vector<deque<int>> Memory::printerQueues;
   vector<deque<int>> Memory::diskQueues;

@@ -36,7 +36,7 @@ struct Memory {
   /*
     The initial burst estimate
   */
-  static int initialBurstEstimate;
+  static double initialBurstEstimate;
 
   /*
     Number of cylinders in the hard drive
