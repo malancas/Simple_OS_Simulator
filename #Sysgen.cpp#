@@ -25,22 +25,22 @@ struct Sysgen : public Memory {
     queue vectors will be resized appropriately
   */
   void getInstallerInput(){
-    getInstallerInput_aux("Enter the number of printer devices: ", false);
+    getInstallerInput_aux("Enter the number of printer devices: ", false, false);
     printerQueues.resize(num);
 
-    getInstallerInput_aux("Enter the number of disk devices: ", false);
+    getInstallerInput_aux("Enter the number of disk devices: ", false, false);
     diskQueues.resize(num);
     
-    getInstallerInput_aux("Enter the number of CD devices: ", false);
+    getInstallerInput_aux("Enter the number of CD devices: ", false, false);
     cdQueues.resize(num);
     
-    getInstallerInput_aux("Enter the history parameter: ", true);
+    getInstallerInput_aux("Enter the history parameter: ", true, false);
     historyParameter = doubleNum;
 
-    getInstallerInput_aux("Enter the initial burst estimate: ", false);
+    getInstallerInput_aux("Enter the initial burst estimate: ", false, true);
     initialBurstEstimate = num;
 
-    getInstallerInput_aux("Enter the number of cylinders: ", false);
+    getInstallerInput_aux("Enter the number of cylinders: ", false, false);
     cylinderCount.resize(num);
   } 
 
@@ -57,12 +57,12 @@ struct Sysgen : public Memory {
     parsing and checking for errors.
   */
   
-  bool checkInputForErrors(const bool& checkingHistoryParameter){
+  bool checkInputForErrors(const bool& checkingHistoryParameter, const bool& checkingBurst){
     string line;
     if (getline(cin, line)) {
       istringstream iss{line};
       //Checks if the input can be converted to an int
-      if (!checkingHistoryParameter){
+      gBurst){
 	if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
           
 	  //If it was successfully converted, then checks if
@@ -78,6 +78,13 @@ struct Sysgen : public Memory {
 	    is a valid integer, an additional function will be called to determine if the
 	    history parameter >= 0 and <= 1
 	  */
+	  if (checkingHistoryParameter){
+	    if (!isHistoryParameterInRange()){
+	      cerr << "Chosen number isn't in the acceptable >= 0 and <= 1 range." << '\n';
+	      cerr << "Please enter a new number and try again." << '\n';
+	      return false;
+	    }
+	  }
 	
 	  //If num is not negative and if representing a history parameter
 	  //in the correct range, then the function will return true
@@ -88,7 +95,7 @@ struct Sysgen : public Memory {
 	  return false;
 	}
       }
-     else {
+      else {
 	if (iss >> doubleNum && (iss.eof() || isspace(iss.peek()))) {       
 	  //If it was successfully converted, then checks if
 	  //num is negative
@@ -99,10 +106,6 @@ struct Sysgen : public Memory {
 	
 	  //If num is not negative and if representing a history parameter
 	  //in the correct range, then the function will return true
-	  if (!isHistoryParameterInRange()){
-	    cerr << "Input is not in correct range for the history parameter" << '\n';
-	    return false;
-	  }
 	  return true;            
 	}
 	else {
@@ -119,6 +122,6 @@ struct Sysgen : public Memory {
     which is necessary to be valid history parameter
   */
   bool isHistoryParameterInRange(){
-    return (doubleNum >= 0 && doubleNum <= 1);
+    return (num >= 0 && num <= 1);
   }
 };
