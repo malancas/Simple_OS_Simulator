@@ -31,12 +31,12 @@ struct Memory {
     Also represented with α, used in the SJF
     approximation calculation
   */
-  static int historyParameter;
+  static double historyParameter;
 
   /*
     The initial burst estimate
   */
-  static double initialBurstEstimate;
+  static int initialBurstEstimate;
 
   /*
     Number of cylinders in the hard drive

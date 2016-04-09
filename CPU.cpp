@@ -40,7 +40,7 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter)));
+        processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
         if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
