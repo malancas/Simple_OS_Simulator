@@ -7,6 +7,7 @@
 #include <sstream>
 #include <deque>
 #include <iomanip>
+#include <algorithm>
 #include "Memory.h"
 using namespace std;
 
@@ -40,21 +41,24 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
-        if (emptyCPU){
+	//A new process is created and added to the processes unordered map
+	processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
+	//If the CPU is empty, the newly created process is added to the CPU
+	if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
           cout << "The CPU is now occupied!" << '\n' << '\n';
-          //If the CPU is already occupied, the
-          //process is added to the ready queue
         }
-        //If the CPU isn't empty and the user issues an 'A',
-        //a process is created and added to the ready queue
+        //If the CPU is already occupied, the
+        //process is added to the ready queue
         else {
-          readyQueue.push_back(pidCounter);
+	  processes[currProcess].burst -= askTimer();
+	  addProcessToReadyQueue(currProcess);
+          addProcessToReadyQueue(pidCounter);
+	  currProcess = readyQueue.front();
+	  readyQueue.pop_front();
         }
         ++pidCounter;
-	askTimer();
       }
       
       //If the user tries to terminate a process
@@ -129,6 +133,21 @@ struct CPU : public Memory {
 
         //If the user's input is determined to be valid
         if (systemCallInputChecking(input,num)){
+	  /*
+	    If there is a process occupying the CPU, the timer will
+	    be prompted for the amount of time the process has
+	    spent in the CPU. Its burst will then be recalculated
+	    and it will be added to the ready queue. This allows the
+	    ready queue to sort its contents based on shortest burst
+	    time, then pushing the process at the front of the queue
+	    in the ready queue into the CPU
+	  */
+	  if (!emptyCPU){
+	    processes[currProcess].burst -= askTimer();
+	    addProcessToReadyQueue(currProcess);
+	    currProcess = readyQueue.front();
+	    readyQueue.pop_front();
+	  }
           if (input[0]=='P'){
             checkForSystemCallinQueue(printerQueues, num);
           }
@@ -139,7 +158,6 @@ struct CPU : public Memory {
             checkForSystemCallinQueue(cdQueues, num);
           }
         }
-	askTimer();
       }
 
       /*If the user types 'S' for the snapshot function,
@@ -487,7 +505,7 @@ struct CPU : public Memory {
     has used the CPU for. This function is called whenever an
     interrupt occurs or a process enters the CPU
   */
-  void askTimer(){
+  int askTimer(){
     string timeInput = "";
     int time = 0;
 
@@ -496,6 +514,7 @@ struct CPU : public Memory {
     while (!intErrorCheck(timeInput, time, -1)){
       cin >> timeInput;
     }
+    return time;
   }
 
   /*
@@ -520,5 +539,11 @@ struct CPU : public Memory {
   */
   double sjfApproximationAlgorithm(Process& proc){
     return (1-historyParameter) * initialBurstEstimate + historyParameter * proc.cpuTime; 
+  }
+
+  void addProcessToReadyQueue(const int& num){
+    int insertBurstAmount = processes[num].burst;
+    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), insertBurstAmount);
+    readyQueue.insert(insertLimit, num);
   }
 };
