@@ -25,21 +25,27 @@ struct Sysgen : public Memory {
     queue vectors will be resized appropriately
   */
   void getInstallerInput(){
+    //Set the number of printer device queues
     getInstallerInput_aux("Enter the number of printer devices: ", false);
     printerQueues.resize(num);
 
+    //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", false);
     diskQueues.resize(num);
-    
+
+    //Set the number of CD device queues
     getInstallerInput_aux("Enter the number of CD devices: ", false);
     cdQueues.resize(num);
-    
+
+    //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", true);
     historyParameter = doubleNum;
 
+    //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", false);
     initialBurstEstimate = num;
 
+    //Set the number of cylinders in each disk device
     getInstallerInput_aux("Enter the number of cylinders: ", false);
     cylinderCount.resize(num);
   } 
