@@ -32,6 +32,7 @@ struct Sysgen : public Memory {
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", false);
     diskQueues.resize(num);
+    cylinderCount.resize(num);
 
     //Set the number of CD device queues
     getInstallerInput_aux("Enter the number of CD devices: ", false);
@@ -46,8 +47,15 @@ struct Sysgen : public Memory {
     initialBurstEstimate = num;
 
     //Set the number of cylinders in each disk device
-    getInstallerInput_aux("Enter the number of cylinders: ", false);
-    cylinderCount.resize(num);
+    int n = diskQueues.size();
+    //The two strings are used to create the message used in the user prompt.
+    //The message's content depends on which disk device it asking about.
+    string messageBase = "Enter the number of cylinders in disk device ";
+    string messageEnd = ": ";
+    for (int i = 0; i < n; ++i){
+      getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, false);
+      cylinderCount[i] = num;
+    }
   } 
 
   void getInstallerInput_aux(const string& userMessage, const bool& checkingHistoryParameter){
