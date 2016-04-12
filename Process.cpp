@@ -32,9 +32,12 @@ struct Process {
   //The estimation of the process' next burst
   double estimatedNextBurst;
 
+  //the cylinder track that the process is stored on
+  int cylinderTrack;
+
   //CONSTRUCTORS
-  Process() : pid(), type(), name(), memStart(), length(), totalBurst(), averageBurst(0), cpuUsageCount(0), estimatedNextBurst() {}
-  Process(int pd, int burstEst) : pid(pd), type(), name(), memStart(), length(), totalBurst(burstEst), averageBurst(0), cpuUsageCount(0), estimatedNextBurst() {}
+  Process() : pid(), type(), name(), memStart(), length(), totalBurst(), averageBurst(0), cpuUsageCount(0), estimatedNextBurst(), cylinderTrack() {}
+  Process(int pd, int burstEst) : pid(pd), type(), name(), memStart(), length(), totalBurst(burstEst), averageBurst(0), cpuUsageCount(0), estimatedNextBurst(), cylinderTrack() {}
 
 	//OPERATOR OVERLOADING
 	friend ostream& operator<<(ostream& os, const Process& obj)

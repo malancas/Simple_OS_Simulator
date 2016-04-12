@@ -51,7 +51,8 @@ struct Memory {
   */
   static deque<int> readyQueue;
   static vector<deque<int>> printerQueues;
-  static vector<deque<int>> diskQueues;
+  static vector<deque<int>> diskScanQueues;
+  static vector<deque<int>> diskWaitingQueues;
   static vector<deque<int>> cdQueues;
 };
 

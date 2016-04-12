@@ -55,7 +55,8 @@ struct CPU : public Memory {
 	  askTimer();
 	  //The processes new estimated burst is calculated
 	  int timeInCPU = askTimer();
-	  processes[currProcess].totalBurst -= timeInCPU;
+    //Updated the process' estimated burst
+    updateEstimatedBurst(currProcess, timeInCPU);
 	  //The process' cpuCount increments
 	  ++processes[currProcess].cpuUsageCount;
 	  //The average burst variable is updated with timer's burst time
@@ -106,7 +107,7 @@ struct CPU : public Memory {
 
         else {
           if ((input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
-            (input[0] == 'd' && !diskQueues.empty())){
+            (input[0] == 'd' && !diskScanQueues.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -177,7 +178,7 @@ struct CPU : public Memory {
             checkForSystemCallinQueue(printerQueues, num);
           }
           else if (input[0]=='D'){
-            checkForSystemCallinQueue(diskQueues, num);
+            checkForSystemCallinQueue(diskScanQueues, num);
           }
           else if (input[0]=='C') {
             checkForSystemCallinQueue(cdQueues, num);
@@ -275,10 +276,10 @@ struct CPU : public Memory {
       itB = itV->begin(); itE = itV->end();
     }
     else if (input == "d"){
-      if (diskQueues.empty()){
+      if (diskScanQueues.empty()){
         return;
       }
-      itV = diskQueues.begin(); itVe = diskQueues.end();
+      itV = diskScanQueues.begin(); itVe = diskScanQueues.end();
       itB = itV->begin(); itE = itV->end(); 
     }
     else { //input == "p"
@@ -332,7 +333,7 @@ struct CPU : public Memory {
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(diskQueues, num);
+          return checkIfsysCallNumLargerThanDevQueue(diskScanQueues, num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
           return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
@@ -423,6 +424,20 @@ struct CPU : public Memory {
       processes[currProcess].length = fileLength;
     }
 
+    //If the system call is for a disk device, then the system
+    //is prompted about which track the process exists on
+    //in the cylinder
+    if (ch == 'd'){
+      string input;
+      int trackNum;
+      cout << "What track is the process on? ";
+      cin >> input;
+      while (!intErrorCheck(input, trackNum, true) || !checkIfTrackIsInDisk(trackNum,num-1)){
+	     cin >> input;
+      }
+      processes[currProcess].cylinderTrack = trackNum;
+    }
+
     /*
       When the user has been prompted for all
       system call parameters, then the process
@@ -432,7 +447,7 @@ struct CPU : public Memory {
       (printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
-      diskQueues[num-1].push_back(currProcess);
+      diskWaitingQueues[num-1].push_back(currProcess);
     }
     else { //ch == 'c'
       cdQueues[num-1].push_back(currProcess);
@@ -500,7 +515,39 @@ struct CPU : public Memory {
           emptyCPU = false;
         }
         else {
-          readyQueue.push_back(finishedProcess);
+          addProcessToReadyQueue(finishedProcess);
+        }
+        cout << "A system call has completed" << '\n' << '\n';
+      }
+    }
+    else {
+      cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';              
+    }
+  }
+
+  void checkForSystemCallinDiskQueue(vector<deque<int>>& devQueues, const int& callNum){
+    if (!diskScanQueues.empty()){
+      if (diskScanQueues[callNum-1].empty()){
+        cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+      }
+
+      //The system call at the front of the queue is removed
+      else {
+        int finishedProcess = diskScanQueues[callNum-1].front();
+        diskScanQueues[callNum-1].pop_front();
+        if (!diskWaitingQueues.empty()){
+          if (!diskWaitingQueues[callNum-1].empty()){
+            diskScanQueues[callNum-1].push_back(diskWaitingQueues[callNum-1].front());
+            diskWaitingQueues[callNum-1].pop_front();
+          }
+        }
+        if (emptyCPU){
+          currProcess = finishedProcess;
+          emptyCPU = false;
+        }
+        else {
+          addProcessToReadyQueue(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
@@ -561,10 +608,14 @@ struct CPU : public Memory {
   }
 
   /*
-    Used to estimate a process' future burst time 
+    Used to estimate a process' future burst time
   */
-  double sjfApproximationAlgorithm(Process& proc){
-    return (1-historyParameter) * initialBurstEstimate + historyParameter * proc.totalBurst; 
+  double sjfApproximationAlgorithm(const int& processPID, const int& actualBurst){
+    return (1-historyParameter) * processes[processPID].totalBurst + historyParameter * actualBurst; 
+  }
+
+  void updateEstimatedBurst(const int& processPID, const int& actualBurst){
+    processes[processPID].totalBurst = (1-historyParameter) * processes[processPID].totalBurst + historyParameter * actualBurst; 
   }
 
   /*
@@ -575,5 +626,21 @@ struct CPU : public Memory {
   void addProcessToReadyQueue(const int& num){
     deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), processes[num].totalBurst);
     readyQueue.insert(insertLimit, num);
+  }
+
+  /*
+    Checks if the proposed track number is within the range of tracks
+    in the chosen disk device that was determined during Sysgen
+  */
+  bool checkIfTrackIsInDisk(const int& trackNum, const int& diskNum){  
+    //If the track number is less than the number of tracks in the
+    //corresponding cylinderCount element, return true
+    if (trackNum < cylinderCount[diskNum-1]){
+      return true;
+    }
+    //Otherwise, an error message is printed and the function returns false
+    cerr << "The chosen track number is not in disk device " << diskNum << '\n';
+    cerr << "Enter a new number and try again: ";
+    return false;
   }
 };
