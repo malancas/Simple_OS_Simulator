@@ -52,10 +52,23 @@ struct CPU : public Memory {
         //If the CPU is already occupied, the
         //process is added to the ready queue
         else {
-	  processes[currProcess].burst -= askTimer();
+	  askTimer();
+	  //The processes new estimated burst is calculated
+	  int timeInCPU = askTimer();
+	  processes[currProcess].totalBurst -= timeInCPU;
+	  //The process' cpuCount increments
+	  ++processes[currProcess].cpuUsageCount;
+	  //The average burst variable is updated with timer's burst time
+	  processes[currProcess].averageBurst = timeInCPU;
+	  //Recalculating the current process' place in the
+	  //ready queue given its new burst
 	  addProcessToReadyQueue(currProcess);
+	  //Calculating the new process' place in the ready queue
           addProcessToReadyQueue(pidCounter);
+	  //The process with the shortest burst time in the ready
+	  //queue enters the CPU
 	  currProcess = readyQueue.front();
+	  //The shortest burst process is removed from the ready queue
 	  readyQueue.pop_front();
         }
         ++pidCounter;
@@ -143,7 +156,19 @@ struct CPU : public Memory {
 	    in the ready queue into the CPU
 	  */
 	  if (!emptyCPU){
-	    processes[currProcess].burst -= askTimer();
+	    //Get amount of time process was in CPU
+	    int timeInCPU = askTimer();
+	    //Tao is recalculated by subtracting the amount of time spent in the CPU
+	    processes[currProcess].totalBurst -= timeInCPU;
+	    //To recalculate the average burst to account for the new CPU usage time,
+	    //tempAvgBurst is used by remultiplying the average burst and old cpuUsageCount
+	    double tempAvgBurst = processes[currProcess].averageBurst * processes[currProcess].cpuUsageCount;
+	    //The new cpu usage time is added to tempAvgBurst
+	    tempAvgBurst += timeInCPU;
+	     //Increment the number of times the process was in the CPU
+	    ++processes[currProcess].cpuUsageCount;
+	    //The new average burst is calculated with the new cpuUsageCounta and tempAvgBurst
+	    processes[currProcess].averageBurst = tempAvgBurst / processes[currProcess].cpuUsageCount;
 	    addProcessToReadyQueue(currProcess);
 	    currProcess = readyQueue.front();
 	    readyQueue.pop_front();
@@ -538,11 +563,11 @@ struct CPU : public Memory {
     Used to estimate a process' future burst time 
   */
   double sjfApproximationAlgorithm(Process& proc){
-    return (1-historyParameter) * initialBurstEstimate + historyParameter * proc.cpuTime; 
+    return (1-historyParameter) * initialBurstEstimate + historyParameter * proc.totalBurst; 
   }
 
   void addProcessToReadyQueue(const int& num){
-    int insertBurstAmount = processes[num].burst;
+    int insertBurstAmount = processes[num].totalBurst;
     deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), insertBurstAmount);
     readyQueue.insert(insertLimit, num);
   }
