@@ -235,7 +235,8 @@ struct CPU : public Memory {
      being printed signifies
   */
   void snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" <<
+      setw(10) << "Burst Estimate " <<setw(10) << "Average burst time " << setw(10) << "Total Burst Time " << '\n';
   }
 
   /*
@@ -566,9 +567,13 @@ struct CPU : public Memory {
     return (1-historyParameter) * initialBurstEstimate + historyParameter * proc.totalBurst; 
   }
 
+  /*
+    Because the ready queue is sorted by first total burst time, inserting a process in the queue requires
+    that a search be done to find the first element that has a higher value than the process being inserted
+    The process represented by num is then inserted there
+  */
   void addProcessToReadyQueue(const int& num){
-    int insertBurstAmount = processes[num].totalBurst;
-    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), insertBurstAmount);
+    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), processes[num].totalBurst);
     readyQueue.insert(insertLimit, num);
   }
 };
