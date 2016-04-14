@@ -41,10 +41,10 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-	//A new process is created and added to the processes unordered map
-	processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
-	//If the CPU is empty, the newly created process is added to the CPU
-	if (emptyCPU){
+	      //A new process is created and added to the processes unordered map
+	      processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
+	      //If the CPU is empty, the newly created process is added to the CPU
+	      if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
           cout << "The CPU is now occupied!" << '\n' << '\n';
@@ -52,25 +52,19 @@ struct CPU : public Memory {
         //If the CPU is already occupied, the
         //process is added to the ready queue
         else {
-	  askTimer();
-	  //The processes new estimated burst is calculated
-	  int timeInCPU = askTimer();
-    //Updated the process' estimated burst
-    updateEstimatedBurst(currProcess, timeInCPU);
-	  //The process' cpuCount increments
-	  ++processes[currProcess].cpuUsageCount;
-	  //The average burst variable is updated with timer's burst time
-	  processes[currProcess].averageBurst = timeInCPU;
-	  //Recalculating the current process' place in the
-	  //ready queue given its new burst
-	  addProcessToReadyQueue(currProcess);
-	  //Calculating the new process' place in the ready queue
+          /*
+            Recalculates various burst related variables of the process that
+            just occupied the CPU before reallocating to the ready queue
+            to be sorted
+          */
+          handleCPUInterrupt();
+	        //Calculating the new process' place in the ready queue
           addProcessToReadyQueue(pidCounter);
-	  //The process with the shortest burst time in the ready
-	  //queue enters the CPU
-	  currProcess = readyQueue.front();
-	  //The shortest burst process is removed from the ready queue
-	  readyQueue.pop_front();
+	        //The process with the shortest burst time in the ready
+	        //queue enters the CPU
+	        currProcess = readyQueue.front();
+	        //The shortest burst process is removed from the ready queue
+	        readyQueue.pop_front();
         }
         ++pidCounter;
       }
@@ -157,33 +151,20 @@ struct CPU : public Memory {
 	    in the ready queue into the CPU
 	  */
 	  if (!emptyCPU){
-	    //Get amount of time process was in CPU
-	    int timeInCPU = askTimer();
-	    //Tao is recalculated by subtracting the amount of time spent in the CPU
-	    processes[currProcess].totalBurst -= timeInCPU;
-	    //To recalculate the average burst to account for the new CPU usage time,
-	    //tempAvgBurst is used by remultiplying the average burst and old cpuUsageCount
-	    double tempAvgBurst = processes[currProcess].averageBurst * processes[currProcess].cpuUsageCount;
-	    //The new cpu usage time is added to tempAvgBurst
-	    tempAvgBurst += timeInCPU;
-	     //Increment the number of times the process was in the CPU
-	    ++processes[currProcess].cpuUsageCount;
-	    //The new average burst is calculated with the new cpuUsageCounta and tempAvgBurst
-	    processes[currProcess].averageBurst = tempAvgBurst / processes[currProcess].cpuUsageCount;
-	    addProcessToReadyQueue(currProcess);
+      handleCPUInterrupt();
 	    currProcess = readyQueue.front();
 	    readyQueue.pop_front();
 	  }
-          if (input[0]=='P'){
-            checkForSystemCallinQueue(printerQueues, num);
-          }
-          else if (input[0]=='D'){
-            checkForSystemCallinQueue(diskScanQueues, num);
-          }
-          else if (input[0]=='C') {
-            checkForSystemCallinQueue(cdQueues, num);
-          }
-        }
+    if (input[0]=='P'){
+      checkForSystemCallinQueue(printerQueues, num);
+    }
+    else if (input[0]=='D'){
+      checkForSystemCallinQueue(diskScanQueues, num);
+    }
+    else if (input[0]=='C') {
+      checkForSystemCallinQueue(cdQueues, num);
+    }
+  }
       }
 
       /*If the user types 'S' for the snapshot function,
@@ -608,14 +589,10 @@ struct CPU : public Memory {
   }
 
   /*
-    Used to estimate a process' future burst time
+    Used to estimate a process' future estimated burst time
   */
-  double sjfApproximationAlgorithm(const int& processPID, const int& actualBurst){
-    return (1-historyParameter) * processes[processPID].totalBurst + historyParameter * actualBurst; 
-  }
-
-  void updateEstimatedBurst(const int& processPID, const int& actualBurst){
-    processes[processPID].totalBurst = (1-historyParameter) * processes[processPID].totalBurst + historyParameter * actualBurst; 
+  void recalculateBurstEstimate(const int& PID, const int& actualBurst){
+    processes[PID].burstEstimate = (1-historyParameter) * processes[PID].burstEstimate + historyParameter * actualBurst; 
   }
 
   /*
@@ -624,7 +601,7 @@ struct CPU : public Memory {
     The process represented by num is then inserted there
   */
   void addProcessToReadyQueue(const int& num){
-    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), processes[num].totalBurst);
+    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), processes[num].remainingBurst);
     readyQueue.insert(insertLimit, num);
   }
 
@@ -642,5 +619,26 @@ struct CPU : public Memory {
     cerr << "The chosen track number is not in disk device " << diskNum << '\n';
     cerr << "Enter a new number and try again: ";
     return false;
+  }
+
+  /*
+    After an arrival of a new process or a system call finish, the function
+    will handle recalculating burst related variables of the process that
+    just left the CPU
+  */
+  void handleCPUInterrupt(){
+    //The system asks timer how the long the process was in the CPU
+    int timeInCPU = askTimer();
+    //The proceess' remaining burst time is calculated
+    processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - timeInCPU;
+    //The process' cpuCount increments
+    ++processes[currProcess].cpuUsageCount;
+    //The totalBurst variable is updated with timer's burst time
+    processes[currProcess].totalBurst += timeInCPU;
+    //Calculate the process' new estimated burst
+    recalculateBurstEstimate(currProcess, timeInCPU);
+    //Recalculating the place in the ready queue of the process
+    //that just left the CPU,given its new burst
+    addProcessToReadyQueue(currProcess);
   }
 };

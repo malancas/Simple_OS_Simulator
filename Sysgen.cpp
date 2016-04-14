@@ -12,7 +12,7 @@ struct Sysgen : public Memory {
     input was valid
   */
   int num;
-  double doubleNum;
+  float floatNum;
 
   //CONSTRUCTORS
   Sysgen() : num(0) {}
@@ -41,10 +41,10 @@ struct Sysgen : public Memory {
 
     //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", true);
-    historyParameter = doubleNum;
+    historyParameter = floatNum;
 
     //Set the inital burst estimate
-    getInstallerInput_aux("Enter the initial burst estimate: ", false);
+    getInstallerInput_aux("Enter the initial burst estimate: ", true);
     initialBurstEstimate = num;
 
     //Set the number of cylinders in each disk device
@@ -104,10 +104,10 @@ struct Sysgen : public Memory {
 	     }
       }
       else {
-	     if (iss >> doubleNum && (iss.eof() || isspace(iss.peek()))) {       
+	     if (iss >> floatNum && (iss.eof() || isspace(iss.peek()))) {       
 	       //If it was successfully converted, then checks if
 	       //num is negative
-	       if (doubleNum < 0){
+	       if (floatNum < 0){
 	         cerr << '\n' << "Negative number entered. Please try again" << '\n';
 	         return false;
 	       }
@@ -134,6 +134,6 @@ struct Sysgen : public Memory {
     which is necessary to be valid history parameter
   */
   bool isHistoryParameterInRange(){
-    return (doubleNum >= 0 && doubleNum <= 1);
+    return (floatNum >= 0 && floatNum <= 1);
   }
 };
