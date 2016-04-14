@@ -76,18 +76,30 @@ struct CPU : public Memory {
           cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
         }
         else {
+          int averageBurstTime = 0;
+          if (processes[currProcess].totalCPUTime){
+            averageBurstTime += processes[currProcess].totalCPUTime / processes[currProcess].cpuUsageCount;
+          }
+
+          os << "Process terminated" << '\n';
+          os << "PID | " << setw(10) << "Total CPU Time | " << setw(10) << "Average Burst Time" <<'\n';
+          os << "-------------------------------------------------------------------------" << '\n';
+          os << currProcess << setw(10) << processes[currProcess].totalCPUTime << setw(13) <<
+          averageBurstTime << '\n' << '\n';
           processes.erase(currProcess);
-          cout << "Process terminated" << '\n';
           if (!readyQueue.empty()){
             currProcess = readyQueue.front();
             readyQueue.pop_front();
             emptyCPU = false;
-            cout << "A new process has been added to the CPU." << '\n';
+            os << "A new process has been added to the CPU." << '\n';
           }
           else {
             emptyCPU = true;
           }
-          cout << '\n';
+          os << '\n';
+          cout << os.str();
+          os.str("");
+          os.clear();
         }
       }
 
@@ -631,10 +643,10 @@ struct CPU : public Memory {
     int timeInCPU = askTimer();
     //The proceess' remaining burst time is calculated
     processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - timeInCPU;
-    //The process' cpuCount increments
+    //The process' cpuUsageCount increments
     ++processes[currProcess].cpuUsageCount;
-    //The totalBurst variable is updated with timer's burst time
-    processes[currProcess].totalBurst += timeInCPU;
+    //The totalCPUTime variable is updated with timer's burst time
+    processes[currProcess].totalCPUTime += timeInCPU;
     //Calculate the process' new estimated burst
     recalculateBurstEstimate(currProcess, timeInCPU);
     //Recalculating the place in the ready queue of the process
