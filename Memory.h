@@ -48,6 +48,8 @@ struct Memory {
 
   static bool isScanQueues;
 
+  static bool scanGoesUp;
+
   static float systemTotalCPUTime;
 
   static int systemTotalcpuUsageCount;

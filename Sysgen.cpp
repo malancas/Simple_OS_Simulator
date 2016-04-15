@@ -45,7 +45,8 @@ struct Sysgen : public Memory {
 
     //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
-    initialBurstEstimate = num;
+    initialBurstEstimate = floatNum;
+    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
     int n = cylinderCount.size();

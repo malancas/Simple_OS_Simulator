@@ -43,7 +43,7 @@ struct CPU : public Memory {
         cout << "New process made!" << '\n';
 	      //A new process is created and added to the processes unordered map
 	      processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
-	      //If the CPU is empty, the newly created process is added to the CPU
+	      //If the CPU is empty, the newly created process is added to the CPUaddProcessToReady
 	      if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
@@ -180,6 +180,7 @@ struct CPU : public Memory {
         checkForSystemCallinQueue(diskQueues1, num);
         if (diskQueues1[num-1].empty()){
           isScanQueues = !isScanQueues;
+          scanGoesUp = !scanGoesUp;
         }
       }
       //If diskQueues0 represents the scan queues
@@ -190,6 +191,7 @@ struct CPU : public Memory {
         checkForSystemCallinQueue(diskQueues0, num);
         if (diskQueues0[num-1].empty()){
           isScanQueues = !isScanQueues;
+          scanGoesUp = !scanGoesUp;
         }
       }
     }
@@ -218,11 +220,23 @@ struct CPU : public Memory {
             deque<int>::iterator itB = readyQueue.begin();
             deque<int>::iterator itE = readyQueue.end();
 
-            os << "PID" << '\n' << "----r" << '\n';
+            os << "PID" << setw(10) << " Total CPU Time" << '\n' << "----r" << '\n';
             while (itB != itE){
-              os << *itB << '\n';
+              os << *itB << setw(10) << processes[*itB].totalCPUTime;
+              if (processes[*itB].cpuUsageCount > 0){
+                os << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+              }
+              else {
+                os << "0";
+              }
+              os << '\n';
               ++itB;
             }
+            /*
+            for (int i = 0; i < readyQueue.size(); ++i){
+              os << "remaining burst: " << processes[readyQueue[i]].remainingBurst << '\n';
+            }
+            */
             os << '\n';
           }
 
@@ -560,12 +574,20 @@ struct CPU : public Memory {
       }
       else {
         if (isScanQueues){
-          diskQueues0[num-1].push_back(currProcess);
-          sort(diskQueues0[num-1].begin(), diskQueues0[num-1].end());
+          if (scanGoesUp){
+            addProcessToDiskQueue_rev(diskQueues0[num-1],currProcess);
+          }
+          else {
+            addProcessToDiskQueue(diskQueues0[num-1],currProcess);
+          }
         }
         else {
-          diskQueues1[num-1].push_back(currProcess);
-          sort(diskQueues1[num-1].begin(), diskQueues1[num-1].end());
+          if (scanGoesUp){
+            addProcessToDiskQueue_rev(diskQueues1[num-1],currProcess);
+          }
+          else {
+            addProcessToDiskQueue(diskQueues1[num-1],currProcess);
+          }
         }
       }
     }
@@ -670,7 +692,7 @@ struct CPU : public Memory {
     string timeInput = "";
     int time = 0;
 
-    cout << "Enter the amount of time this process has used the CPU: ";
+    cout << "Enter time the current process has used the CPU: ";
     cin >> timeInput;
     while (!intErrorCheck(timeInput, time, -1)){
       cin >> timeInput;
@@ -708,8 +730,20 @@ struct CPU : public Memory {
     The process represented by num is then inserted there
   */
   void addProcessToReadyQueue(const int& num){
-    deque<int>::iterator insertLimit = upper_bound(readyQueue.begin(), readyQueue.end(), processes[num].remainingBurst);
-    readyQueue.insert(insertLimit, num);
+    if (readyQueue.empty()){
+      readyQueue.push_back(num);
+      return;
+    }
+
+    deque<int>::iterator it = readyQueue.begin();
+    while (it != readyQueue.end()){
+      if (processes[*it].remainingBurst > processes[num].remainingBurst){
+        readyQueue.insert(it, num);
+        return;
+      }
+      ++it;
+    }
+    readyQueue.push_back(num);
   }
 
   /*
@@ -738,14 +772,57 @@ struct CPU : public Memory {
     int timeInCPU = askTimer();
     //The proceess' remaining burst time is calculated
     processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - timeInCPU;
+    
+    //cout << "burst estimate: " << processes[currProcess].burstEstimate << '\n';
+    //cout << "tim in cpu: " << timeInCPU << '\n';
+    //cout << "NEW burst time: " << processes[currProcess].remainingBurst << '\n'; 
+    
     //The process' cpuUsageCount increments
     ++processes[currProcess].cpuUsageCount;
+    //The system's total cpu usage count is updated
+    ++systemTotalcpuUsageCount;
     //The totalCPUTime variable is updated with timer's burst time
     processes[currProcess].totalCPUTime += timeInCPU;
+    //The system's total CPU time is aladdProcessToDiso updated
+    systemTotalCPUTime += timeInCPU;
     //Calculate the process' new estimated burst
     recalculateBurstEstimate(currProcess, timeInCPU);
     //Recalculating the place in the ready queue of the process
     //that just left the CPU,given its new burst
     addProcessToReadyQueue(currProcess);
+  }
+
+  void addProcessToDiskQueue(deque<int>& waitingQueue, const int& pid){
+    if (waitingQueue.empty()){
+      waitingQueue.push_back(pid);
+      return;
+    }
+
+    deque<int>::iterator it = waitingQueue.begin();
+    while (it != waitingQueue.end()){
+      if (processes[waitingQueue[*it]].cylinderTrack > processes[pid].cylinderTrack){
+        waitingQueue.insert(it, pid);
+        return;
+      }
+      ++it;
+    }
+    waitingQueue.push_back(pid);
+  }
+
+  void addProcessToDiskQueue_rev(deque<int>& waitingQueue, const int& pid){
+    if (waitingQueue.empty()){
+      waitingQueue.push_back(pid);
+      return;
+    }
+
+    deque<int>::iterator it = waitingQueue.begin();
+    while (it != waitingQueue.end()){
+      if (processes[waitingQueue[*it]].cylinderTrack < processes[pid].cylinderTrack){
+        waitingQueue.insert(it, pid);
+        return;
+      }
+      ++it;
+    }
+    waitingQueue.push_back(pid);
   }
 };
