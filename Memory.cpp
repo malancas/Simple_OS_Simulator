@@ -16,6 +16,8 @@ using namespace std;
   vector<deque<int>*> Memory::waitingQueuesPtrVector;
   bool Memory::firstDiskSystemCall = true;
   bool Memory::isScanQueues = true;
+  float Memory::systemTotalCPUTime = 0;
+  int Memory::systemTotalcpuUsageCount = 0;
   vector<int> Memory::cylinderCount;
   vector<deque<int>> Memory::printerQueues;
   vector<deque<int>> Memory::diskQueues0;

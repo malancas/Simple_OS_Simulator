@@ -80,6 +80,8 @@ struct CPU : public Memory {
           if (processes[currProcess].totalCPUTime){
             averageBurstTime += processes[currProcess].totalCPUTime / processes[currProcess].cpuUsageCount;
           }
+          systemTotalCPUTime += processes[currProcess].totalCPUTime;
+          systemTotalcpuUsageCount += processes[currProcess].cpuUsageCount;
 
           os << "Process terminated" << '\n';
           os << "PID | " << setw(10) << "Total CPU Time | " << setw(10) << "Average Burst Time" <<'\n';
@@ -114,6 +116,8 @@ struct CPU : public Memory {
         else {
           if ((input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
             (input[0] == 'd' && !diskQueues0.empty())){
+            handleCPUInterrupt();
+
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -129,6 +133,7 @@ struct CPU : public Memory {
               //added to the appropriate device queue 
               systemCallParameters(print, input[0], num);
               cout << "System call added!" << '\n' << '\n';
+              
               if (!readyQueue.empty()){
                 currProcess = readyQueue.front();
                 readyQueue.pop_front();
@@ -137,7 +142,6 @@ struct CPU : public Memory {
               else {
                 emptyCPU = true;
               }
-	      askTimer();
             }            
           }
           else {
@@ -231,6 +235,16 @@ struct CPU : public Memory {
               snapshotPrint_Disk();
             }
           }
+
+          os << "System Average Total CPU Time: ";
+          if (systemTotalcpuUsageCount){
+            os << (systemTotalCPUTime / systemTotalcpuUsageCount); 
+          }
+          else {
+            os << "0";
+          }
+          os << '\n' << '\n';
+
           cout << os.str();
 
           os.str("");
@@ -250,8 +264,8 @@ struct CPU : public Memory {
      being printed signifies
   */
   void snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" <<
-      setw(10) << "Burst Estimate " <<setw(10) << "Average burst time " << setw(10) << "Total Burst Time " << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " <<
+      setw(10) << "Total CPU Time " << setw(10) << "Average burst time " << '\n';
   }
 
   /*
@@ -266,6 +280,13 @@ struct CPU : public Memory {
         << setw(10) << ty; 
       if (ty == "w"){
         os << setw(10) << processes[*itB].length;
+      }
+      os << setw(10) << processes[*itB].totalCPUTime;
+      if (processes[*itB].cpuUsageCount){
+        os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+      }
+      else {
+        os << setw(10) << "0";
       }
       os << '\n';
       ++itB;
@@ -291,22 +312,51 @@ struct CPU : public Memory {
     }
 
     itB = itS->begin();
-    itE = itSe->end();
+    itE = itS->end();
     int i = 1;
-
+    
     while (itS != itSe){
-      os << "---Scan Queue d " << i << '\n';
+      os << "---Scan Queue d" << i << '\n';
       while (itB != itE){
-        os << *itB << setw(10) << processes[*itB] << '\n';
+        string ty = processes[*itB].type;
+        os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
+          << setw(10) << ty; 
+        if (ty == "w"){
+          os << setw(10) << processes[*itB].length;
+        }
+        os << setw(10) << processes[*itB].totalCPUTime;
+        if (processes[*itB].cpuUsageCount > 0){
+          os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+        }
+        else {
+          os << setw(10) << "0";
+        }
+        os << '\n';
         ++itB;
       }
+      
+      itB = itW->begin(); itE = itW->end();
+      os << "---Waiting Queue d" << i << '\n';
+      while (itB != itE){
+        string ty = processes[*itB].type;
+        os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
+          << setw(10) << ty; 
+        if (ty == "w"){
+          os << setw(10) << processes[*itB].length;
+        }
+        os << setw(10) << processes[*itB].totalCPUTime;
+        if (processes[*itB].cpuUsageCount > 0){
+          cout << "JERE" << '\n';
+          os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+        }
+        else {
+          os << setw(10) << "0";
+        }
+        os << '\n';
+        ++itB;
+      }
+      os << '\n';
 
-      itB = itW->begin(); itE = itWe->end();
-      os << '\n' << "---Waiting Queue d " << i << '\n';
-      while (itB != itE){
-        os << *itB << setw(10) << processes[*itB] << '\n';
-        ++itB;
-      }
       ++i; ++itS;  
     }
   }
@@ -669,7 +719,7 @@ struct CPU : public Memory {
   bool checkIfTrackIsInDisk(const int& trackNum, const int& diskNum){  
     //If the track number is less than the number of tracks in the
     //corresponding cylinderCount element, return true
-    if (trackNum < cylinderCount[diskNum-1]){
+    if (trackNum < cylinderCount[diskNum]){
       return true;
     }
     //Otherwise, an error message is printed and the function returns false

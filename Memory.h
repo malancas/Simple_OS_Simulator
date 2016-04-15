@@ -48,6 +48,10 @@ struct Memory {
 
   static bool isScanQueues;
 
+  static float systemTotalCPUTime;
+
+  static int systemTotalcpuUsageCount;
+
   /*
     Number of cylinders in the hard drive
   */

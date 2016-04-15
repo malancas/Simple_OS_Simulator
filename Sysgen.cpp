@@ -54,7 +54,7 @@ struct Sysgen : public Memory {
     string messageBase = "Enter the number of cylinders in disk device ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
-      getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, false);
+      getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
       cylinderCount[i] = num;
     }
   } 
