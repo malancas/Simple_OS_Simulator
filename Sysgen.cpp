@@ -26,25 +26,25 @@ struct Sysgen : public Memory {
   */
   void getInstallerInput(){
     //Set the number of printer device queues
-    getInstallerInput_aux("Enter the number of printer devices: ", false);
+    getInstallerInput_aux("Enter the number of printer devices: ", 'o');
     printerQueues.resize(num);
 
     //Set the number of disk device queues
-    getInstallerInput_aux("Enter the number of disk devices: ", false);
-    diskScanQueues.resize(num);
-    diskWaitingQueues.resize(num);
+    getInstallerInput_aux("Enter the number of disk devices: ", 'o');
+    diskQueues0.resize(num);
+    diskQueues1.resize(num);
     cylinderCount.resize(num);
 
     //Set the number of CD device queues
-    getInstallerInput_aux("Enter the number of CD devices: ", false);
+    getInstallerInput_aux("Enter the number of CD devices: ", 'o');
     cdQueues.resize(num);
 
     //Set the history parameter
-    getInstallerInput_aux("Enter the history parameter: ", true);
+    getInstallerInput_aux("Enter the history parameter: ", 'h');
     historyParameter = floatNum;
 
     //Set the inital burst estimate
-    getInstallerInput_aux("Enter the initial burst estimate: ", true);
+    getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
     initialBurstEstimate = num;
 
     //Set the number of cylinders in each disk device
@@ -59,10 +59,10 @@ struct Sysgen : public Memory {
     }
   } 
 
-  void getInstallerInput_aux(const string& userMessage, const bool& checkingHistoryParameter){
+  void getInstallerInput_aux(const string& userMessage, const char& variableCode){
     num = 0;
     cout << userMessage << '\n';
-    while(!checkInputForErrors(checkingHistoryParameter)){
+    while(!checkInputForErrors(variableCode)){
       cout << userMessage;
     }
     cout << '\n';
@@ -72,12 +72,12 @@ struct Sysgen : public Memory {
     parsing and checking for errors.
   */
   
-  bool checkInputForErrors(const bool& checkingHistoryParameter){
+  bool checkInputForErrors(const char& variableCode){
     string line;
     if (getline(cin, line)) {
       istringstream iss{line};
       //Checks if the input can be converted to an int
-      if (!checkingHistoryParameter){
+      if (variableCode == 'o'){
 	     if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
           
 	       //If it was successfully converted, then checks if
@@ -114,11 +114,14 @@ struct Sysgen : public Memory {
 	
 	       //If num is not negative and if representing a history parameter
 	       //in the correct range, then the function will return true
-	       if (!isHistoryParameterInRange()){
-	         cerr << "Input is not in correct range for the history parameter" << '\n';
-	         return false;
-	       }
-	       return true;            
+         if (variableCode == 'h'){
+            if (!isHistoryParameterInRange()){
+              cerr << "Input is not in correct range for the history parameter" << '\n';
+              return false;
+            }
+          return true; 
+         }
+          return true;  
 	     }
 	     else {
 	       cerr << '\n' << "Non numeric character entered. Please try again." << '\n';

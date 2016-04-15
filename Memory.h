@@ -38,6 +38,16 @@ struct Memory {
   */
   static float initialBurstEstimate;
 
+  //Used to determine which disk queue
+  //vector represents the scan queues
+  static vector<deque<int>*> scanQueuesPtrVector;
+
+  static vector<deque<int>*> waitingQueuesPtrVector;
+
+  static bool firstDiskSystemCall;
+
+  static bool isScanQueues;
+
   /*
     Number of cylinders in the hard drive
   */
@@ -51,8 +61,8 @@ struct Memory {
   */
   static deque<int> readyQueue;
   static vector<deque<int>> printerQueues;
-  static vector<deque<int>> diskScanQueues;
-  static vector<deque<int>> diskWaitingQueues;
+  static vector<deque<int>> diskQueues0;
+  static vector<deque<int>> diskQueues1;
   static vector<deque<int>> cdQueues;
 };
 

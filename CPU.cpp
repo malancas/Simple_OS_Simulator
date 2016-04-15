@@ -113,7 +113,7 @@ struct CPU : public Memory {
 
         else {
           if ((input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
-            (input[0] == 'd' && !diskScanQueues.empty())){
+            (input[0] == 'd' && !diskQueues0.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -171,7 +171,23 @@ struct CPU : public Memory {
       checkForSystemCallinQueue(printerQueues, num);
     }
     else if (input[0]=='D'){
-      checkForSystemCallinQueue(diskScanQueues, num);
+      //If diskQueues1 represents the scan queues
+      if (isScanQueues){
+        checkForSystemCallinQueue(diskQueues1, num);
+        if (diskQueues1[num-1].empty()){
+          isScanQueues = !isScanQueues;
+        }
+      }
+      //If diskQueues0 represents the scan queues
+      else {
+        //If the system call was the last one in diskQueues0,
+        //the value of isScanQueues is reversed so diskQueues1
+        //represents the scan queues
+        checkForSystemCallinQueue(diskQueues0, num);
+        if (diskQueues0[num-1].empty()){
+          isScanQueues = !isScanQueues;
+        }
+      }
     }
     else if (input[0]=='C') {
       checkForSystemCallinQueue(cdQueues, num);
@@ -208,7 +224,12 @@ struct CPU : public Memory {
 
           else {
             snapshotHeader();
-            snapshotAux(input);
+            if (input != "d"){
+              snapshotAux(input);
+            }
+            else {
+              snapshotPrint_Disk();
+            }
           }
           cout << os.str();
 
@@ -251,6 +272,45 @@ struct CPU : public Memory {
     }
   }
 
+  void snapshotPrint_Disk(){
+    vector<deque<int>>::iterator itS, itSe;
+    vector<deque<int>>::iterator itW, itWe;
+    deque<int>::iterator itB, itE;
+
+    if (isScanQueues){
+      itS = diskQueues1.begin();
+      itSe = diskQueues1.end();
+      itW = diskQueues0.begin();
+      itWe = diskQueues0.end();
+    }
+    else {
+      itS = diskQueues0.begin();
+      itSe = diskQueues0.end();
+      itW = diskQueues1.begin();
+      itWe = diskQueues1.end();
+    }
+
+    itB = itS->begin();
+    itE = itSe->end();
+    int i = 1;
+
+    while (itS != itSe){
+      os << "---Scan Queue d " << i << '\n';
+      while (itB != itE){
+        os << *itB << setw(10) << processes[*itB] << '\n';
+        ++itB;
+      }
+
+      itB = itW->begin(); itE = itWe->end();
+      os << '\n' << "---Waiting Queue d " << i << '\n';
+      while (itB != itE){
+        os << *itB << setw(10) << processes[*itB] << '\n';
+        ++itB;
+      }
+      ++i; ++itS;  
+    }
+  }
+
   /*
     Checks whether the device queues are empty and returns
     if so. Otherwise, the function will set up to loop through
@@ -267,13 +327,6 @@ struct CPU : public Memory {
       }
       itV = cdQueues.begin(); itVe = cdQueues.end();
       itB = itV->begin(); itE = itV->end();
-    }
-    else if (input == "d"){
-      if (diskScanQueues.empty()){
-        return;
-      }
-      itV = diskScanQueues.begin(); itVe = diskScanQueues.end();
-      itB = itV->begin(); itE = itV->end(); 
     }
     else { //input == "p"
       if (printerQueues.empty()){
@@ -326,7 +379,7 @@ struct CPU : public Memory {
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(diskScanQueues, num);
+          return checkIfsysCallNumLargerThanDevQueue(diskQueues1, num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
           return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
@@ -440,7 +493,31 @@ struct CPU : public Memory {
       (printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
-      diskWaitingQueues[num-1].push_back(currProcess);
+      /*
+        If this the first time a disk system call
+        is made, the call will be pushed directly
+        into the scan queue instead of being pushed
+        into the waiting queue
+      */
+      if (firstDiskSystemCall){
+        if (isScanQueues){
+          diskQueues1[num-1].push_back(currProcess); 
+        }
+        else {
+          diskQueues0[num-1].push_back(currProcess);
+        }
+        firstDiskSystemCall = false;
+      }
+      else {
+        if (isScanQueues){
+          diskQueues0[num-1].push_back(currProcess);
+          sort(diskQueues0[num-1].begin(), diskQueues0[num-1].end());
+        }
+        else {
+          diskQueues1[num-1].push_back(currProcess);
+          sort(diskQueues1[num-1].begin(), diskQueues1[num-1].end());
+        }
+      }
     }
     else { //ch == 'c'
       cdQueues[num-1].push_back(currProcess);
@@ -458,7 +535,7 @@ struct CPU : public Memory {
     //Checks if the input can be converted to an int
     if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
       if (!memLoc && num <= 0){
-        cerr << "Zero or a negative number was entered. Please try again." << '\n';
+        cerr << "Zero or a negative number was entered. Please checkForSystemtry again." << '\n';
         return false;
       }
       else if (memLoc && num < 0){
@@ -503,38 +580,6 @@ struct CPU : public Memory {
       else {
         int finishedProcess = devQueues[callNum-1].front();
         devQueues[callNum-1].pop_front();
-        if (emptyCPU){
-          currProcess = finishedProcess;
-          emptyCPU = false;
-        }
-        else {
-          addProcessToReadyQueue(finishedProcess);
-        }
-        cout << "A system call has completed" << '\n' << '\n';
-      }
-    }
-    else {
-      cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
-      cerr << "Please enter a new command and try again." << '\n' << '\n';              
-    }
-  }
-
-  void checkForSystemCallinDiskQueue(vector<deque<int>>& devQueues, const int& callNum){
-    if (!diskScanQueues.empty()){
-      if (diskScanQueues[callNum-1].empty()){
-        cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
-      }
-
-      //The system call at the front of the queue is removed
-      else {
-        int finishedProcess = diskScanQueues[callNum-1].front();
-        diskScanQueues[callNum-1].pop_front();
-        if (!diskWaitingQueues.empty()){
-          if (!diskWaitingQueues[callNum-1].empty()){
-            diskScanQueues[callNum-1].push_back(diskWaitingQueues[callNum-1].front());
-            diskWaitingQueues[callNum-1].pop_front();
-          }
-        }
         if (emptyCPU){
           currProcess = finishedProcess;
           emptyCPU = false;

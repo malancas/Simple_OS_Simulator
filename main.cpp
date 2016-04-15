@@ -22,6 +22,7 @@ int main(){
     destruction of processes, the CPU, and device system
     calls. 
   */
+
   CPU c;
   c.waitForInput();
 
