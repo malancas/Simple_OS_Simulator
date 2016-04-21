@@ -5,20 +5,20 @@ using namespace std;
 
 struct Process {
   //VARIABLES
-  	
-  	int pid;
-  	
-  	//Whether the process is read or write
-  	string type;
+    
+    int pid;
+    
+    //Whether the process is read or write
+    string type;
 
-  	//the filename
- 	string name;
+    //the filename
+  string name;
 
- 	//Starting location in memory
-	int memStart;
+  //Starting location in memory
+  int memStart;
 
-	//file length
-	int length;
+  //file length
+  int length;
 
   //The amount of time the process needs in the CPU to complete
   float burstEstimate;
@@ -45,13 +45,13 @@ struct Process {
    length(), burstEstimate(burstEst), nextBurstEstimate(), remainingBurst(burstEst), 
    totalCPUTime(0), cpuUsageCount(0), cylinderTrack() {}
 
-	//OPERATOR OVERLOADING
-	friend ostream& operator<<(ostream& os, const Process& obj)
-	{
-	  os << obj.pid << " " << obj.name << " " << obj.memStart << " " 
+  //OPERATOR OVERLOADING
+  friend ostream& operator<<(ostream& os, const Process& obj)
+  {
+    os << obj.pid << " " << obj.name << " " << obj.memStart << " " 
     << obj.type << " " << obj.length << " " << obj.totalCPUTime 
     << " " << " " << obj.cpuUsageCount << " " << obj.nextBurstEstimate << '\n';
     return os;
-	}
+  }
 };
 

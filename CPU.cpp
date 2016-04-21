@@ -7,7 +7,6 @@
 #include <sstream>
 #include <deque>
 #include <iomanip>
-#include <algorithm>
 #include "Memory.h"
 using namespace std;
 
@@ -41,30 +40,18 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-	      //A new process is created and added to the processes unordered map
-	      processes.insert(make_pair(pidCounter,Process(pidCounter, initialBurstEstimate)));
-	      //If the CPU is empty, the newly created process is added to the CPUaddProcessToReady
-	      if (emptyCPU){
+        processes.insert(make_pair(pidCounter,Process(pidCounter)));
+        if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
           cout << "The CPU is now occupied!" << '\n' << '\n';
+          //If the CPU is already occupied, the
+          //process is added to the ready queue
         }
-        //If the CPU is already occupied, the
-        //process is added to the ready queue
+        //If the CPU isn't empty and the user issues an 'A',
+        //a process is created and added to the ready queue
         else {
-          /*
-            Recalculates various burst related variables of the process that
-            just occupied the CPU before reallocating to the ready queue
-            to be sorted
-          */
-          handleCPUInterrupt();
-	        //Calculating the new process' place in the ready queue
-          addProcessToReadyQueue(pidCounter);
-	        //The process with the shortest burst time in the ready
-	        //queue enters the CPU
-	        currProcess = readyQueue.front();
-	        //The shortest burst process is removed from the ready queue
-	        readyQueue.pop_front();
+          readyQueue.push_back(pidCounter);
         }
         ++pidCounter;
       }
@@ -76,32 +63,18 @@ struct CPU : public Memory {
           cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
         }
         else {
-          int averageBurstTime = 0;
-          if (processes[currProcess].totalCPUTime){
-            averageBurstTime += processes[currProcess].totalCPUTime / processes[currProcess].cpuUsageCount;
-          }
-          systemTotalCPUTime += processes[currProcess].totalCPUTime;
-          systemTotalcpuUsageCount += processes[currProcess].cpuUsageCount;
-
-          os << "Process terminated" << '\n';
-          os << "PID | " << setw(10) << "Total CPU Time | " << setw(10) << "Average Burst Time" <<'\n';
-          os << "-------------------------------------------------------------------------" << '\n';
-          os << currProcess << setw(10) << processes[currProcess].totalCPUTime << setw(13) <<
-          averageBurstTime << '\n' << '\n';
           processes.erase(currProcess);
+          cout << "Process terminated" << '\n';
           if (!readyQueue.empty()){
             currProcess = readyQueue.front();
             readyQueue.pop_front();
             emptyCPU = false;
-            os << "A new process has been added to the CPU." << '\n';
+            cout << "A new process has been added to the CPU." << '\n';
           }
           else {
             emptyCPU = true;
           }
-          os << '\n';
-          cout << os.str();
-          os.str("");
-          os.clear();
+          cout << '\n';
         }
       }
 
@@ -115,9 +88,7 @@ struct CPU : public Memory {
 
         else {
           if ((input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
-            (input[0] == 'd' && !diskQueues0.empty())){
-            handleCPUInterrupt();
-
+            (input[0] == 'd' && !diskQueues.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -133,7 +104,6 @@ struct CPU : public Memory {
               //added to the appropriate device queue 
               systemCallParameters(print, input[0], num);
               cout << "System call added!" << '\n' << '\n';
-              
               if (!readyQueue.empty()){
                 currProcess = readyQueue.front();
                 readyQueue.pop_front();
@@ -157,48 +127,16 @@ struct CPU : public Memory {
 
         //If the user's input is determined to be valid
         if (systemCallInputChecking(input,num)){
-	  /*
-	    If there is a process occupying the CPU, the timer will
-	    be prompted for the amount of time the process has
-	    spent in the CPU. Its burst will then be recalculated
-	    and it will be added to the ready queue. This allows the
-	    ready queue to sort its contents based on shortest burst
-	    time, then pushing the process at the front of the queue
-	    in the ready queue into the CPU
-	  */
-	  if (!emptyCPU){
-      handleCPUInterrupt();
-	    currProcess = readyQueue.front();
-	    readyQueue.pop_front();
-	  }
-    if (input[0]=='P'){
-      checkForSystemCallinQueue(printerQueues, num);
-    }
-    else if (input[0]=='D'){
-      //If diskQueues1 represents the scan queues
-      if (isScanQueues){
-        checkForSystemCallinQueue(diskQueues1, num);
-        if (diskQueues1[num-1].empty()){
-          isScanQueues = !isScanQueues;
-          scanGoesUp = !scanGoesUp;
-        }
-      }
-      //If diskQueues0 represents the scan queues
-      else {
-        //If the system call was the last one in diskQueues0,
-        //the value of isScanQueues is reversed so diskQueues1
-        //represents the scan queues
-        checkForSystemCallinQueue(diskQueues0, num);
-        if (diskQueues0[num-1].empty()){
-          isScanQueues = !isScanQueues;
-          scanGoesUp = !scanGoesUp;
-        }
-      }
-    }
-    else if (input[0]=='C') {
-      checkForSystemCallinQueue(cdQueues, num);
-    }
-  }
+          if (input[0]=='P'){
+            checkForSystemCallinQueue(printerQueues, num);
+          }
+          else if (input[0]=='D'){
+            checkForSystemCallinQueue(diskQueues, num);
+          }
+          else if (input[0]=='C') {
+            checkForSystemCallinQueue(cdQueues, num);
+          }
+        }     
       }
 
       /*If the user types 'S' for the snapshot function,
@@ -220,45 +158,18 @@ struct CPU : public Memory {
             deque<int>::iterator itB = readyQueue.begin();
             deque<int>::iterator itE = readyQueue.end();
 
-            os << "PID" << setw(10) << " Total CPU Time" << '\n' << "----r" << '\n';
+            os << "PID" << '\n' << "----r" << '\n';
             while (itB != itE){
-              os << *itB << setw(10) << processes[*itB].totalCPUTime;
-              if (processes[*itB].cpuUsageCount > 0){
-                os << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
-              }
-              else {
-                os << "0";
-              }
-              os << '\n';
+              os << *itB << '\n';
               ++itB;
             }
-            /*
-            for (int i = 0; i < readyQueue.size(); ++i){
-              os << "remaining burst: " << processes[readyQueue[i]].remainingBurst << '\n';
-            }
-            */
             os << '\n';
           }
 
           else {
             snapshotHeader();
-            if (input != "d"){
-              snapshotAux(input);
-            }
-            else {
-              snapshotPrint_Disk();
-            }
+            snapshotAux(input);
           }
-
-          os << "System Average Total CPU Time: ";
-          if (systemTotalcpuUsageCount){
-            os << (systemTotalCPUTime / systemTotalcpuUsageCount); 
-          }
-          else {
-            os << "0";
-          }
-          os << '\n' << '\n';
-
           cout << os.str();
 
           os.str("");
@@ -278,8 +189,7 @@ struct CPU : public Memory {
      being printed signifies
   */
   void snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " <<
-      setw(10) << "Total CPU Time " << setw(10) << "Average burst time " << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << '\n';
   }
 
   /*
@@ -295,92 +205,11 @@ struct CPU : public Memory {
       if (ty == "w"){
         os << setw(10) << processes[*itB].length;
       }
-      os << setw(10) << processes[*itB].totalCPUTime;
-      if (processes[*itB].cpuUsageCount){
-        os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
-      }
-      else {
-        os << setw(10) << "0";
-      }
       os << '\n';
       ++itB;
     }
   }
 
-  void snapshotPrint_Disk(){
-    vector<deque<int>>::iterator itS, itSe;
-    vector<deque<int>>::iterator itW, itWe;
-    deque<int>::iterator itB, itE;
-
-    if (isScanQueues){
-      itS = diskQueues1.begin();
-      itSe = diskQueues1.end();
-      itW = diskQueues0.begin();
-      itWe = diskQueues0.end();
-    }
-    else {
-      itS = diskQueues0.begin();
-      itSe = diskQueues0.end();
-      itW = diskQueues1.begin();
-      itWe = diskQueues1.end();
-    }
-
-    itB = itS->begin();
-    itE = itS->end();
-    int i = 1;
-    
-    while (itS != itSe){
-      os << "---Scan Queue d" << i << '\n';
-      while (itB != itE){
-        string ty = processes[*itB].type;
-        os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
-          << setw(10) << ty; 
-        if (ty == "w"){
-          os << setw(10) << processes[*itB].length;
-        }
-        os << setw(10) << processes[*itB].totalCPUTime;
-        if (processes[*itB].cpuUsageCount > 0){
-          os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
-        }
-        else {
-          os << setw(10) << "0";
-        }
-        os << '\n';
-        ++itB;
-      }
-      
-      itB = itW->begin(); itE = itW->end();
-      os << "---Waiting Queue d" << i << '\n';
-      while (itB != itE){
-        string ty = processes[*itB].type;
-        os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
-          << setw(10) << ty; 
-        if (ty == "w"){
-          os << setw(10) << processes[*itB].length;
-        }
-        os << setw(10) << processes[*itB].totalCPUTime;
-        if (processes[*itB].cpuUsageCount > 0){
-          cout << "JERE" << '\n';
-          os << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
-        }
-        else {
-          os << setw(10) << "0";
-        }
-        os << '\n';
-        ++itB;
-      }
-      os << '\n';
-
-      ++i; ++itS;  
-    }
-  }
-
-  /*
-    Checks whether the device queues are empty and returns
-    if so. Otherwise, the function will set up to loop through
-    the chosen device queues and feed the system call data into
-    the ostringstream object os to be printed as output
-  */
   void snapshotAux(const string& input){
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
@@ -391,6 +220,13 @@ struct CPU : public Memory {
       }
       itV = cdQueues.begin(); itVe = cdQueues.end();
       itB = itV->begin(); itE = itV->end();
+    }
+    else if (input == "d"){
+      if (diskQueues.empty()){
+        return;
+      }
+      itV = diskQueues.begin(); itVe = diskQueues.end();
+      itB = itV->begin(); itE = itV->end(); 
     }
     else { //input == "p"
       if (printerQueues.empty()){
@@ -443,7 +279,7 @@ struct CPU : public Memory {
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(diskQueues1, num);
+          return checkIfsysCallNumLargerThanDevQueue(diskQueues, num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
           return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
@@ -476,18 +312,19 @@ struct CPU : public Memory {
     processes[currProcess].name = name;
 
     string memStart = "";
+    bool goodInput = false;
     int n = 0;
     /*
-      intErrorCheck will return false as long as the function
+      goodInput will remain false as long as the function
       determines that the input entered in memStart can't
       be converted into an integer
     */
 
-    cout << "Enter the starting location in memory: ";
-    cin >> memStart;
-    
-    while (!intErrorCheck(memStart, n, true)){
+    bool memLoc = true;
+    while (!goodInput){
+      cout << "Enter the starting location in memory: ";
       cin >> memStart;
+      intErrorCheck(memStart, n, goodInput, memLoc);
     }
     processes[currProcess].memStart = n;
 
@@ -500,14 +337,13 @@ struct CPU : public Memory {
     */
     string typeIn = "";
     if (!print){
+      goodInput = false;
       string typeIn;
-
-      cout << "Enter r if your action is a read or enter w if your action is a write: ";
-      cin >> typeIn;
-      cout << '\n'; 
-      
-      while (!typeErrorChecking(typeIn)){
+      while (!goodInput){
+        cout << "Enter r if your action is a read or enter w if your action is a write: ";
         cin >> typeIn;
+        cout << '\n'; 
+        typeErrorChecking(typeIn, goodInput);
       }
       processes[currProcess].type = typeIn;
     }
@@ -522,30 +358,18 @@ struct CPU : public Memory {
       verified as a valid interger.
     */
     if (strcmp(processes[currProcess].type.c_str(),"w")==0){
+      goodInput = false;
       string input;
       int fileLength;
+      bool memLoc = false;
 
-      cout << '\n' << "Enter the length of the file: ";
-      cin >> input;
-      cout << '\n';
-      while (!intErrorCheck(input, fileLength, false)){
+      while (!goodInput){
+        cout << '\n' << "Enter the length of the file: ";
         cin >> input;
+        cout << '\n';
+        intErrorCheck(input, fileLength, goodInput, memLoc);
       }
       processes[currProcess].length = fileLength;
-    }
-
-    //If the system call is for a disk device, then the system
-    //is prompted about which track the process exists on
-    //in the cylinder
-    if (ch == 'd'){
-      string input;
-      int trackNum;
-      cout << "What track is the process on? ";
-      cin >> input;
-      while (!intErrorCheck(input, trackNum, true) || !checkIfTrackIsInDisk(trackNum,num-1)){
-	     cin >> input;
-      }
-      processes[currProcess].cylinderTrack = trackNum;
     }
 
     /*
@@ -557,39 +381,7 @@ struct CPU : public Memory {
       (printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
-      /*
-        If this the first time a disk system call
-        is made, the call will be pushed directly
-        into the scan queue instead of being pushed
-        into the waiting queue
-      */
-      if (firstDiskSystemCall){
-        if (isScanQueues){
-          diskQueues1[num-1].push_back(currProcess); 
-        }
-        else {
-          diskQueues0[num-1].push_back(currProcess);
-        }
-        firstDiskSystemCall = false;
-      }
-      else {
-        if (isScanQueues){
-          if (scanGoesUp){
-            addProcessToDiskQueue_rev(diskQueues0[num-1],currProcess);
-          }
-          else {
-            addProcessToDiskQueue(diskQueues0[num-1],currProcess);
-          }
-        }
-        else {
-          if (scanGoesUp){
-            addProcessToDiskQueue_rev(diskQueues1[num-1],currProcess);
-          }
-          else {
-            addProcessToDiskQueue(diskQueues1[num-1],currProcess);
-          }
-        }
-      }
+      diskQueues[num-1].push_back(currProcess);
     }
     else { //ch == 'c'
       cdQueues[num-1].push_back(currProcess);
@@ -602,46 +394,38 @@ struct CPU : public Memory {
     if the user input entered to represent a integer can actually
     be represented an integer and if the integer is negative or not
   */
-  bool intErrorCheck(string in, int& num, const bool& memLoc){
+  void intErrorCheck(string in, int& num, bool& goodInput, const bool& memLoc){
     istringstream iss{in};
     //Checks if the input can be converted to an int
     if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
       if (!memLoc && num <= 0){
-        cerr << "Zero or a negative number was entered. Please checkForSystemtry again." << '\n';
-        return false;
+        cerr << "Zero or a negative number was entered. Please try again." << '\n';
       }
-      else if (memLoc && num < 0){
+      else if (memLoc < 0){
         cerr << "A negative number was entered. Please try again." << '\n';
-        return false;
       }
       else{
-        return true;
+        goodInput = true;
       }
     }
     else {
       cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
-      return false;
     }
   }
 
   //Checks whether the type input is either of the accepted
-  //values: 'r' or 'w'. If not, the function call will return
+  //values: 'r' or 'w'. If not, the boo goodInput remains
   //false and the system call request is rejected
-  bool typeErrorChecking(string& typeIn){
+  void typeErrorChecking(string& typeIn, bool& goodInput){
     if (typeIn != "w" && typeIn != "r"){
       cerr << "The character entered were not 'w' or 'r'." << '\n';
       cerr << "Please enter a new command and try again." << '\n';
-      return false;
     }
-    return true;
+    else {
+      goodInput = true;
+    }
   }
 
-  /*
-    Checks whether there are system calls in device queues to respond to a system call
-    completed interrupt. If not, an error message in printed. Otherwise, the first system
-    call in the device queue is moved in the ready queue if the CPU is occupied. If the CPU
-    is empty, then the process will be moved straight to the CPU
-  */
   void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
     if (!devQueues.empty()){
       if (devQueues[callNum-1].empty()){
@@ -657,7 +441,7 @@ struct CPU : public Memory {
           emptyCPU = false;
         }
         else {
-          addProcessToReadyQueue(finishedProcess);
+          readyQueue.push_back(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
@@ -669,8 +453,7 @@ struct CPU : public Memory {
   }
 
   /*
-    Checks whether the system call made by the user tries to issue a process to a numbered queue
-    that is bigger than the current number of specified device queues
+    Checks whether the 
   */
   bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
     if (callNum > static_cast<int>(devQueues.size())){
@@ -681,148 +464,5 @@ struct CPU : public Memory {
     else {
       return true;
     }
-  }
-
-  /*
-    Asks the user, who acts as the timer, how long a process
-    has used the CPU for. This function is called whenever an
-    interrupt occurs or a process enters the CPU
-  */
-  int askTimer(){
-    string timeInput = "";
-    int time = 0;
-
-    cout << "Enter time the current process has used the CPU: ";
-    cin >> timeInput;
-    while (!intErrorCheck(timeInput, time, -1)){
-      cin >> timeInput;
-    }
-    return time;
-  }
-
-  /*
-    Prompts the user for the number of the cylinder that has to be
-    accessed when disk read or write system call is made. Used by
-    the disk queue algorithm
-  */
-  void askForCylinder(){
-    string cynInput = "";
-    int cynlinderChoice = 0;
-
-    cout << "Enter the number of the proper cylinder for access: ";
-    cin >> cynInput;
-    
-    while (!intErrorCheck(cynInput, cynlinderChoice, 1)){
-      cin >> cynInput;
-    }
-  }
-
-  /*
-    Used to estimate a process' future estimated burst time
-  */
-  void recalculateBurstEstimate(const int& PID, const int& actualBurst){
-    processes[PID].burstEstimate = (1-historyParameter) * processes[PID].burstEstimate + historyParameter * actualBurst; 
-  }
-
-  /*
-    Because the ready queue is sorted by first total burst time, inserting a process in the queue requires
-    that a search be done to find the first element that has a higher value than the process being inserted
-    The process represented by num is then inserted there
-  */
-  void addProcessToReadyQueue(const int& num){
-    if (readyQueue.empty()){
-      readyQueue.push_back(num);
-      return;
-    }
-
-    deque<int>::iterator it = readyQueue.begin();
-    while (it != readyQueue.end()){
-      if (processes[*it].remainingBurst > processes[num].remainingBurst){
-        readyQueue.insert(it, num);
-        return;
-      }
-      ++it;
-    }
-    readyQueue.push_back(num);
-  }
-
-  /*
-    Checks if the proposed track number is within the range of tracks
-    in the chosen disk device that was determined during Sysgen
-  */
-  bool checkIfTrackIsInDisk(const int& trackNum, const int& diskNum){  
-    //If the track number is less than the number of tracks in the
-    //corresponding cylinderCount element, return true
-    if (trackNum < cylinderCount[diskNum]){
-      return true;
-    }
-    //Otherwise, an error message is printed and the function returns false
-    cerr << "The chosen track number is not in disk device " << diskNum << '\n';
-    cerr << "Enter a new number and try again: ";
-    return false;
-  }
-
-  /*
-    After an arrival of a new process or a system call finish, the function
-    will handle recalculating burst related variables of the process that
-    just left the CPU
-  */
-  void handleCPUInterrupt(){
-    //The system asks timer how the long the process was in the CPU
-    int timeInCPU = askTimer();
-    //The proceess' remaining burst time is calculated
-    processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - timeInCPU;
-    
-    //cout << "burst estimate: " << processes[currProcess].burstEstimate << '\n';
-    //cout << "tim in cpu: " << timeInCPU << '\n';
-    //cout << "NEW burst time: " << processes[currProcess].remainingBurst << '\n'; 
-    
-    //The process' cpuUsageCount increments
-    ++processes[currProcess].cpuUsageCount;
-    //The system's total cpu usage count is updated
-    ++systemTotalcpuUsageCount;
-    //The totalCPUTime variable is updated with timer's burst time
-    processes[currProcess].totalCPUTime += timeInCPU;
-    //The system's total CPU time is aladdProcessToDiso updated
-    systemTotalCPUTime += timeInCPU;
-    //Calculate the process' new estimated burst
-    recalculateBurstEstimate(currProcess, timeInCPU);
-    //Recalculating the place in the ready queue of the process
-    //that just left the CPU,given its new burst
-    addProcessToReadyQueue(currProcess);
-  }
-
-  void addProcessToDiskQueue(deque<int>& waitingQueue, const int& pid){
-    if (waitingQueue.empty()){
-      waitingQueue.push_back(pid);
-      return;
-    }
-
-    deque<int>::iterator it = waitingQueue.begin();
-    while (it != waitingQueue.end()){
-      if (processes[waitingQueue[*it]].cylinderTrack > processes[pid].cylinderTrack){
-        waitingQueue.insert(it, pid);
-        return;
-      }
-      ++it;
-    }
-    waitingQueue.push_back(pid);
-  }
-
-  void addProcessToDiskQueue_rev(deque<int>& waitingQueue, const int& pid){
-    if (waitingQueue.empty()){
-      waitingQueue.push_back(pid);
-      return;
-    }
-
-    deque<int>::iterator it = waitingQueue.begin();
-    while (it != waitingQueue.end()){
-      if (processes[waitingQueue[*it]].cylinderTrack < processes[pid].cylinderTrack){
-        waitingQueue.insert(it, pid);
-        return;
-      }
-      ++it;
-    }
-    waitingQueue.push_back(pid);
   }
 };
