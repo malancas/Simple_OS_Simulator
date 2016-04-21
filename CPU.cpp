@@ -7,6 +7,7 @@
 #include <sstream>
 #include <deque>
 #include <iomanip>
+#include <algorithm>
 #include "Memory.h"
 using namespace std;
 
@@ -40,7 +41,7 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter)));
+        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate`)));
         if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
@@ -51,7 +52,7 @@ struct CPU : public Memory {
         //If the CPU isn't empty and the user issues an 'A',
         //a process is created and added to the ready queue
         else {
-          readyQueue.push_back(pidCounter);
+          addProcessToReadyQueue(pidCounter);
         }
         ++pidCounter;
       }
@@ -441,7 +442,7 @@ struct CPU : public Memory {
           emptyCPU = false;
         }
         else {
-          readyQueue.push_back(finishedProcess);
+          addProcessToReadyQueue(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
@@ -464,5 +465,32 @@ struct CPU : public Memory {
     else {
       return true;
     }
+  }
+
+  void addProcessToReadyQueue(const int& pid){
+    //Represents the remaining burst of process to be inserted
+    float burstOfNewProcess = processes[pid].remainingBurst;
+    /*
+      The ready queue is traversed and the remaining burst
+      member variable of each process in the ready queue is
+      compared to the new process' remaining burst. If the 
+      burst in the ready queue is larger than burstOfNewProcess, 
+      the pid of the new process is inserted at the current place
+      of the iterator and the function returns
+    */
+    deque<int>::iterator itReady = readyQueue.begin();
+    while (itReady != readyQueue.end()){
+      if (processes[*itReady].remainingBurst > burstOfNewProcess){
+        readyQueue.insert(itReady, pid);
+        return;
+      }
+      ++itReady;
+    }
+    /*
+      If the new process' remaining burst is bigger than every other
+      process' remaining burst in the readyQueue, it is pushed to the
+      back of the queue
+    */
+    readyQueue.push_back(pid);
   }
 };
