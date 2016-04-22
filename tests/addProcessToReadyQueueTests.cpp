@@ -10,8 +10,15 @@
 #include <deque>
 #include <iomanip>
 #include <algorithm>
-#include "../CPU.h"
 #include "../Memory.h"
+#include "../CPU.h"
+
+/*
+	Checks whether the addProcessToReadyQueue function
+	does insert pids in sorted order according to their
+	remaining burst. Negative numbers always have higher
+	priority
+*/
 
 int main (){
 	Memory m;
@@ -32,6 +39,7 @@ int main (){
 	assert(m.readyQueue[2] == 3);
 	assert(m.readyQueue[3] == 4);
 	assert(m.readyQueue[4] == 2);
+	cout << "TESTS PASSED!" << '\n';		
 
 	return 0;
 }

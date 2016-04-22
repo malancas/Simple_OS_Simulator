@@ -7,7 +7,7 @@
 #include <vector>
 using namespace std;
 
-struct CPU : public Memory {
+struct CPU {
   //VARIABLES
 
   //stores the pid of the current process

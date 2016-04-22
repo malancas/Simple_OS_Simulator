@@ -11,15 +11,9 @@
 #include "Memory.h"
 #include "CPU.h"
 using namespace std;
-
-  //int CPU::currProcess;
-
-  //Used to determine whether a process is
-  //occupying the CPU
-  //bool CPU::emptyCPU;
-
-  //Used to print output from Snapshot function
-  //ostringstream CPU::os;
+  //Helps give CPU functions access
+  //to Memory class variables
+  Memory m;
 
   CPU::CPU() : currProcess(-1), emptyCPU(true) {}
 
@@ -37,9 +31,9 @@ using namespace std;
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate)));
+        m.processes.insert(make_pair(m.pidCounter,Process(m.pidCounter,m.initialBurstEstimate)));
         if (emptyCPU){
-          currProcess = pidCounter;
+          currProcess = m.pidCounter;
           emptyCPU = false;          
           cout << "The CPU is now occupied!" << '\n' << '\n';
           //If the CPU is already occupied, the
@@ -48,9 +42,9 @@ using namespace std;
         //If the CPU isn't empty and the user issues an 'A',
         //a process is created and added to the ready queue
         else {
-          addProcessToReadyQueue(pidCounter);
+          addProcessToReadyQueue(m.pidCounter);
         }
-        ++pidCounter;
+        ++(m.pidCounter);
       }
       
       //If the user tries to terminate a process
@@ -60,11 +54,11 @@ using namespace std;
           cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
         }
         else {
-          processes.erase(currProcess);
+          m.processes.erase(currProcess);
           cout << "Process terminated" << '\n';
-          if (!readyQueue.empty()){
-            currProcess = readyQueue.front();
-            readyQueue.pop_front();
+          if (!m.readyQueue.empty()){
+            currProcess = m.readyQueue.front();
+            m.readyQueue.pop_front();
             emptyCPU = false;
             cout << "A new process has been added to the CPU." << '\n';
           }
@@ -84,8 +78,8 @@ using namespace std;
         }
 
         else {
-          if ((input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
-            (input[0] == 'd' && !diskQueues.empty())){
+          if ((input[0] == 'p' && !m.printerQueues.empty()) || (input[0] == 'c' && !m.cdQueues.empty()) ||
+            (input[0] == 'd' && !m.diskQueues.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -101,9 +95,9 @@ using namespace std;
               //added to the appropriate device queue 
               systemCallParameters(print, input[0], num);
               cout << "System call added!" << '\n' << '\n';
-              if (!readyQueue.empty()){
-                currProcess = readyQueue.front();
-                readyQueue.pop_front();
+              if (!m.readyQueue.empty()){
+                currProcess = m.readyQueue.front();
+                m.readyQueue.pop_front();
                 emptyCPU = false;
               }
               else {
@@ -125,13 +119,13 @@ using namespace std;
         //If the user's input is determined to be valid
         if (systemCallInputChecking(input,num)){
           if (input[0]=='P'){
-            checkForSystemCallinQueue(printerQueues, num);
+            checkForSystemCallinQueue(m.printerQueues, num);
           }
           else if (input[0]=='D'){
-            checkForSystemCallinQueue(diskQueues, num);
+            checkForSystemCallinQueue(m.diskQueues, num);
           }
           else if (input[0]=='C') {
-            checkForSystemCallinQueue(cdQueues, num);
+            checkForSystemCallinQueue(m.cdQueues, num);
           }
         }     
       }
@@ -152,8 +146,8 @@ using namespace std;
 
         else {
           if (input == "r"){
-            deque<int>::iterator itB = readyQueue.begin();
-            deque<int>::iterator itE = readyQueue.end();
+            deque<int>::iterator itB = m.readyQueue.begin();
+            deque<int>::iterator itE = m.readyQueue.end();
 
             os << "PID" << '\n' << "----r" << '\n';
             while (itB != itE){
@@ -196,11 +190,11 @@ using namespace std;
   template<typename T>
   void CPU::snapshotPrint(T& itB, T& itE){
     while (itB != itE){
-      string ty = processes[*itB].type;
-      os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
+      string ty = m.processes[*itB].type;
+      os << *itB << setw(10) << m.processes[*itB].name << setw(10) << m.processes[*itB].memStart
         << setw(10) << ty; 
       if (ty == "w"){
-        os << setw(10) << processes[*itB].length;
+        os << setw(10) << m.processes[*itB].length;
       }
       os << '\n';
       ++itB;
@@ -212,24 +206,24 @@ using namespace std;
     deque<int>::iterator itB, itE;
 
     if (input == "c"){
-      if (cdQueues.empty()){
+      if (m.cdQueues.empty()){
         return;
       }
-      itV = cdQueues.begin(); itVe = cdQueues.end();
+      itV = m.cdQueues.begin(); itVe = m.cdQueues.end();
       itB = itV->begin(); itE = itV->end();
     }
     else if (input == "d"){
-      if (diskQueues.empty()){
+      if (m.diskQueues.empty()){
         return;
       }
-      itV = diskQueues.begin(); itVe = diskQueues.end();
+      itV = m.diskQueues.begin(); itVe = m.diskQueues.end();
       itB = itV->begin(); itE = itV->end(); 
     }
     else { //input == "p"
-      if (printerQueues.empty()){
+      if (m.printerQueues.empty()){
         return;
       }
-      itV = printerQueues.begin(); itVe = printerQueues.end();
+      itV = m.printerQueues.begin(); itVe = m.printerQueues.end();
       itB = itV->begin(); itE = itV->end();        
     }
 
@@ -272,14 +266,14 @@ using namespace std;
           of chosen device queues present
         */
         if (input[0] == 'p' || input[0] == 'P'){
-          return checkIfsysCallNumLargerThanDevQueue(printerQueues, num);
+          return checkIfsysCallNumLargerThanDevQueue(m.printerQueues, num);
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(diskQueues, num);
+          return checkIfsysCallNumLargerThanDevQueue(m.diskQueues, num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
-          return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
+          return checkIfsysCallNumLargerThanDevQueue(m.cdQueues, num);          
         }          
       }
     }
@@ -306,7 +300,7 @@ using namespace std;
     if (name.length() > 20){
       name.resize(20);
     }
-    processes[currProcess].name = name;
+    m.processes[currProcess].name = name;
 
     string memStart = "";
     bool goodInput = false;
@@ -323,7 +317,7 @@ using namespace std;
       cin >> memStart;
       intErrorCheck(memStart, n, goodInput, memLoc);
     }
-    processes[currProcess].memStart = n;
+    m.processes[currProcess].memStart = n;
 
     /*
       If the system call is not for a printing device,
@@ -342,10 +336,10 @@ using namespace std;
         cout << '\n'; 
         typeErrorChecking(typeIn, goodInput);
       }
-      processes[currProcess].type = typeIn;
+      m.processes[currProcess].type = typeIn;
     }
     else {
-      processes[currProcess].type = "w";
+      m.processes[currProcess].type = "w";
     }
 
     /*
@@ -354,7 +348,7 @@ using namespace std;
       length of the file. The answer will be
       verified as a valid interger.
     */
-    if (strcmp(processes[currProcess].type.c_str(),"w")==0){
+    if (strcmp(m.processes[currProcess].type.c_str(),"w")==0){
       goodInput = false;
       string input;
       int fileLength;
@@ -366,7 +360,7 @@ using namespace std;
         cout << '\n';
         intErrorCheck(input, fileLength, goodInput, memLoc);
       }
-      processes[currProcess].length = fileLength;
+      m.processes[currProcess].length = fileLength;
     }
 
     /*
@@ -375,13 +369,13 @@ using namespace std;
       will be added to the appropiate device queue
     */
     if (ch == 'p'){
-      (printerQueues[num-1]).push_back(currProcess);
+      (m.printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
-      diskQueues[num-1].push_back(currProcess);
+      m.diskQueues[num-1].push_back(currProcess);
     }
     else { //ch == 'c'
-      cdQueues[num-1].push_back(currProcess);
+      m.cdQueues[num-1].push_back(currProcess);
     }
   }
 
@@ -465,7 +459,7 @@ using namespace std;
 
   void CPU::addProcessToReadyQueue(const int& pid){
     //Represents the remaining burst of process to be inserted
-    float burstOfNewProcess = processes[pid].remainingBurst;
+    float burstOfNewProcess = m.processes[pid].remainingBurst;
     /*
       The ready queue is traversed and the remaining burst
       member variable of each process in the ready queue is
@@ -474,18 +468,18 @@ using namespace std;
       the pid of the new process is inserted at the current place
       of the iterator and the function returns
     */
-    deque<int>::iterator itReady = readyQueue.begin();
-    while (itReady != readyQueue.end()){
-      if (processes[*itReady].remainingBurst > burstOfNewProcess){
-        readyQueue.insert(itReady, pid);
+    deque<int>::iterator it = m.readyQueue.begin();
+    while (it != m.readyQueue.end()){
+      if (m.processes[*it].remainingBurst > burstOfNewProcess){
+        m.readyQueue.insert(it, pid);
         return;
       }
-      ++itReady;
+      ++it;
     }
     /*
       If the new process' remaining burst is bigger than every other
       process' remaining burst in the readyQueue, it is pushed to the
       back of the queue
     */
-    readyQueue.push_back(pid);
+    m.readyQueue.push_back(pid);
   }

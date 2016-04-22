@@ -4,7 +4,11 @@
 #include "Memory.h"
 using namespace std;
 
-struct Sysgen : public Memory {
+struct Sysgen {
+  //Helps give Sysgen functions access
+  //to Memory class variables
+  Memory m;
+
   //VARIABLES
   /*
     Used in various functions
@@ -27,37 +31,37 @@ struct Sysgen : public Memory {
   void getInstallerInput(){
     //Set the number of printer device queues
     getInstallerInput_aux("Enter the number of printer devices: ", 'o');
-    printerQueues.resize(num);
+    m.printerQueues.resize(num);
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
     //diskQueues0.resize(num);
     //diskQueues1.resize(num);
-    diskQueues.resize(num);
-    cylinderCount.resize(num);
+    m.diskQueues.resize(num);
+    m.cylinderCount.resize(num);
 
     //Set the number of CD device queues
     getInstallerInput_aux("Enter the number of CD devices: ", 'o');
-    cdQueues.resize(num);
+    m.cdQueues.resize(num);
 
     //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", 'h');
-    historyParameter = floatNum;
+    m.historyParameter = floatNum;
 
     //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
-    initialBurstEstimate = floatNum;
-    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
+    m.initialBurstEstimate = floatNum;
+    cout << "Initial burst estimate: " << m.initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
-    int n = cylinderCount.size();
+    int n = m.cylinderCount.size();
     //The two strings are used to create the message used in the user prompt.
     //The message's content depends on which disk device it asking about.
     string messageBase = "Enter the number of cylinders in disk device ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
       getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
-      cylinderCount[i] = num;
+      m.cylinderCount[i] = num;
     }
   } 
 
