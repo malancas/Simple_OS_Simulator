@@ -483,3 +483,7 @@ using namespace std;
     */
     m.readyQueue.push_back(pid);
   }
+
+  void CPU::handleInterruptandSystemCall(){
+
+  }

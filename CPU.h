@@ -73,6 +73,8 @@ struct CPU {
   bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
 
   void addProcessToReadyQueue(const int& pid);
+
+  void handleInterruptandSystemCall();
 };
 
 #endif
