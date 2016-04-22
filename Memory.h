@@ -18,46 +18,46 @@ struct Memory {
     and device queues to deal with ints instead
     of objects
   */
-  static unordered_map<int, Process> processes;
+  unordered_map<int, Process> processes;
 
   /*
     The current value of the counter is assigned
     to new processes by incrementing to insure
     each has a unique PID
   */
-  static int pidCounter;
+  int pidCounter;
 
   /*
     Also represented with α, used in the SJF
     approximation calculation
   */
-  static float historyParameter;
+  float historyParameter;
 
   /*
     The initial burst estimate
   */
-  static float initialBurstEstimate;
+  float initialBurstEstimate;
 
   //Used to determine which disk queue
   //vector represents the scan queues
-  static vector<deque<int>*> scanQueuesPtrVector;
+  vector<deque<int>*> scanQueuesPtrVector;
 
-  static vector<deque<int>*> waitingQueuesPtrVector;
+  vector<deque<int>*> waitingQueuesPtrVector;
 
-  static bool firstDiskSystemCall;
+  bool firstDiskSystemCall;
 
-  static bool isScanQueues;
+  bool isScanQueues;
 
-  static bool scanGoesUp;
+  bool scanGoesUp;
 
-  static float systemTotalCPUTime;
+  float systemTotalCPUTime;
 
-  static int systemTotalcpuUsageCount;
+  int systemTotalcpuUsageCount;
 
   /*
     Number of cylinders in the hard drive
   */
-  static vector<int> cylinderCount;
+  vector<int> cylinderCount;
   
   /*
     The ready queue contains process PIDS
@@ -65,12 +65,12 @@ struct Memory {
     device queues specified during the sys gen
     phase. Each of these queues contains PIDS
   */
-  static deque<int> readyQueue;
-  static vector<deque<int>> printerQueues;
-  //static vector<deque<int>> diskQueues0;
-  //static vector<deque<int>> diskQueues1;
-  static vector<deque<int>> diskQueues;
-  static vector<deque<int>> cdQueues;
+  deque<int> readyQueue;
+  vector<deque<int>> printerQueues;
+  //vector<deque<int>> diskQueues0;
+  //vector<deque<int>> diskQueues1;
+  vector<deque<int>> diskQueues;
+  vector<deque<int>> cdQueues;
 };
 
 #endif
