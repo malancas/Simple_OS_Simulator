@@ -35,10 +35,14 @@ struct Sysgen {
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    //diskQueues0.resize(num);
-    //diskQueues1.resize(num);
-    m.diskQueues.resize(num);
+    m.diskQueues0.resize(num);
+    m.diskQueues1.resize(num);
     m.cylinderCount.resize(num);
+    m.scanDiskQueuesStatus.resize(num);
+
+    //The elements are set to false, meaning that scanDiskQueues0 will
+    //begin the program as representing the scan queues
+    fill(m.scanDiskQueuesStatus.begin(),m.scanDiskQueuesStatus.end(),false);
 
     //Set the number of CD device queues
     getInstallerInput_aux("Enter the number of CD devices: ", 'o');

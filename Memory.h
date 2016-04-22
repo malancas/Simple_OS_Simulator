@@ -58,9 +58,14 @@ struct Memory {
     Number of cylinders in the hard drive
   */
   vector<int> cylinderCount;
+
+  //Holds boolean values, each corresponding
+  //to the disk vector that is acting as the
+  //scan vector.
+  vector<bool> scanDiskQueuesStatus;
   
   //CONTRUCTORS
-  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0) {}
+  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0), firstDiskSystemCall(true) {}
 
   /*
     The ready queue contains process PIDS
@@ -70,9 +75,9 @@ struct Memory {
   */
   deque<int> readyQueue;
   vector<deque<int>> printerQueues;
-  //vector<deque<int>> diskQueues0;
-  //vector<deque<int>> diskQueues1;
-  vector<deque<int>> diskQueues;
+  vector<deque<int>> diskQueues0;
+  vector<deque<int>> diskQueues1;
+  //vector<deque<int>> diskQueues;
   vector<deque<int>> cdQueues;
 };
 

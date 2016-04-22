@@ -34,16 +34,16 @@ struct Process {
   //Number of times the process occupied the CPU
   int cpuUsageCount;
 
-  //the cylinder track that the process is stored on
-  int cylinderTrack;
+  //the track that the process is stored on
+  int track;
 
   //CONSTRUCTORS
   Process() : pid(), type(), name(), memStart(), length(), burstEstimate(),
-   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), cylinderTrack() {}
+   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), track() {}
   
   Process(int pd, int burstEst) : pid(pd), type(), name(), memStart(),
    length(), burstEstimate(burstEst), nextBurstEstimate(), remainingBurst(burstEst), 
-   totalCPUTime(0), cpuUsageCount(0), cylinderTrack() {}
+   totalCPUTime(0), cpuUsageCount(0), track() {}
 
   //OPERATOR OVERLOADING
   friend ostream& operator<<(ostream& os, const Process& obj)

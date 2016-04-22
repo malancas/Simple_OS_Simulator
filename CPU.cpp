@@ -81,7 +81,7 @@ using namespace std;
 
         else {
           if ((input[0] == 'p' && !m.printerQueues.empty()) || (input[0] == 'c' && !m.cdQueues.empty()) ||
-            (input[0] == 'd' && !m.diskQueues.empty())){
+            (input[0] == 'd' && !m.diskQueues0.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -130,7 +130,7 @@ using namespace std;
             checkForSystemCallinQueue(m.printerQueues, num);
           }
           else if (input[0]=='D'){
-            checkForSystemCallinQueue(m.diskQueues, num);
+            checkForSystemCallinQueue(m.diskQueues0, num);
           }
           else if (input[0]=='C') {
             checkForSystemCallinQueue(m.cdQueues, num);
@@ -223,10 +223,10 @@ using namespace std;
       itB = itV->begin(); itE = itV->end();
     }
     else if (input == "d"){
-      if (m.diskQueues.empty()){
+      if (m.diskQueues0.empty()){
         return;
       }
-      itV = m.diskQueues.begin(); itVe = m.diskQueues.end();
+      itV = m.diskQueues0.begin(); itVe = m.diskQueues0.end();
       itB = itV->begin(); itE = itV->end(); 
     }
     else { //input == "p"
@@ -280,7 +280,7 @@ using namespace std;
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(m.diskQueues, num);
+          return checkIfsysCallNumLargerThanDevQueue(m.diskQueues0, num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
           return checkIfsysCallNumLargerThanDevQueue(m.cdQueues, num);          
@@ -368,7 +368,7 @@ using namespace std;
       (m.printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
-      m.diskQueues[num-1].push_back(currProcess);
+      m.diskQueues0[num-1].push_back(currProcess);
     }
     else { //ch == 'c'
       m.cdQueues[num-1].push_back(currProcess);
@@ -561,3 +561,66 @@ using namespace std;
       cout << '\n';
     } 
   }
+
+  void CPU::addProcessToDiskQueue(const int& pid, const int& queueNum){
+    if (m.firstDiskSystemCall){
+      m.diskQueues0[queueNum-1].push_back(pid);
+      m.firstDiskSystemCall = false;
+    }
+    else {
+      if (m.scanDiskQueuesStatus[queueNum-1]){
+        m.diskQueues0[queueNum-1].push_back(pid);
+      }
+    }
+  }
+
+  void CPU::addProcessToWaitingQueue(const int& pid, const int& queueNum, const bool& zeroIsWaiting){
+    //The iterators and pointer are used to keep track of what
+    //deques will be used in the pid insert
+    deque<int>::iterator it, itEnd;
+    deque<int> *deqPtr;
+
+    //If diskQueues0 represents the waiting queues,
+    //the iterators and pointer are assigned accordingly
+    if (zeroIsWaiting){
+      it = m.diskQueues0[queueNum-1].begin();
+      itEnd = m.diskQueues0[queueNum-1].end();
+      deqPtr = &(m.diskQueues0[queueNum-1]);
+    }
+
+    //If diskQueues1 represents the waiting queues,
+    //the iterators and pointer are assigned accordingly
+    else {
+      it = m.diskQueues1[queueNum-1].begin();
+      itEnd = m.diskQueues1[queueNum-1].end();
+      deqPtr = &(m.diskQueues1[queueNum-1]);
+    }
+
+    //The process is compared to current processes in the
+    //queue and is inserted in the place of a currently 
+    //inserted track if it is has a lower track
+    //number than the current process
+    //Replace with log n solution
+    while (it != itEnd){
+      if (m.processes[*it].track > m.processes[pid].track){
+        deqPtr->insert(it,pid);
+        return;
+      }
+      ++it;
+    }
+    //If its track number is higher than every process in
+    //the deque, it is added to the end
+    deqPtr->push_back(pid);
+  }
+
+  struct lowest_track_first_compare {
+    bool operator() (const int& oldPID, const int& newPID){
+      return m.processes[oldPID].track > m.processes[newPID].track;
+    }
+  };
+
+  struct highest_track_first_compare {
+    bool operator() (const int& oldPID, const int& newPID){
+      return m.processes[oldPID].track < m.processes[newPID].track;
+    }
+  };

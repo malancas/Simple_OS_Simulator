@@ -87,6 +87,10 @@ struct CPU {
   float sjwAlgorithm();
 
   void terminateProcess();
+
+  void addProcessToDiskQueue(const int& pid, const int& queueNum);
+
+  void addProcessToWaitingQueue(const int& pid, const int& queueNum, const bool& zeroIsWaiting);
 };
 
 #endif
