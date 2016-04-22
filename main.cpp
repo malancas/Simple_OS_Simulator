@@ -6,6 +6,9 @@
 using namespace std;
 
 int main(){
+  Memory m;
+  
+
   /*Sys gen
     This section of the program handles
     user input and the appropiate error

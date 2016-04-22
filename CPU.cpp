@@ -68,23 +68,7 @@ using namespace std;
       //If the user tries to terminate a process
       //while the CPU is empty
       else if (input == "t"){
-        if (emptyCPU){
-          cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
-        }
-        else {
-          m.processes.erase(currProcess);
-          cout << "Process terminated" << '\n';
-          if (!m.readyQueue.empty()){
-            currProcess = m.readyQueue.front();
-            m.readyQueue.pop_front();
-            emptyCPU = false;
-            cout << "A new process has been added to the CPU." << '\n';
-          }
-          else {
-            emptyCPU = true;
-          }
-          cout << '\n';
-        }
+        terminateProcess();
       }
 
       //If the user issues a system call in the form of either
@@ -534,9 +518,46 @@ using namespace std;
     //The current process' remaining burst and burst estimate are updated
     m.processes[currProcess].remainingBurst = m.processes[currProcess].burstEstimate - floatResult;
     m.processes[currProcess].burstEstimate = sjwAlgorithm();
+
+    //The current process' total cpu time and cpu usage count are updated
+    m.processes[currProcess].totalCPUTime += floatResult;
+    ++m.processes[currProcess].cpuUsageCount;
+
+    //The system's total CPU time is updated with the timer's answer
+    m.systemTotalCPUTime += floatResult;
+
+    //The system's total CPU time is incremented
+    ++m.systemTotalcpuUsageCount;
   }
 
   //Returns the result of the algorithm based on the current process' values
   float CPU::sjwAlgorithm(){
     return (1 - m.historyParameter) * m.processes[currProcess].burstEstimate + m.historyParameter * floatResult;
+  }
+
+  void CPU::terminateProcess(){
+    if (emptyCPU){
+      cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
+    }
+    else {
+      unordered_map<int,Process>::iterator it = m.processes.find(currProcess);
+
+      cout << "Process terminated" << '\n';
+      cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(10) << 
+      (it->second.totalCPUTime / it->second.cpuUsageCount) << '\n' << '\n';
+
+      m.processes.erase(currProcess);
+
+      if (!m.readyQueue.empty()){
+        currProcess = m.readyQueue.front();
+        m.readyQueue.pop_front();
+        emptyCPU = false;
+        cout << "A new process has been added to the CPU." << '\n';
+      }
+      else {
+        emptyCPU = true;
+      }
+      cout << '\n';
+    } 
   }

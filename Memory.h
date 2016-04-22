@@ -59,6 +59,9 @@ struct Memory {
   */
   vector<int> cylinderCount;
   
+  //CONTRUCTORS
+  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0) {}
+
   /*
     The ready queue contains process PIDS
     while each vector contains the number of

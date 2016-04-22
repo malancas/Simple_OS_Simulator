@@ -85,6 +85,8 @@ struct CPU {
   void handleInterruptandSystemCall();
 
   float sjwAlgorithm();
+
+  void terminateProcess();
 };
 
 #endif
