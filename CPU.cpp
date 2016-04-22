@@ -52,13 +52,14 @@ using namespace std;
 
           //A new process will selected from the ready
           //queue to enter the CPU based on remaining burst
-          if (!m.readyQueue.empty()){
-            currProcess = m.readyQueue.front();
-            m.readyQueue.pop_front();
-          }
-          else {
+          if (m.readyQueue.empty()){
             currProcess = -1;
             emptyCPU = true;
+          }
+          else {
+            currProcess = m.readyQueue.front();
+            m.readyQueue.pop_front();
+            emptyCPU = false;
           }
         }
         ++(m.pidCounter);
@@ -101,6 +102,10 @@ using namespace std;
 
             //If the function determines the user's input is valid,
             if(systemCallInputChecking(input,num)){
+              //The current process' burstEstimate and remainingBurst are updated
+              //before it's added to a device queue
+              handleInterruptandSystemCall();
+
               //Determining if the system call was for the printer
               //device is crucial for the systemCallParameters function
               bool print = false;
@@ -133,6 +138,8 @@ using namespace std;
       else if (input[0]=='P' || input[0] == 'D' || input[0] == 'C'){
         int num = 0;
 
+        handleInterruptandSystemCall();
+
         //If the user's input is determined to be valid
         if (systemCallInputChecking(input,num)){
           if (input[0]=='P'){
@@ -154,6 +161,8 @@ using namespace std;
         printed to the terminal
       */
       else if (input == "S"){
+        handleInterruptandSystemCall();
+
         cout << "Enter r, p, c, or d: ";
         cin >> input; cout << '\n';
         if (input != "r" && input != "p" && input != "c" && input != "d"){
