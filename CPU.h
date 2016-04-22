@@ -10,6 +10,14 @@ using namespace std;
 struct CPU {
   //VARIABLES
 
+  //Used to store integer results of
+  //intOrFloatErrorCheck
+  int intResult;
+
+  //Used to store float results of
+  //intOrFloatErrorCheck
+  float floatResult;
+
   //stores the pid of the current process
   int currProcess;
 
@@ -58,12 +66,12 @@ struct CPU {
     if the user input entered to represent a integer can actually
     be represented an integer and if the integer is negative or not
   */
-  void intErrorCheck(string in, int& num, bool& goodInput, const bool& memLoc);
+  bool intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK);
 
   //Checks whether the type input is either of the accepted
   //values: 'r' or 'w'. If not, the boo goodInput remains
   //false and the system call request is rejected
-  void typeErrorChecking(string& typeIn, bool& goodInput);
+  bool typeErrorChecking(string& typeIn);
 
   void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
 
@@ -75,6 +83,8 @@ struct CPU {
   void addProcessToReadyQueue(const int& pid);
 
   void handleInterruptandSystemCall();
+
+  float sjwAlgorithm();
 };
 
 #endif

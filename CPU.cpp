@@ -42,7 +42,24 @@ using namespace std;
         //If the CPU isn't empty and the user issues an 'A',
         //a process is created and added to the ready queue
         else {
+          handleInterruptandSystemCall();
+
+          //The current process is readded to the ready queue
+          addProcessToReadyQueue(currProcess);
+
+          //The new process is added to the ready queue
           addProcessToReadyQueue(m.pidCounter);
+
+          //A new process will selected from the ready
+          //queue to enter the CPU based on remaining burst
+          if (!m.readyQueue.empty()){
+            currProcess = m.readyQueue.front();
+            m.readyQueue.pop_front();
+          }
+          else {
+            currProcess = -1;
+            emptyCPU = true;
+          }
         }
         ++(m.pidCounter);
       }
@@ -303,21 +320,14 @@ using namespace std;
     m.processes[currProcess].name = name;
 
     string memStart = "";
-    bool goodInput = false;
     int n = 0;
-    /*
-      goodInput will remain false as long as the function
-      determines that the input entered in memStart can't
-      be converted into an integer
-    */
 
-    bool memLoc = true;
-    while (!goodInput){
-      cout << "Enter the starting location in memory: ";
+    cout << "Enter the starting location in memory: ";
+    cin >> memStart;
+    while (!intOrFloatErrorCheck(memStart, true, true)){
       cin >> memStart;
-      intErrorCheck(memStart, n, goodInput, memLoc);
     }
-    m.processes[currProcess].memStart = n;
+    m.processes[currProcess].memStart = intResult;
 
     /*
       If the system call is not for a printing device,
@@ -328,13 +338,10 @@ using namespace std;
     */
     string typeIn = "";
     if (!print){
-      goodInput = false;
-      string typeIn;
-      while (!goodInput){
-        cout << "Enter r if your action is a read or enter w if your action is a write: ";
-        cin >> typeIn;
-        cout << '\n'; 
-        typeErrorChecking(typeIn, goodInput);
+      cout << "Enter r if your action is a read or enter w if your action is a write: ";
+      cin >> typeIn;      
+      while (!typeErrorChecking(typeIn)){
+        cin >> typeIn;      
       }
       m.processes[currProcess].type = typeIn;
     }
@@ -349,18 +356,14 @@ using namespace std;
       verified as a valid interger.
     */
     if (strcmp(m.processes[currProcess].type.c_str(),"w")==0){
-      goodInput = false;
       string input;
-      int fileLength;
-      bool memLoc = false;
 
-      while (!goodInput){
-        cout << '\n' << "Enter the length of the file: ";
+      cout << '\n' << "Enter the length of the file: ";
+      cin >> input;
+      while (!intOrFloatErrorCheck(input, true, false)){
         cin >> input;
-        cout << '\n';
-        intErrorCheck(input, fileLength, goodInput, memLoc);
       }
-      m.processes[currProcess].length = fileLength;
+      m.processes[currProcess].length = intResult;
     }
 
     /*
@@ -385,35 +388,58 @@ using namespace std;
     if the user input entered to represent a integer can actually
     be represented an integer and if the integer is negative or not
   */
-  void CPU::intErrorCheck(string in, int& num, bool& goodInput, const bool& memLoc){
+  //memloc = true === zeorvaluesok = true
+  bool CPU::intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK){
     istringstream iss{in};
     //Checks if the input can be converted to an int
-    if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
-      if (!memLoc && num <= 0){
-        cerr << "Zero or a negative number was entered. Please try again." << '\n';
+    if (checkingInt){
+      if (iss >> intResult && (iss.eof() || isspace(iss.peek()))) {
+        if (!zeroValuesOK && intResult <= 0){
+          cerr << "Zero or a negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else if (zeroValuesOK && intResult < 0){
+          cerr << "A negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else{
+          return true;
+        }
       }
-      else if (memLoc < 0){
-        cerr << "A negative number was entered. Please try again." << '\n';
-      }
-      else{
-        goodInput = true;
-      }
+      else {
+        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
+        return false;
+      }      
     }
     else {
-      cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
+      if (iss >> floatResult && (iss.eof() || isspace(iss.peek()))) {
+        if (!zeroValuesOK && floatResult <= 0){
+          cerr << "Zero or a negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else if (zeroValuesOK && floatResult < 0){
+          cerr << "A negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else{
+          return true;
+        }
+      }
+      else {
+        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
+        return false;
+      }  
     }
   }
 
-  //Checks whether the type input is either of the accepted
-  //values: 'r' or 'w'. If not, the boo goodInput remains
-  //false and the system call request is rejected
-  void CPU::typeErrorChecking(string& typeIn, bool& goodInput){
+  bool CPU::typeErrorChecking(string& typeIn){
     if (typeIn != "w" && typeIn != "r"){
       cerr << "The character entered were not 'w' or 'r'." << '\n';
       cerr << "Please enter a new command and try again." << '\n';
+      return false;
     }
     else {
-      goodInput = true;
+      return true;
     }
   }
 
@@ -484,6 +510,24 @@ using namespace std;
     m.readyQueue.push_back(pid);
   }
 
+  //Updates the current process' burstEstimate and remaining burst variables
   void CPU::handleInterruptandSystemCall(){
+    //Asking timer how long the current process has used the CPU
+    string in;
+    cout << "How long has the current process been using the CPU?" << '\n';
+    cin >> in;
 
+    //Keeps asking for valid input until it is received
+    while (!intOrFloatErrorCheck(in, false, true)){
+      cin >> in;
+    }
+
+    //The current process' remaining burst and burst estimate are updated
+    m.processes[currProcess].remainingBurst = m.processes[currProcess].burstEstimate - floatResult;
+    m.processes[currProcess].burstEstimate = sjwAlgorithm();
+  }
+
+  //Returns the result of the algorithm based on the current process' values
+  float CPU::sjwAlgorithm(){
+    return (1 - m.historyParameter) * m.processes[currProcess].burstEstimate + m.historyParameter * floatResult;
   }
