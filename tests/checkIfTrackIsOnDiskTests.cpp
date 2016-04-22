@@ -10,7 +10,7 @@
 #include <deque>
 #include <iomanip>
 #include <algorithm>
-#include "../CPU.cpp"
+#include "../CPU.h"
 #include "../Memory.h"
 using namespace std;
 

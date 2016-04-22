@@ -2,7 +2,7 @@
 #include <string>
 #include <cassert>
 #include "Sysgen.cpp"
-#include "CPU.cpp"
+#include "CPU.h"
 using namespace std;
 
 int main(){

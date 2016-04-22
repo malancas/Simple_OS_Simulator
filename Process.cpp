@@ -6,12 +6,12 @@ using namespace std;
 struct Process {
   //VARIABLES
     
-    int pid;
+  int pid;
     
-    //Whether the process is read or write
-    string type;
+  //Whether the process is read or write
+  string type;
 
-    //the filename
+  //the filename
   string name;
 
   //Starting location in memory

@@ -31,8 +31,9 @@ struct Sysgen : public Memory {
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    diskQueues0.resize(num);
-    diskQueues1.resize(num);
+    //diskQueues0.resize(num);
+    //diskQueues1.resize(num);
+    diskQueues.resize(num);
     cylinderCount.resize(num);
 
     //Set the number of CD device queues

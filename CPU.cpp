@@ -9,26 +9,22 @@
 #include <iomanip>
 #include <algorithm>
 #include "Memory.h"
+#include "CPU.h"
 using namespace std;
 
-struct CPU : public Memory {
-  //VARIABLES
-
-  //stores the pid of the current process
-  int currProcess;
+  //int CPU::currProcess;
 
   //Used to determine whether a process is
   //occupying the CPU
-  bool emptyCPU;
+  //bool CPU::emptyCPU;
 
   //Used to print output from Snapshot function
-  ostringstream os;
+  //ostringstream CPU::os;
 
-  //CONTRUCTORS
-  CPU() : currProcess(-1), emptyCPU(true) {}
+  CPU::CPU() : currProcess(-1), emptyCPU(true) {}
 
   //FUNCTIONS
-  void waitForInput(){
+  void CPU::waitForInput(){
     string input = "";
 
     //If input == q, the function and program will close
@@ -41,7 +37,7 @@ struct CPU : public Memory {
       //a new process is created and added to the CPU
       if (input == "A"){
         cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate`)));
+        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate)));
         if (emptyCPU){
           currProcess = pidCounter;
           emptyCPU = false;          
@@ -189,7 +185,7 @@ struct CPU : public Memory {
     Prints a header for the snapshot function indicating what each value
      being printed signifies
   */
-  void snapshotHeader(){
+  void CPU::snapshotHeader(){
     os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << '\n';
   }
 
@@ -198,7 +194,7 @@ struct CPU : public Memory {
     Each process gets its own line
   */
   template<typename T>
-  void snapshotPrint(T& itB, T& itE){
+  void CPU::snapshotPrint(T& itB, T& itE){
     while (itB != itE){
       string ty = processes[*itB].type;
       os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
@@ -211,7 +207,7 @@ struct CPU : public Memory {
     }
   }
 
-  void snapshotAux(const string& input){
+  void CPU::snapshotAux(const string& input){
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
 
@@ -256,7 +252,7 @@ struct CPU : public Memory {
     will be checked to insure it is not negative and falls within
     the limits of the number of specific device queues present
   */
-  bool systemCallInputChecking(string& input, int& num){
+  bool CPU::systemCallInputChecking(string& input, int& num){
     //Represents the string following either p,d, or c
     string queueNum = input.substr(1);
 
@@ -302,7 +298,7 @@ struct CPU : public Memory {
     a printer device (signified by the print bool), the function will not
     ask for certain parameters
   */
-  void systemCallParameters(const bool& print, const char& ch, int& num){
+  void CPU::systemCallParameters(const bool& print, const char& ch, int& num){
     string name = "";
     cout << "Enter the file name: ";
     cin >> name;
@@ -395,7 +391,7 @@ struct CPU : public Memory {
     if the user input entered to represent a integer can actually
     be represented an integer and if the integer is negative or not
   */
-  void intErrorCheck(string in, int& num, bool& goodInput, const bool& memLoc){
+  void CPU::intErrorCheck(string in, int& num, bool& goodInput, const bool& memLoc){
     istringstream iss{in};
     //Checks if the input can be converted to an int
     if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
@@ -417,7 +413,7 @@ struct CPU : public Memory {
   //Checks whether the type input is either of the accepted
   //values: 'r' or 'w'. If not, the boo goodInput remains
   //false and the system call request is rejected
-  void typeErrorChecking(string& typeIn, bool& goodInput){
+  void CPU::typeErrorChecking(string& typeIn, bool& goodInput){
     if (typeIn != "w" && typeIn != "r"){
       cerr << "The character entered were not 'w' or 'r'." << '\n';
       cerr << "Please enter a new command and try again." << '\n';
@@ -427,7 +423,7 @@ struct CPU : public Memory {
     }
   }
 
-  void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
+  void CPU::checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
     if (!devQueues.empty()){
       if (devQueues[callNum-1].empty()){
         cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
@@ -456,7 +452,7 @@ struct CPU : public Memory {
   /*
     Checks whether the 
   */
-  bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
+  bool CPU::checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
     if (callNum > static_cast<int>(devQueues.size())){
       cerr << "Number entered is larger than current number of chosen device queues." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';
@@ -467,7 +463,7 @@ struct CPU : public Memory {
     }
   }
 
-  void addProcessToReadyQueue(const int& pid){
+  void CPU::addProcessToReadyQueue(const int& pid){
     //Represents the remaining burst of process to be inserted
     float burstOfNewProcess = processes[pid].remainingBurst;
     /*
@@ -493,4 +489,3 @@ struct CPU : public Memory {
     */
     readyQueue.push_back(pid);
   }
-};
