@@ -31,7 +31,7 @@ int main (){
 	m.processes[4].remainingBurst = 4;
 
 	for (int i = 0; i < m.processes.size(); ++i){
-		c.addProcessToReadyQueue(i);
+		m.addProcessToReadyQueue(i);
 	}
 
 	assert(m.readyQueue[0] == 1);

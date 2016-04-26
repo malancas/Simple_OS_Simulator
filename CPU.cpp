@@ -50,17 +50,9 @@ using namespace std;
           //The new process is added to the ready queue
           m.addProcessToReadyQueue(m.pidCounter);
 
-          //A new process will selected from the ready
-          //queue to enter the CPU based on remaining burst
-          if (m.readyQueue.empty()){
-            m.currProcess = -1;
-            m.emptyCPU = true;
-          }
-          else {
-            m.currProcess = m.readyQueue.front();
-            m.readyQueue.pop_front();
-            m.emptyCPU = false;
-          }
+          m.currProcess = m.readyQueue.front();
+          m.readyQueue.pop_front();
+          m.emptyCPU = false;
         }
         ++(m.pidCounter);
       }
@@ -123,6 +115,9 @@ using namespace std;
         int num = 0;
 
         handleInterruptandSystemCall();
+        addProcessToReadyQueue(m.currProcess);
+        m.currProcess = m.readyQueue.front();
+        m.readyQueue.pop_front();
 
         //If the user's input is determined to be valid
         if (systemCallInputChecking(input,num)){
@@ -146,6 +141,9 @@ using namespace std;
       */
       else if (input == "S"){
         handleInterruptandSystemCall();
+        addProcessToReadyQueue(m.currProcess);
+        m.currProcess = m.readyQueue.front();
+        m.readyQueue.pop_front();
 
         cout << "Enter r, p, c, or d: ";
         cin >> input; cout << '\n';
