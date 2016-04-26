@@ -19,13 +19,6 @@ struct CPU {
   //intOrFloatErrorCheck
   float floatResult;
 
-  //stores the pid of the current process
-  int currProcess;
-
-  //Used to determine whether a process is
-  //occupying the CPU
-  bool emptyCPU;
-
   //Used to print output from Snapshot function
   ostringstream os;
 
@@ -80,8 +73,6 @@ struct CPU {
     Checks whether the 
   */
   bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
-
-  void addProcessToReadyQueue(const int& pid);
 
   void handleInterruptandSystemCall();
 

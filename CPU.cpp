@@ -15,7 +15,7 @@ using namespace std;
   //to Memory class variables
   Memory m;
 
-  CPU::CPU() : currProcess(-1), emptyCPU(true) {}
+  CPU::CPU() {}
 
   //FUNCTIONS
   void CPU::waitForInput(){
@@ -32,9 +32,9 @@ using namespace std;
       if (input == "A"){
         cout << "New process made!" << '\n';
         m.processes.insert(make_pair(m.pidCounter,Process(m.pidCounter,m.initialBurstEstimate)));
-        if (emptyCPU){
-          currProcess = m.pidCounter;
-          emptyCPU = false;          
+        if (m.emptyCPU){
+          m.currProcess = m.pidCounter;
+          m.emptyCPU = false;          
           cout << "The CPU is now occupied!" << '\n' << '\n';
           //If the CPU is already occupied, the
           //process is added to the ready queue
@@ -45,21 +45,21 @@ using namespace std;
           handleInterruptandSystemCall();
 
           //The current process is readded to the ready queue
-          addProcessToReadyQueue(currProcess);
+          m.addProcessToReadyQueue(m.currProcess);
 
           //The new process is added to the ready queue
-          addProcessToReadyQueue(m.pidCounter);
+          m.addProcessToReadyQueue(m.pidCounter);
 
           //A new process will selected from the ready
           //queue to enter the CPU based on remaining burst
           if (m.readyQueue.empty()){
-            currProcess = -1;
-            emptyCPU = true;
+            m.currProcess = -1;
+            m.emptyCPU = true;
           }
           else {
-            currProcess = m.readyQueue.front();
+            m.currProcess = m.readyQueue.front();
             m.readyQueue.pop_front();
-            emptyCPU = false;
+            m.emptyCPU = false;
           }
         }
         ++(m.pidCounter);
@@ -68,20 +68,20 @@ using namespace std;
       //If the user tries to terminate a process
       //while the CPU is empty
       else if (input == "t"){
-        terminateProcess();
+        m.terminateProcess();
       }
 
       //If the user issues a system call in the form of either
       //p<number>, d<number>, or c<number>
       else if (input[0]=='p' || input[0]=='d' || input[0]=='c'){
-        if (emptyCPU){
+        if (m.emptyCPU){
           cerr << "The CPU is empty, system calls cannot be made." <<'\n';
           cerr << "Add a process with the A command before issuing a system call." << '\n' << '\n';
         }
 
         else {
           if ((input[0] == 'p' && !m.printerQueues.empty()) || (input[0] == 'c' && !m.cdQueues.empty()) ||
-            (input[0] == 'd' && !m.diskQueues0.empty())){
+            (input[0] == 'd' && !m.diskSets0.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -102,12 +102,12 @@ using namespace std;
               systemCallParameters(print, input[0], num);
               cout << "System call added!" << '\n' << '\n';
               if (!m.readyQueue.empty()){
-                currProcess = m.readyQueue.front();
+                m.currProcess = m.readyQueue.front();
                 m.readyQueue.pop_front();
-                emptyCPU = false;
+                m.emptyCPU = false;
               }
               else {
-                emptyCPU = true;
+                m.emptyCPU = true;
               }
             }            
           }
@@ -130,7 +130,7 @@ using namespace std;
             checkForSystemCallinQueue(m.printerQueues, num);
           }
           else if (input[0]=='D'){
-            checkForSystemCallinQueue(m.diskQueues0, num);
+            m.checkForSystemCallinDiskSet(num-1,m.scanDiskQueuesStatus[num-1]);
           }
           else if (input[0]=='C') {
             checkForSystemCallinQueue(m.cdQueues, num);
@@ -190,7 +190,8 @@ using namespace std;
      being printed signifies
   */
   void CPU::snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << 
+    setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
   }
 
   /*
@@ -310,7 +311,7 @@ using namespace std;
     if (name.length() > 20){
       name.resize(20);
     }
-    m.processes[currProcess].name = name;
+    m.processes[m.currProcess].name = name;
 
     string memStart = "";
     int n = 0;
@@ -320,7 +321,7 @@ using namespace std;
     while (!intOrFloatErrorCheck(memStart, true, true)){
       cin >> memStart;
     }
-    m.processes[currProcess].memStart = intResult;
+    m.processes[m.currProcess].memStart = intResult;
 
     /*
       If the system call is not for a printing device,
@@ -336,10 +337,10 @@ using namespace std;
       while (!typeErrorChecking(typeIn)){
         cin >> typeIn;      
       }
-      m.processes[currProcess].type = typeIn;
+      m.processes[m.currProcess].type = typeIn;
     }
     else {
-      m.processes[currProcess].type = "w";
+      m.processes[m.currProcess].type = "w";
     }
 
     /*
@@ -348,7 +349,7 @@ using namespace std;
       length of the file. The answer will be
       verified as a valid interger.
     */
-    if (strcmp(m.processes[currProcess].type.c_str(),"w")==0){
+    if (strcmp(m.processes[m.currProcess].type.c_str(),"w")==0){
       string input;
 
       cout << '\n' << "Enter the length of the file: ";
@@ -356,7 +357,7 @@ using namespace std;
       while (!intOrFloatErrorCheck(input, true, false)){
         cin >> input;
       }
-      m.processes[currProcess].length = intResult;
+      m.processes[m.currProcess].length = intResult;
     }
 
     /*
@@ -365,13 +366,13 @@ using namespace std;
       will be added to the appropiate device queue
     */
     if (ch == 'p'){
-      (m.printerQueues[num-1]).push_back(currProcess);
+      (m.printerQueues[num-1]).push_back(m.currProcess);
     }
     else if (ch == 'd'){
-      m.diskQueues0[num-1].push_back(currProcess);
+      m.addProcessToDiskQueue(m.currProcess,num-1);
     }
     else { //ch == 'c'
-      m.cdQueues[num-1].push_back(currProcess);
+      m.cdQueues[num-1].push_back(m.currProcess);
     }
   }
 
@@ -446,12 +447,12 @@ using namespace std;
       else {
         int finishedProcess = devQueues[callNum-1].front();
         devQueues[callNum-1].pop_front();
-        if (emptyCPU){
-          currProcess = finishedProcess;
-          emptyCPU = false;
+        if (m.emptyCPU){
+          m.currProcess = finishedProcess;
+          m.emptyCPU = false;
         }
         else {
-          addProcessToReadyQueue(finishedProcess);
+          m.addProcessToReadyQueue(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
@@ -476,33 +477,6 @@ using namespace std;
     }
   }
 
-  void CPU::addProcessToReadyQueue(const int& pid){
-    //Represents the remaining burst of process to be inserted
-    float burstOfNewProcess = m.processes[pid].remainingBurst;
-    /*
-      The ready queue is traversed and the remaining burst
-      member variable of each process in the ready queue is
-      compared to the new process' remaining burst. If the 
-      burst in the ready queue is larger than burstOfNewProcess, 
-      the pid of the new process is inserted at the current place
-      of the iterator and the function returns
-    */
-    deque<int>::iterator it = m.readyQueue.begin();
-    while (it != m.readyQueue.end()){
-      if (m.processes[*it].remainingBurst > burstOfNewProcess){
-        m.readyQueue.insert(it, pid);
-        return;
-      }
-      ++it;
-    }
-    /*
-      If the new process' remaining burst is bigger than every other
-      process' remaining burst in the readyQueue, it is pushed to the
-      back of the queue
-    */
-    m.readyQueue.push_back(pid);
-  }
-
   //Updates the current process' burstEstimate and remaining burst variables
   void CPU::handleInterruptandSystemCall(){
     //Asking timer how long the current process has used the CPU
@@ -516,12 +490,12 @@ using namespace std;
     }
 
     //The current process' remaining burst and burst estimate are updated
-    m.processes[currProcess].remainingBurst = m.processes[currProcess].burstEstimate - floatResult;
-    m.processes[currProcess].burstEstimate = sjwAlgorithm();
+    m.processes[m.currProcess].remainingBurst = m.processes[m.currProcess].burstEstimate - floatResult;
+    m.processes[m.currProcess].burstEstimate = sjwAlgorithm();
 
     //The current process' total cpu time and cpu usage count are updated
-    m.processes[currProcess].totalCPUTime += floatResult;
-    ++m.processes[currProcess].cpuUsageCount;
+    m.processes[m.currProcess].totalCPUTime += floatResult;
+    ++m.processes[m.currProcess].cpuUsageCount;
 
     //The system's total CPU time is updated with the timer's answer
     m.systemTotalCPUTime += floatResult;
@@ -532,110 +506,5 @@ using namespace std;
 
   //Returns the result of the algorithm based on the current process' values
   float CPU::sjwAlgorithm(){
-    return (1 - m.historyParameter) * m.processes[currProcess].burstEstimate + m.historyParameter * floatResult;
+    return (1 - m.historyParameter) * m.processes[m.currProcess].burstEstimate + m.historyParameter * floatResult;
   }
-
-  void CPU::terminateProcess(){
-    if (emptyCPU){
-      cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
-    }
-    else {
-      unordered_map<int,Process>::iterator it = m.processes.find(currProcess);
-
-      cout << "Process terminated" << '\n';
-      cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(10) << 
-      (it->second.totalCPUTime / it->second.cpuUsageCount) << '\n' << '\n';
-
-      m.processes.erase(currProcess);
-
-      if (!m.readyQueue.empty()){
-        currProcess = m.readyQueue.front();
-        m.readyQueue.pop_front();
-        emptyCPU = false;
-        cout << "A new process has been added to the CPU." << '\n';
-      }
-      else {
-        emptyCPU = true;
-      }
-      cout << '\n';
-    } 
-  }
-
-  void CPU::addProcessToDiskQueue(const int& pid, const int& queueNum){
-    if (m.firstDiskSystemCall){
-      m.diskQueues0[queueNum-1].push_back(pid);
-      m.firstDiskSystemCall = false;
-    }
-    else {
-      if (m.scanDiskQueuesStatus[queueNum-1]){
-        m.diskQueues0[queueNum-1].push_back(pid);
-      }
-    }
-  }
-
-/*
-  void CPU::addProcessToWaitingQueue(const int& pid, const int& queueNum, const bool& zeroIsWaiting){
-    //The iterators and pointer are used to keep track of what
-    //deques will be used in the pid insert
-    deque<int>::iterator it, itEnd;
-    deque<int> *deqPtr;
-
-    //If diskQueues0 represents the waiting queues,
-    //the iterators and pointer are assigned accordingly
-    if (zeroIsWaiting){
-      it = m.diskQueues0[queueNum-1].begin();
-      itEnd = m.diskQueues0[queueNum-1].end();
-      deqPtr = &(m.diskQueues0[queueNum-1]);
-    }
-
-    //If diskQueues1 represents the waiting queues,
-    //the iterators and pointer are assigned accordingly
-    else {
-      it = m.diskQueues1[queueNum-1].begin();
-      itEnd = m.diskQueues1[queueNum-1].end();
-      deqPtr = &(m.diskQueues1[queueNum-1]);
-    }
-
-    //The process is compared to current processes in the
-    //queue and is inserted in the place of a currently 
-    //inserted track if it is has a lower track
-    //number than the current process
-    //Replace with log n solution
-    while (it != itEnd){
-      if (m.processes[*it].track > m.processes[pid].track){
-        deqPtr->insert(it,pid);
-        return;
-      }
-      ++it;
-    }
-    //If its track number is higher than every process in
-    //the deque, it is added to the end
-    deqPtr->push_back(pid);
-  }
-*/
-/*
-  void CPU::addProcessToWaitingQueue(const int& pid, deque<int>& diskDeque){
-    cout << "NEW PID: " << pid << '\n';
-    cout << "NEW PID track: " << m.processes[pid].track << '\n';
-
-    if (diskDeque.empty()){
-      diskDeque.push_back(pid);
-      cout << "EMPTY" << '\n';
-      return;
-    }
-
-    for (int i = 0; i < diskDeque.size(); ++i){
-
-      cout << "in deque: " << m.processes[diskDeque[i]].track << '\n';
-      cout << "new pid: " << m.processes[pid].track << '\n';
-      
-      if (m.processes[diskDeque[i]].track > m.processes[pid].track){
-        diskDeque.insert(diskDeque.begin()+i, pid);
-        return;
-      }
-    }
-    diskDeque.push_back(pid);
-    cout << "PUSH BACK" << '\n';
-  }
-*/

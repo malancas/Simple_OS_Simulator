@@ -55,6 +55,10 @@ struct Memory {
 
   int systemTotalcpuUsageCount;
 
+  bool emptyCPU;
+
+  int currProcess;
+
   /*
     Number of cylinders in the hard drive
   */
@@ -66,7 +70,7 @@ struct Memory {
   vector<bool> scanDiskQueuesStatus;
   
   //CONTRUCTORS
-  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0), firstDiskSystemCall(true) {}
+  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0), firstDiskSystemCall(true), emptyCPU(true), currProcess(-1) {}
 
   /*
     The ready queue contains process PIDS
@@ -97,6 +101,10 @@ struct Memory {
   vector<multiset<Process, highest_Track_First>> diskSets1;
 
   void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+  void addProcessToDiskQueue(const int& pid, const int& queueNum);
+  void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
+  void addProcessToReadyQueue(const int& pid);
+  void terminateProcess();
 
 };
 
