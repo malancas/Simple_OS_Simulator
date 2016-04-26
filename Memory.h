@@ -19,58 +19,61 @@ struct Memory {
     and device queues to deal with ints instead
     of objects
   */
-  unordered_map<int, Process> processes;
+  static unordered_map<int, Process> processes;
 
   /*
     The current value of the counter is assigned
     to new processes by incrementing to insure
     each has a unique PID
   */
-  int pidCounter;
+  static int pidCounter;
 
   /*
     Also represented with α, used in the SJF
     approximation calculation
   */
-  float historyParameter;
+  static float historyParameter;
 
   /*
     The initial burst estimate
   */
-  float initialBurstEstimate;
+  static float initialBurstEstimate;
 
-  //Used to determine which disk queue
-  //vector represents the scan queues
-  vector<deque<int>*> scanQueuesPtrVector;
+  static bool firstDiskSystemCall;
 
-  vector<deque<int>*> waitingQueuesPtrVector;
+  static bool isScanQueues;
 
-  bool firstDiskSystemCall;
+  static bool scanGoesUp;
 
-  bool isScanQueues;
+  static float systemTotalCPUTime;
 
-  bool scanGoesUp;
+  static int systemTotalcpuUsageCount;
 
-  float systemTotalCPUTime;
+  static bool emptyCPU;
 
-  int systemTotalcpuUsageCount;
+  static int currProcess;
 
-  bool emptyCPU;
+  static int intResult;
 
-  int currProcess;
+  static float floatResult;
+
+  static int num;
+  
+  static float floatNum;
 
   /*
     Number of cylinders in the hard drive
   */
-  vector<int> cylinderCount;
+  static vector<int> cylinderCount;
 
   //Holds boolean values, each corresponding
   //to the disk vector that is acting as the
   //scan vector.
-  vector<bool> scanDiskQueuesStatus;
+  static vector<bool> scanDiskQueuesStatus;
   
   //CONTRUCTORS
-  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0), firstDiskSystemCall(true), emptyCPU(true), currProcess(-1) {}
+  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0),
+   firstDiskSystemCall(true), emptyCPU(true), currProcess(-1) {}
 
   /*
     The ready queue contains process PIDS
@@ -78,12 +81,11 @@ struct Memory {
     device queues specified during the sys gen
     phase. Each of these queues contains PIDS
   */
-  deque<int> readyQueue;
-  vector<deque<int>> printerQueues;
-  vector<deque<int>> diskQueues0;
-  vector<deque<int>> diskQueues1;
-  //vector<deque<int>> diskQueues;
-  vector<deque<int>> cdQueues;
+  static deque<int> readyQueue;
+  static vector<deque<int>> printerQueues;
+  static vector<deque<int>> diskQueues0;
+  static vector<deque<int>> diskQueues1;
+  static vector<deque<int>> cdQueues;
 
   struct lowest_Track_First {
     bool operator() (const Process& lhs, const Process& rhs) const{
@@ -107,6 +109,15 @@ struct Memory {
   void terminateProcess();
   void snapshotAux_Disk();
   void snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd);
+  void handleInterruptandSystemCall();
+  bool intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK);
+  float sjwAlgorithm();
+  void snapshotAux_ReadyDeque();
+  void snapshotAux_SystemInformation();
+  void getInstallerInput();
+  void getInstallerInput_aux(const string& userMessage, const char& variableCode);
+  bool checkInputForErrors(const char& variableCode);
+  bool isHistoryParameterInRange();
 
 };
 

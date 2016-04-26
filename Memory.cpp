@@ -7,6 +7,52 @@
 #include "Memory.h"
 using namespace std;
 
+  unordered_map<int, Process> Memory::processes = {};
+
+  int Memory::pidCounter = 0;
+
+  float Memory::historyParameter;
+
+  /*
+    The initial burst estimate
+  */
+  static float initialBurstEstimate;
+
+  static bool firstDiskSystemCall;
+
+  static bool isScanQueues;
+
+  static bool scanGoesUp;
+
+  static float systemTotalCPUTime;
+
+  static int systemTotalcpuUsageCount;
+
+  static bool emptyCPU;
+
+  static int currProcess;
+
+  static int intResult;
+
+  static float floatResult;
+
+  static int num;
+  
+  static float floatNum;
+
+  /*
+    Number of cylinders in the hard drive
+  */
+  static vector<int> cylinderCount;
+
+  float Memory::historyParameter = 0;
+
+    static deque<int> readyQueue;
+  static vector<deque<int>> printerQueues;
+  static vector<deque<int>> diskQueues0;
+  static vector<deque<int>> diskQueues1;
+  static vector<deque<int>> cdQueues;
+
   void Memory::addProcessToWaitingQueue(const int& pid, const int&setNum, const bool& zeroIsWaiting){
     if (zeroIsWaiting){
     	diskSets0[setNum].insert(processes[pid]);
@@ -199,4 +245,241 @@ using namespace std;
       cout << scanIt->totalCPUTime << setw(10) << (scanIt->totalCPUTime / scanIt->cpuUsageCount) << '\n';
       ++scanIt;
     }
+  }
+
+  //Updates the current process' burstEstimate and remaining burst variables
+  void Memory::handleInterruptandSystemCall(){
+    //Asking timer how long the current process has used the CPU
+    string in;
+    cout << "How long has the current process been using the CPU?" << '\n';
+    cin >> in;
+
+    //Keeps asking for valid input until it is received
+    while (!intOrFloatErrorCheck(in, false, true)){
+      cin >> in;
+    }
+
+    //The current process' remaining burst and burst estimate are updated
+    processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - floatResult;
+    processes[currProcess].burstEstimate = sjwAlgorithm();
+
+    //The current process' total cpu time and cpu usage count are updated
+    processes[currProcess].totalCPUTime += floatResult;
+    ++(processes[currProcess].cpuUsageCount);
+  }
+
+  /*
+    Used for the running phase input, the function will check
+    if the user input entered to represent a integer can actually
+    be represented an integer and if the integer is negative or not
+  */
+  bool Memory::intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK){
+    istringstream iss{in};
+    //Checks if the input can be converted to an int
+    if (checkingInt){
+      if (iss >> intResult && (iss.eof() || isspace(iss.peek()))) {
+        if (!zeroValuesOK && intResult <= 0){
+          cerr << "Zero or a negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else if (zeroValuesOK && intResult < 0){
+          cerr << "A negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else{
+          return true;
+        }
+      }
+      else {
+        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
+        return false;
+      }      
+    }
+    else {
+      if (iss >> floatResult && (iss.eof() || isspace(iss.peek()))) {
+        if (!zeroValuesOK && floatResult <= 0){
+          cerr << "Zero or a negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else if (zeroValuesOK && floatResult < 0){
+          cerr << "A negative number was entered. Please try again." << '\n';
+          return false;
+        }
+        else{
+          return true;
+        }
+      }
+      else {
+        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
+        return false;
+      }  
+    }
+  }
+
+  //Returns the result of the algorithm based on the current process' values
+  float Memory::sjwAlgorithm(){
+    cout << "history Parameter: " << historyParameter << '\n';
+    cout << "float result: " << floatResult << '\n';
+
+    return (1 - historyParameter) * processes[currProcess].burstEstimate + historyParameter * floatResult;
+  }
+
+  void Memory::snapshotAux_ReadyDeque(){
+    deque<int>::iterator itB = readyQueue.begin();
+    deque<int>::iterator itE = readyQueue.end();
+
+    cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+    cout << "----r" << '\n';
+    while (itB != itE){
+      cout << *itB << setw(10) << processes[*itB].totalCPUTime << setw(10);
+      if (processes[*itB].cpuUsageCount > 0){
+        cout << (processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount);
+      }
+      else {
+        cout << "0";
+      }
+      cout << '\n';
+
+      ++itB;
+    }
+    cout << '\n';
+  }
+
+  void Memory::snapshotAux_SystemInformation(){
+    cout << "Total System Average CPU Time" << '\n';
+    cout << "-----------------------------" << '\n';
+    if (systemTotalcpuUsageCount > 0){
+      cout << systemTotalCPUTime / systemTotalcpuUsageCount;
+    }
+    else {
+      cout << "0";
+    }
+    cout << '\n' << '\n';
+  }
+
+  void Memory::getInstallerInput(){
+    //Set the number of printer device queues
+    getInstallerInput_aux("Enter the number of printer devices: ", 'o');
+    printerQueues.resize(num);
+
+    //Set the number of disk device queues
+    getInstallerInput_aux("Enter the number of disk devices: ", 'o');
+    diskQueues0.resize(num);
+    diskQueues1.resize(num);
+    cylinderCount.resize(num);
+    scanDiskQueuesStatus.resize(num);
+
+    //The elements are set to false, meaning that scanDiskQueues0 will
+    //begin the program as representing the scan queues
+    fill(scanDiskQueuesStatus.begin(),scanDiskQueuesStatus.end(),false);
+
+    //Set the number of CD device queues
+    getInstallerInput_aux("Enter the number of CD devices: ", 'o');
+    cdQueues.resize(num);
+
+    //Set the history parameter
+    floatNum = 0;
+    getInstallerInput_aux("Enter the history parameter: ", 'h');
+    historyParameter = floatNum;
+
+    //cout << "float: " << floatNum << '\n';
+    //cout << "hist: " << historyParameter << '\n';
+
+    //Set the inital burst estimate
+    getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
+    initialBurstEstimate = floatNum;
+    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
+
+    //Set the number of cylinders in each disk device
+    int n = cylinderCount.size();
+    //The two strings are used to create the message used in the user prompt.
+    //The message's content depends on which disk device it asking about.
+    string messageBase = "Enter the number of cylinders in disk device ";
+    string messageEnd = ": ";
+    for (int i = 0; i < n; ++i){
+      getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
+      cylinderCount[i] = num;
+    }
+  } 
+
+  void Memory::getInstallerInput_aux(const string& userMessage, const char& variableCode){
+    num = 0;
+    cout << userMessage << '\n';
+    while(!checkInputForErrors(variableCode)){
+      cout << userMessage;
+    }
+    cout << '\n';
+  }
+  
+  /*
+    Prints userMessage to user before receiving input before
+    parsing and checking for errors.
+  */
+  
+  bool Memory::checkInputForErrors(const char& variableCode){
+    string line;
+    if (getline(cin, line)) {
+      istringstream iss{line};
+      //Checks if the input can be converted to an int
+      if (variableCode == 'o'){
+       if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
+          
+         //If it was successfully converted, then checks if
+         //num is negative
+         if (num < 0){
+           cerr << '\n' << "Negative number entered. Please try again" << '\n';
+           return false;
+         }
+  
+         /*
+         If the function is being used to error check input for the history parameter,
+         checkingHistoryParameter = true. If this is the case and the input entered
+         is a valid integer, an additional function will be called to determine if the
+         history parameter >= 0 and <= 1
+         */
+  
+         //If num is not negative and if representing a history parameter
+         //in the correct range, then the function will return true
+         return true;            
+       }
+       else {
+         cerr << '\n' << "Non numeric character entered. Please try again." << '\n';
+         return false;
+       }
+      }
+      else {
+       if (iss >> floatNum && (iss.eof() || isspace(iss.peek()))) { 
+         //If it was successfully converted, then checks if
+         //num is negative
+         if (floatNum < 0){
+           cerr << '\n' << "Negative number entered. Please try again" << '\n';
+           return false;
+         }
+  
+         //If num is not negative and if representing a history parameter
+         //in the correct range, then the function will return true
+         if (variableCode == 'h'){
+            if (!isHistoryParameterInRange()){
+              cerr << "Input is not in correct range for the history parameter" << '\n';
+              return false;
+            }
+            return true; 
+         }
+         return true;  
+       }
+       else {
+         cerr << '\n' << "Non numeric character entered. Please try again." << '\n';
+         return false;
+       }
+      }
+    }
+    return false;
+  }
+
+  /*
+    Checks whether num is >= 0 and <= 1,
+    which is necessary to be valid history parameter
+  */
+  bool Memory::isHistoryParameterInRange(){
+    return (floatNum >= 0 && floatNum <= 1);
   }

@@ -78,10 +78,6 @@ struct CPU {
   */
   bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
 
-  void handleInterruptandSystemCall();
-
-  float sjwAlgorithm();
-
   void terminateProcess();
 
   void addProcessToDiskQueue(const int& pid, const int& queueNum);

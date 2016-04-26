@@ -16,8 +16,9 @@ int main(){
     initialize data structures like device queues
     to set up for the Running phase of the program
   */
-  Sysgen s;
-  s.getInstallerInput();
+  //Sysgen s;
+  //s.getInstallerInput();
+  m.getInstallerInput();
 
   /*Running
     This part will take user input, parse it and error

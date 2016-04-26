@@ -42,7 +42,7 @@ using namespace std;
         //If the CPU isn't empty and the user issues an 'A',
         //a process is created and added to the ready queue
         else {
-          handleInterruptandSystemCall();
+          m.handleInterruptandSystemCall();
 
           //The current process is readded to the ready queue
           m.addProcessToReadyQueue(m.currProcess);
@@ -80,7 +80,7 @@ using namespace std;
             if(systemCallInputChecking(input,num)){
               //The current process' burstEstimate and remainingBurst are updated
               //before it's added to a device queue
-              handleInterruptandSystemCall();
+              m.handleInterruptandSystemCall();
 
               //Determining if the system call was for the printer
               //device is crucial for the systemCallParameters function
@@ -114,8 +114,8 @@ using namespace std;
       else if (input[0]=='P' || input[0] == 'D' || input[0] == 'C'){
         int num = 0;
 
-        handleInterruptandSystemCall();
-        addProcessToReadyQueue(m.currProcess);
+        m.handleInterruptandSystemCall();
+        m.addProcessToReadyQueue(m.currProcess);
         m.currProcess = m.readyQueue.front();
         m.readyQueue.pop_front();
 
@@ -140,8 +140,8 @@ using namespace std;
         printed to the terminal
       */
       else if (input == "S"){
-        handleInterruptandSystemCall();
-        addProcessToReadyQueue(m.currProcess);
+        m.handleInterruptandSystemCall();
+        m.addProcessToReadyQueue(m.currProcess);
         m.currProcess = m.readyQueue.front();
         m.readyQueue.pop_front();
 
@@ -160,37 +160,19 @@ using namespace std;
             os.clear();
             m.snapshotAux_Disk();
           }
+          else if (input == "r"){
+            m.snapshotAux_ReadyDeque();
+          }
           else {
-            if (input == "r"){
-              deque<int>::iterator itB = m.readyQueue.begin();
-              deque<int>::iterator itE = m.readyQueue.end();
 
-              os << "PID" << '\n' << "----r" << '\n';
-              while (itB != itE){
-                os << *itB << setw(10) << m.processes[*itB].totalCPUTime << setw(10)
-                  << (m.processes[*itB].totalCPUTime / m.processes[*itB].cpuUsageCount) << '\n';
-                ++itB;
-              }
-              os << '\n';
-            }
-
-            else {
-              snapshotHeader();
-              snapshotAux(input);
-            }
-            os << "Total System Average CPU Time" << '\n';
-            os << "-----------------------------" << '\n';
-            if (m.systemTotalcpuUsageCount > 0){
-              os << m.systemTotalCPUTime / m.systemTotalcpuUsageCount;
-            }
-            else {
-              os << "0";
-            }
-            cout << '\n' << '\n';
+            snapshotHeader();
+            snapshotAux(input);
 
             cout << os.str();
             os.str("");
             os.clear();
+
+            m.snapshotAux_SystemInformation();
           }
         }
       }
@@ -361,7 +343,7 @@ using namespace std;
 
     cout << "Enter the starting location in memory: ";
     cin >> memStart;
-    while (!intOrFloatErrorCheck(memStart, true, true)){
+    while (!m.intOrFloatErrorCheck(memStart, true, true)){
       cin >> memStart;
     }
     m.processes[m.currProcess].memStart = intResult;
@@ -397,7 +379,7 @@ using namespace std;
 
       cout << '\n' << "Enter the length of the file: ";
       cin >> input;
-      while (!intOrFloatErrorCheck(input, true, false)){
+      while (!m.intOrFloatErrorCheck(input, true, false)){
         cin >> input;
       }
       m.processes[m.currProcess].length = intResult;
@@ -417,56 +399,6 @@ using namespace std;
     }
     else { //ch == 'c'
       m.cdQueues[num-1].push_back(m.currProcess);
-    }
-  }
-
-
-  /*
-    Used for the running phase input, the function will check
-    if the user input entered to represent a integer can actually
-    be represented an integer and if the integer is negative or not
-  */
-  //memloc = true === zeorvaluesok = true
-  bool CPU::intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK){
-    istringstream iss{in};
-    //Checks if the input can be converted to an int
-    if (checkingInt){
-      if (iss >> intResult && (iss.eof() || isspace(iss.peek()))) {
-        if (!zeroValuesOK && intResult <= 0){
-          cerr << "Zero or a negative number was entered. Please try again." << '\n';
-          return false;
-        }
-        else if (zeroValuesOK && intResult < 0){
-          cerr << "A negative number was entered. Please try again." << '\n';
-          return false;
-        }
-        else{
-          return true;
-        }
-      }
-      else {
-        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
-        return false;
-      }      
-    }
-    else {
-      if (iss >> floatResult && (iss.eof() || isspace(iss.peek()))) {
-        if (!zeroValuesOK && floatResult <= 0){
-          cerr << "Zero or a negative number was entered. Please try again." << '\n';
-          return false;
-        }
-        else if (zeroValuesOK && floatResult < 0){
-          cerr << "A negative number was entered. Please try again." << '\n';
-          return false;
-        }
-        else{
-          return true;
-        }
-      }
-      else {
-        cerr << "Non numeric characters enetered. Please try again" << '\n' << '\n';
-        return false;
-      }  
     }
   }
 
@@ -521,37 +453,11 @@ using namespace std;
     }
   }
 
-  //Updates the current process' burstEstimate and remaining burst variables
-  void CPU::handleInterruptandSystemCall(){
-    //Asking timer how long the current process has used the CPU
-    string in;
-    cout << "How long has the current process been using the CPU?" << '\n';
-    cin >> in;
-
-    //Keeps asking for valid input until it is received
-    while (!intOrFloatErrorCheck(in, false, true)){
-      cin >> in;
-    }
-
-    //The current process' remaining burst and burst estimate are updated
-    m.processes[m.currProcess].remainingBurst = m.processes[m.currProcess].burstEstimate - floatResult;
-    m.processes[m.currProcess].burstEstimate = sjwAlgorithm();
-
-    //The current process' total cpu time and cpu usage count are updated
-    m.processes[m.currProcess].totalCPUTime += floatResult;
-    ++m.processes[m.currProcess].cpuUsageCount;
-  }
-
-  //Returns the result of the algorithm based on the current process' values
-  float CPU::sjwAlgorithm(){
-    return (1 - m.historyParameter) * m.processes[m.currProcess].burstEstimate + m.historyParameter * floatResult;
-  }
-
   void CPU::getCylinderChoice(const int& dequeNum){
     string in;
     cout << "Enter the cylinder that the file exists on: ";
     cin >> in;
-    while (!intOrFloatErrorCheck(in, true, true) || !isCylinderChoiceValid(intResult,dequeNum)){
+    while (!m.intOrFloatErrorCheck(in, true, true) || !isCylinderChoiceValid(intResult,dequeNum)){
       cout << "The chosen cylinder is invalid. Please enter a new value and try again: ";
       cin >> in;
     }
