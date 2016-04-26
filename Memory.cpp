@@ -169,6 +169,9 @@ using namespace std;
       if (scanIt->type == "w"){
         cout << scanIt->length << setw(10);
       }
+      else {
+        cout << setw(20);
+      }
       cout << scanIt->totalCPUTime << setw(10) << (scanIt->totalCPUTime / scanIt->cpuUsageCount) << '\n';
       ++scanIt;
     }

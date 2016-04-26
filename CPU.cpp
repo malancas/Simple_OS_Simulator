@@ -191,7 +191,7 @@ using namespace std;
      being printed signifies
   */
   void CPU::snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length" << 
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " << 
     setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
   }
 
