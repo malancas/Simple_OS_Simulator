@@ -88,9 +88,9 @@ struct CPU {
 
   void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
 
-  static bool sort_By_Lowest_Track_First(const int& old_pid, const int& new_pid);
+  void getCylinderChoice(const int& dequeNum);
 
-  static bool sort_By_Highest_Track_First(const int& old_pid, const int& new_pid);
+  bool isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum);
   
 };
 

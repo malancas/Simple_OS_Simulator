@@ -29,13 +29,23 @@ int main(){
 	m.diskSets0.resize(2);
 
 	m.processes = {{0,Process(0,5)},{1,Process(1,5)},{2,Process(2,5)},{3,Process(3,5)},{4,Process(4,5)}};
-	m.processes[0].totalCPUTime = 0;
-	m.processes[0].cpuUsageCount = 0;
+	m.processes[0].totalCPUTime = 4;
+	m.processes[0].cpuUsageCount = 3;
 	
-	m.processes[1].track = 99;
-	m.processes[2].track = 98;
-	m.processes[3].track = 4;
-	m.processes[4].track = 4;	
+	m.processes[1].totalCPUTime = 0;
+	m.processes[1].cpuUsageCount = 0;
+
+	m.terminateProcess();
+
+	m.currProcess = 0;
+	m.emptyCPU = false;
+	m.terminateProcess();
+	assert(m.emptyCPU);
+
+	m.currProcess = 1;
+	m.emptyCPU = false;
+	m.terminateProcess();
+	assert(m.emptyCPU);
 
 	return 0;
 }

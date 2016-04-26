@@ -123,9 +123,24 @@ using namespace std;
       unordered_map<int,Process>::iterator it = processes.find(currProcess);
 
       cout << "Process terminated" << '\n';
+      cout << "------------------" << '\n';
       cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(10) << 
-      (it->second.totalCPUTime / it->second.cpuUsageCount) << '\n' << '\n';
+      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(20);
+      if (it->second.cpuUsageCount > 0){
+        cout << (it->second.totalCPUTime / it->second.cpuUsageCount);
+      }
+      else {
+        cout << "0";
+      }
+      cout << '\n' << '\n';
+
+      //The system's total cpu time and cpu usage count variables are updated with the
+      //terminated process' corresponding variables. This updates the system's average
+      //total CPU time 
+      if (it->second.cpuUsageCount > 0){
+        systemTotalCPUTime += it->second.totalCPUTime;
+        systemTotalcpuUsageCount += it->second.cpuUsageCount;
+      }
 
       processes.erase(currProcess);
 
@@ -160,6 +175,15 @@ using namespace std;
       }
       cout << '\n' << '\n';
     }
+    cout << "System Average CPU Time" << '\n';
+    cout << "-----------------------" << '\n';
+    if (systemTotalcpuUsageCount > 0){
+      cout << systemTotalCPUTime/systemTotalcpuUsageCount;
+    }
+    else {
+      cout << "0"; 
+    }
+    cout << '\n' << '\n';
   }
 
   void Memory::snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd){

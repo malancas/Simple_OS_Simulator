@@ -131,7 +131,7 @@ struct Sysgen {
             }
           return true; 
          }
-          return true;  
+         return true;  
        }
        else {
          cerr << '\n' << "Non numeric character entered. Please try again." << '\n';

@@ -155,27 +155,45 @@ using namespace std;
         }
 
         else {
-          if (input == "r"){
-            deque<int>::iterator itB = m.readyQueue.begin();
-            deque<int>::iterator itE = m.readyQueue.end();
-
-            os << "PID" << '\n' << "----r" << '\n';
-            while (itB != itE){
-              os << *itB << setw(10) << m.processes[*itB].totalCPUTime << setw(10)
-                << (m.processes[*itB].totalCPUTime / m.processes[*itB].cpuUsageCount) << '\n';
-              ++itB;
-            }
-            os << '\n';
-          }
-
-          else {
+          if (input == "d") {
             snapshotHeader();
-            snapshotAux(input);
+            cout << os.str();
+            os.str("");
+            os.clear();
+            m.snapshotAux_Disk();
           }
-          cout << os.str();
+          else {
+            if (input == "r"){
+              deque<int>::iterator itB = m.readyQueue.begin();
+              deque<int>::iterator itE = m.readyQueue.end();
 
-          os.str("");
-          os.clear();
+              os << "PID" << '\n' << "----r" << '\n';
+              while (itB != itE){
+                os << *itB << setw(10) << m.processes[*itB].totalCPUTime << setw(10)
+                  << (m.processes[*itB].totalCPUTime / m.processes[*itB].cpuUsageCount) << '\n';
+                ++itB;
+              }
+              os << '\n';
+            }
+
+            else {
+              snapshotHeader();
+              snapshotAux(input);
+            }
+            os << "Total System Average CPU Time" << '\n';
+            os << "-----------------------------" << '\n';
+            if (m.systemTotalcpuUsageCount > 0){
+              os << m.systemTotalCPUTime / m.systemTotalcpuUsageCount;
+            }
+            else {
+              os << "0";
+            }
+            cout << '\n' << '\n';
+
+            cout << os.str();
+            os.str("");
+            os.clear();
+          }
         }
       }
       else {
@@ -208,6 +226,10 @@ using namespace std;
       if (ty == "w"){
         os << setw(10) << m.processes[*itB].length;
       }
+      else {
+        os << setw(20);
+      }
+      os << m.processes[*itB].totalCPUTime << setw(10) << m.processes[*itB].totalCPUTime / m.processes[*itB].cpuUsageCount;
       os << '\n';
       ++itB;
     }
@@ -216,11 +238,6 @@ using namespace std;
   void CPU::snapshotAux(const string& input){
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
-    if (input == "d"){
-      snapshotAux_Disk();
-      os << '\n';
-    }
-    else {
       if (input == "c"){
         if (!m.cdQueues.empty()){
           itV = m.cdQueues.begin(); itVe = m.cdQueues.end();
@@ -243,8 +260,7 @@ using namespace std;
         itB = itV->begin();
         itE = itV->end();
       }
-      os << '\n';      
-    }
+      os << '\n' << '\n';
   }
 
   void CPU::snapshotAux_Disk(){
@@ -398,6 +414,7 @@ using namespace std;
       (m.printerQueues[num-1]).push_back(m.currProcess);
     }
     else if (ch == 'd'){
+      getCylinderChoice(num-1);
       m.addProcessToDiskQueue(m.currProcess,num-1);
     }
     else { //ch == 'c'
@@ -525,15 +542,23 @@ using namespace std;
     //The current process' total cpu time and cpu usage count are updated
     m.processes[m.currProcess].totalCPUTime += floatResult;
     ++m.processes[m.currProcess].cpuUsageCount;
-
-    //The system's total CPU time is updated with the timer's answer
-    m.systemTotalCPUTime += floatResult;
-
-    //The system's total CPU time is incremented
-    ++m.systemTotalcpuUsageCount;
   }
 
   //Returns the result of the algorithm based on the current process' values
   float CPU::sjwAlgorithm(){
     return (1 - m.historyParameter) * m.processes[m.currProcess].burstEstimate + m.historyParameter * floatResult;
+  }
+
+  void CPU::getCylinderChoice(const int& dequeNum){
+    string in;
+    cout << "Enter the cylinder that the file exists on: ";
+    cin >> in;
+    while (!intOrFloatErrorCheck(in, true, true) || !isCylinderChoiceValid(intResult,dequeNum)){
+      cout << "The chosen cylinder is invalid. Please enter a new value and try again: ";
+      cin >> in;
+    }
+  }
+
+  bool CPU::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
+    return cylinderNum < m.cylinderCount[dequeNum];
   }
