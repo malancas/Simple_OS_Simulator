@@ -43,8 +43,6 @@ struct Memory {
 
   static bool isScanQueues;
 
-  static bool scanGoesUp;
-
   static float systemTotalCPUTime;
 
   static int systemTotalcpuUsageCount;
@@ -72,8 +70,7 @@ struct Memory {
   static vector<bool> scanDiskQueuesStatus;
   
   //CONTRUCTORS
-  Memory() : systemTotalCPUTime(0), systemTotalcpuUsageCount(0),
-   firstDiskSystemCall(true), emptyCPU(true), currProcess(-1) {}
+  Memory();
 
   /*
     The ready queue contains process PIDS

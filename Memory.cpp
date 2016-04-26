@@ -11,47 +11,41 @@ using namespace std;
 
   int Memory::pidCounter = 0;
 
-  float Memory::historyParameter;
-
-  /*
-    The initial burst estimate
-  */
-  static float initialBurstEstimate;
-
-  static bool firstDiskSystemCall;
-
-  static bool isScanQueues;
-
-  static bool scanGoesUp;
-
-  static float systemTotalCPUTime;
-
-  static int systemTotalcpuUsageCount;
-
-  static bool emptyCPU;
-
-  static int currProcess;
-
-  static int intResult;
-
-  static float floatResult;
-
-  static int num;
-  
-  static float floatNum;
-
-  /*
-    Number of cylinders in the hard drive
-  */
-  static vector<int> cylinderCount;
-
   float Memory::historyParameter = 0;
 
-    static deque<int> readyQueue;
-  static vector<deque<int>> printerQueues;
-  static vector<deque<int>> diskQueues0;
-  static vector<deque<int>> diskQueues1;
-  static vector<deque<int>> cdQueues;
+  float Memory::initialBurstEstimate = 0;
+
+  bool Memory::firstDiskSystemCall = true;
+
+  bool Memory::isScanQueues = true;
+
+  float Memory::systemTotalCPUTime = 0;
+
+  int Memory::systemTotalcpuUsageCount = 0;
+
+  bool Memory::emptyCPU = true;
+
+  int Memory::currProcess = -1;
+
+  int Memory::intResult = 0;
+
+  float Memory::floatResult = 0;
+
+  int Memory::num = 0;
+  
+  float Memory::floatNum = 0;
+
+  vector<int> Memory::cylinderCount = {};
+
+  vector<bool> Memory::scanDiskQueuesStatus = {};
+
+  deque<int> Memory::readyQueue = {};
+  vector<deque<int>> Memory::printerQueues = {};
+  vector<deque<int>> Memory::diskQueues0 = {};
+  vector<deque<int>> Memory::diskQueues1 = {};
+  vector<deque<int>> Memory::cdQueues = {};
+
+  Memory::Memory() {};
 
   void Memory::addProcessToWaitingQueue(const int& pid, const int&setNum, const bool& zeroIsWaiting){
     if (zeroIsWaiting){
@@ -263,8 +257,7 @@ using namespace std;
     processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - floatResult;
     processes[currProcess].burstEstimate = sjwAlgorithm();
 
-    //The current process' total cpu time and cpu usage count are updated
-    processes[currProcess].totalCPUTime += floatResult;
+    (processes[currProcess].totalCPUTime) += floatResult;
     ++(processes[currProcess].cpuUsageCount);
   }
 
@@ -318,9 +311,6 @@ using namespace std;
 
   //Returns the result of the algorithm based on the current process' values
   float Memory::sjwAlgorithm(){
-    cout << "history Parameter: " << historyParameter << '\n';
-    cout << "float result: " << floatResult << '\n';
-
     return (1 - historyParameter) * processes[currProcess].burstEstimate + historyParameter * floatResult;
   }
 
@@ -382,13 +372,9 @@ using namespace std;
     getInstallerInput_aux("Enter the history parameter: ", 'h');
     historyParameter = floatNum;
 
-    //cout << "float: " << floatNum << '\n';
-    //cout << "hist: " << historyParameter << '\n';
-
     //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
     initialBurstEstimate = floatNum;
-    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
     int n = cylinderCount.size();
