@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip>
 #include "Memory.h"
 using namespace std;
 
@@ -115,28 +116,60 @@ using namespace std;
   }
 
   void Memory::terminateProcess(){
-    if (m.emptyCPU){
+    if (emptyCPU){
       cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
     }
     else {
-      unordered_map<int,Process>::iterator it = m.processes.find(m.currProcess);
+      unordered_map<int,Process>::iterator it = processes.find(currProcess);
 
       cout << "Process terminated" << '\n';
       cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-      cout << m.currProcess << setw(10) << it->second.totalCPUTime << setw(10) << 
+      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(10) << 
       (it->second.totalCPUTime / it->second.cpuUsageCount) << '\n' << '\n';
 
-      m.processes.erase(m.currProcess);
+      processes.erase(currProcess);
 
-      if (!m.readyQueue.empty()){
-        m.currProcess = m.readyQueue.front();
-        m.readyQueue.pop_front();
-        m.emptyCPU = false;
+      if (!readyQueue.empty()){
+        currProcess = readyQueue.front();
+        readyQueue.pop_front();
+        emptyCPU = false;
         cout << "A new process has been added to the CPU." << '\n';
       }
       else {
-        m.emptyCPU = true;
+        emptyCPU = true;
       }
       cout << '\n';
     } 
+  }
+
+  void Memory::snapshotAux_Disk(){
+    multiset<Process>::iterator scanIt, scanItEnd, waitingIt, waitingItEnd;
+    for (int i = 0; i < scanDiskQueuesStatus.size(); ++i){
+      cout << "----" << "Scan Queue " << i+1 << '\n';
+      if (scanDiskQueuesStatus[i] == 1){
+        snapshotAux_Disk2(diskSets1[i].begin(), diskSets1[i].end());
+        cout << '\n';
+        cout << "----" << "Waiting Queue " << i+1 << '\n';
+        snapshotAux_Disk2(diskSets0[i].begin(), diskSets0[i].end());
+      }
+      else {
+        snapshotAux_Disk2(diskSets0[i].begin(), diskSets0[i].end());
+        cout << '\n';
+        cout << "----" << "Waiting Queue " << i+1 << '\n';
+        snapshotAux_Disk2(diskSets1[i].begin(), diskSets1[i].end());
+      }
+      cout << '\n' << '\n';
+    }
+  }
+
+  void Memory::snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd){
+    while (scanIt != scanItEnd){
+      cout << scanIt->pid << setw(10) << scanIt->name << setw(10) << scanIt->memStart 
+        << setw(10) << scanIt->type << setw(10);
+      if (scanIt->type == "w"){
+        cout << scanIt->length << setw(10);
+      }
+      cout << scanIt->totalCPUTime << setw(10) << (scanIt->totalCPUTime / scanIt->cpuUsageCount) << '\n';
+      ++scanIt;
+    }
   }

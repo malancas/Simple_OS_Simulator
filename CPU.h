@@ -39,6 +39,10 @@ struct CPU {
 
   void snapshotAux(const string& input);
 
+  void snapshotAux_Disk();
+
+  void snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd);
+
   /*
     Will check if the system call input, which will have
     already been verified to begin with either a 'p', 'd',

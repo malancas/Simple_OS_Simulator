@@ -50,8 +50,7 @@ struct Process {
   {
     os << obj.pid << " " << obj.name << " " << obj.memStart << " " 
     << obj.type << " " << obj.length << " " << obj.totalCPUTime 
-    << " " << " " << obj.cpuUsageCount << " " << obj.nextBurstEstimate << '\n';
+    << " " << obj.totalCPUTime/obj.cpuUsageCount << '\n';
     return os;
   }
 };
-

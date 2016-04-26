@@ -161,7 +161,8 @@ using namespace std;
 
             os << "PID" << '\n' << "----r" << '\n';
             while (itB != itE){
-              os << *itB << '\n';
+              os << *itB << setw(10) << m.processes[*itB].totalCPUTime << setw(10)
+                << (m.processes[*itB].totalCPUTime / m.processes[*itB].cpuUsageCount) << '\n';
               ++itB;
             }
             os << '\n';
@@ -215,39 +216,67 @@ using namespace std;
   void CPU::snapshotAux(const string& input){
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
+    if (input == "d"){
+      snapshotAux_Disk();
+      os << '\n';
+    }
+    else {
+      if (input == "c"){
+        if (!m.cdQueues.empty()){
+          itV = m.cdQueues.begin(); itVe = m.cdQueues.end();
+          itB = itV->begin(); itE = itV->end();
+        }
+      }
+      else { //input == "p"
+        if (!m.printerQueues.empty()){
+          itV = m.printerQueues.begin(); itVe = m.printerQueues.end();
+          itB = itV->begin(); itE = itV->end();        
+        }
+      }
 
-    if (input == "c"){
-      if (m.cdQueues.empty()){
-        return;
+      int count = 1;
+      while (itV != itVe){
+        os << "----" << input << count << '\n';
+        snapshotPrint(itB, itE);
+        ++itV;
+        ++count;
+        itB = itV->begin();
+        itE = itV->end();
       }
-      itV = m.cdQueues.begin(); itVe = m.cdQueues.end();
-      itB = itV->begin(); itE = itV->end();
+      os << '\n';      
     }
-    else if (input == "d"){
-      if (m.diskQueues0.empty()){
-        return;
-      }
-      itV = m.diskQueues0.begin(); itVe = m.diskQueues0.end();
-      itB = itV->begin(); itE = itV->end(); 
-    }
-    else { //input == "p"
-      if (m.printerQueues.empty()){
-        return;
-      }
-      itV = m.printerQueues.begin(); itVe = m.printerQueues.end();
-      itB = itV->begin(); itE = itV->end();        
-    }
+  }
 
-    int count = 1;
-    while (itV != itVe){
-      os << "----" << input << count << '\n';
-      snapshotPrint(itB, itE);
-      ++itV;
-      ++count;
-      itB = itV->begin();
-      itE = itV->end();
+  void CPU::snapshotAux_Disk(){
+    multiset<Process>::iterator scanIt, scanItEnd, waitingIt, waitingItEnd;
+    for (int i = 0; i < m.scanDiskQueuesStatus.size(); ++i){
+      os << "----" << "Scan Queue" << '\n';
+      if (m.scanDiskQueuesStatus[i] == 1){
+        snapshotAux_Disk2(m.diskSets1[i].begin(), m.diskSets1[i].end());
+        os << '\n';
+        os << "----" << "Waiting Queue" << '\n';
+        snapshotAux_Disk2(m.diskSets0[i].begin(), m.diskSets0[i].end());
+      }
+      else {
+        snapshotAux_Disk2(m.diskSets0[i].begin(), m.diskSets0[i].end());
+        os << '\n';
+        os << "----" << "Waiting Queue" << '\n';
+        snapshotAux_Disk2(m.diskSets1[i].begin(), m.diskSets1[i].end());
+      }
+      os << '\n' << '\n';
     }
-    os << '\n';      
+  }
+
+  void CPU::snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd){
+    while (scanIt != scanItEnd){
+      os << scanIt->pid << setw(10) << scanIt->name << setw(10) << scanIt->memStart 
+        << setw(10) << scanIt->type << setw(10);
+      if (scanIt->type == "w"){
+        os << scanIt->length << setw(10);
+      }
+      os << scanIt->totalCPUTime << setw(10) << (scanIt->totalCPUTime / scanIt->cpuUsageCount) << '\n';
+      ++scanIt;
+    }
   }
 
   /*

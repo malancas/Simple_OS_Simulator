@@ -105,6 +105,8 @@ struct Memory {
   void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
   void addProcessToReadyQueue(const int& pid);
   void terminateProcess();
+  void snapshotAux_Disk();
+  void snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd);
 
 };
 
