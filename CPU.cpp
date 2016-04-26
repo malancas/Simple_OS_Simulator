@@ -574,6 +574,7 @@ using namespace std;
     }
   }
 
+/*
   void CPU::addProcessToWaitingQueue(const int& pid, const int& queueNum, const bool& zeroIsWaiting){
     //The iterators and pointer are used to keep track of what
     //deques will be used in the pid insert
@@ -612,15 +613,29 @@ using namespace std;
     //the deque, it is added to the end
     deqPtr->push_back(pid);
   }
+*/
+/*
+  void CPU::addProcessToWaitingQueue(const int& pid, deque<int>& diskDeque){
+    cout << "NEW PID: " << pid << '\n';
+    cout << "NEW PID track: " << m.processes[pid].track << '\n';
 
-  struct lowest_track_first_compare {
-    bool operator() (const int& oldPID, const int& newPID){
-      return m.processes[oldPID].track > m.processes[newPID].track;
+    if (diskDeque.empty()){
+      diskDeque.push_back(pid);
+      cout << "EMPTY" << '\n';
+      return;
     }
-  };
 
-  struct highest_track_first_compare {
-    bool operator() (const int& oldPID, const int& newPID){
-      return m.processes[oldPID].track < m.processes[newPID].track;
+    for (int i = 0; i < diskDeque.size(); ++i){
+
+      cout << "in deque: " << m.processes[diskDeque[i]].track << '\n';
+      cout << "new pid: " << m.processes[pid].track << '\n';
+      
+      if (m.processes[diskDeque[i]].track > m.processes[pid].track){
+        diskDeque.insert(diskDeque.begin()+i, pid);
+        return;
+      }
     }
-  };
+    diskDeque.push_back(pid);
+    cout << "PUSH BACK" << '\n';
+  }
+*/

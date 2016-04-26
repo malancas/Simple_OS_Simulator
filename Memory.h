@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <iostream>
+#include <set>
 #include "Process.cpp"
 using namespace std;
 
@@ -79,6 +80,24 @@ struct Memory {
   vector<deque<int>> diskQueues1;
   //vector<deque<int>> diskQueues;
   vector<deque<int>> cdQueues;
+
+  struct lowest_Track_First {
+    bool operator() (const Process& lhs, const Process& rhs) const{
+      return lhs.track < rhs.track;
+    }
+  };
+
+  struct highest_Track_First {
+    bool operator() (const Process& lhs, const Process& rhs) const{
+      return lhs.track > rhs.track;
+    }
+  };
+
+  vector<multiset<Process, lowest_Track_First>> diskSets0;
+  vector<multiset<Process, highest_Track_First>> diskSets1;
+
+  void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+
 };
 
 #endif

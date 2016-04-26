@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 struct CPU {
@@ -90,7 +91,12 @@ struct CPU {
 
   void addProcessToDiskQueue(const int& pid, const int& queueNum);
 
-  void addProcessToWaitingQueue(const int& pid, const int& queueNum, const bool& zeroIsWaiting);
+  void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+
+  static bool sort_By_Lowest_Track_First(const int& old_pid, const int& new_pid);
+
+  static bool sort_By_Highest_Track_First(const int& old_pid, const int& new_pid);
+  
 };
 
 #endif
