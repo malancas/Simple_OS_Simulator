@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <iostream>
 #include <iomanip>
+#include <set>
+#include <stdio.h>
+#include <string.h>
 #include "Memory.h"
 using namespace std;
 
@@ -41,8 +44,6 @@ using namespace std;
 
   deque<int> Memory::readyQueue = {};
   vector<deque<int>> Memory::printerQueues = {};
-  vector<deque<int>> Memory::diskQueues0 = {};
-  vector<deque<int>> Memory::diskQueues1 = {};
   vector<deque<int>> Memory::cdQueues = {};
 
   Memory::Memory() {};
@@ -80,13 +81,14 @@ using namespace std;
     	}
     	else if (diskSets1[callNum].empty()){
         	cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+          scanDiskQueuesStatus[callNum] = 0;
     		return;
     	}
     	else {
     		int finishedProcess = (diskSets1[callNum].begin())->pid;
     		diskSets1[callNum].erase(diskSets1[callNum].begin());
     		if (diskSets1[callNum].empty()){
-    			scanDiskQueuesStatus[callNum] = !scanDiskQueuesStatus[callNum];
+    			scanDiskQueuesStatus[callNum] = 0;
     		}
 
     		if (emptyCPU){
@@ -107,13 +109,14 @@ using namespace std;
     	}
     	else if (diskSets0[callNum].empty()){
         	cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+          scanDiskQueuesStatus[callNum] = 1;
     		return;
     	}
     	else {
     		int finishedProcess = (diskSets0[callNum].begin())->pid;
     		diskSets0[callNum].erase(diskSets0[callNum].begin());
     		if (diskSets0[callNum].empty()){
-    			scanDiskQueuesStatus[callNum] = !scanDiskQueuesStatus[callNum];
+    			scanDiskQueuesStatus[callNum] = 1;
     		}
 
     		if (emptyCPU){
@@ -215,15 +218,6 @@ using namespace std;
       }
       cout << '\n' << '\n';
     }
-    cout << "System Average CPU Time" << '\n';
-    cout << "-----------------------" << '\n';
-    if (systemTotalcpuUsageCount > 0){
-      cout << systemTotalCPUTime/systemTotalcpuUsageCount;
-    }
-    else {
-      cout << "0"; 
-    }
-    cout << '\n' << '\n';
   }
 
   void Memory::snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd){
@@ -245,8 +239,9 @@ using namespace std;
   void Memory::handleInterruptandSystemCall(){
     //Asking timer how long the current process has used the CPU
     string in;
-    cout << "How long has the current process been using the CPU?" << '\n';
+    cout << "How long has the current process been using the CPU? ";
     cin >> in;
+    cout << '\n';
 
     //Keeps asking for valid input until it is received
     while (!intOrFloatErrorCheck(in, false, true)){
@@ -354,8 +349,8 @@ using namespace std;
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    diskQueues0.resize(num);
-    diskQueues1.resize(num);
+    diskSets0.resize(num);
+    diskSets1.resize(num);
     cylinderCount.resize(num);
     scanDiskQueuesStatus.resize(num);
 
@@ -468,4 +463,415 @@ using namespace std;
   */
   bool Memory::isHistoryParameterInRange(){
     return (floatNum >= 0 && floatNum <= 1);
+  }
+
+  bool Memory::checkForQueues(const string& input){
+    return (input[0] == 'p' && !printerQueues.empty()) || (input[0] == 'c' && !cdQueues.empty()) ||
+            (input[0] == 'd' && !diskSets0.empty());
+  }
+
+  void Memory::waitForInput(){
+    string input = "";
+
+    //If input == q, the function and program will close
+    while (input != "q"){
+      cout << "Enter a new command: ";
+      cin >> input;
+      cout << '\n';
+
+      //If the CPU is empty and the user issues an 'A',
+      //a new process is created and added to the CPU
+      if (input == "A"){
+        cout << "New process made!" << '\n';
+        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate)));
+        if (emptyCPU){
+          currProcess = pidCounter;
+          emptyCPU = false;          
+          cout << "The CPU is now occupied!" << '\n' << '\n';
+          //If the CPU is already occupied, the
+          //process is added to the ready queue
+        }
+        //If the CPU isn't empty and the user issues an 'A',
+        //a process is created and added to the ready queue
+        else {
+          handleInterruptandSystemCall();
+
+          //The current process is readded to the ready queue
+          addProcessToReadyQueue(currProcess);
+
+          //The new process is added to the ready queue
+          addProcessToReadyQueue(pidCounter);
+
+          currProcess = readyQueue.front();
+          readyQueue.pop_front();
+          emptyCPU = false;
+        }
+        ++(pidCounter);
+      }
+      
+      //If the user tries to terminate a process
+      //while the CPU is empty
+      else if (input == "t"){
+        terminateProcess();
+      }
+
+      //If the user issues a system call in the form of either
+      //p<number>, d<number>, or c<number>
+      else if (input[0]=='p' || input[0]=='d' || input[0]=='c'){
+        if (emptyCPU){
+          cerr << "The CPU is empty, system calls cannot be made." <<'\n';
+          cerr << "Add a process with the A command before issuing a system call." << '\n' << '\n';
+        }
+
+        else {
+          if (checkForQueues(input)){
+            int num = 0;
+
+            //If the function determines the user's input is valid,
+            if(systemCallInputChecking(input,num)){
+              //The current process' burstEstimate and remainingBurst are updated
+              //before it's added to a device queue
+              handleInterruptandSystemCall();
+
+              //Determining if the system call was for the printer
+              //device is crucial for the systemCallParameters function
+              bool print = false;
+              if (input[0]=='p'){
+                print = true;
+              }
+              //If the input is valid, the user will be prompted
+              //for system call paramters and the call will be
+              //added to the appropriate device queue 
+              systemCallParameters(print, input[0], num);
+              cout << "System call added!" << '\n' << '\n';
+              if (!readyQueue.empty()){
+                currProcess = readyQueue.front();
+                readyQueue.pop_front();
+                emptyCPU = false;
+              }
+              else {
+                emptyCPU = true;
+              }
+            }            
+          }
+          else {
+            cerr << "There are no queues available of the chosen device." << '\n';
+            cerr << "Please enter a new command and try again." << '\n' << '\n';
+          }
+        }
+      }
+
+      //If the user issues system call interrupt signal
+      else if (input[0]=='P' || input[0] == 'D' || input[0] == 'C'){
+        int num = 0;
+
+        handleInterruptandSystemCall();
+        addProcessToReadyQueue(currProcess);
+        currProcess = readyQueue.front();
+        readyQueue.pop_front();
+
+        //If the user's input is determined to be valid
+        if (systemCallInputChecking(input,num)){
+          if (input[0]=='P'){
+            checkForSystemCallinQueue(printerQueues, num);
+          }
+          else if (input[0]=='D'){
+            checkForSystemCallinDiskSet(num-1,scanDiskQueuesStatus[num-1]);
+          }
+          else if (input[0]=='C') {
+            checkForSystemCallinQueue(cdQueues, num);
+          }
+        }     
+      }
+
+      /*If the user types 'S' for the snapshot function,
+        the user will prompted for whether to print the contents
+        of the ready, printer, cd, or disk queues. The contents of
+        the chosen queue will read into an ostream object and 
+        printed to the terminal
+      */
+      else if (input == "S"){
+        handleInterruptandSystemCall();
+        addProcessToReadyQueue(currProcess);
+        currProcess = readyQueue.front();
+        readyQueue.pop_front();
+
+        cout << "Enter r, p, c, or d: ";
+        cin >> input; cout << '\n';
+        if (input != "r" && input != "p" && input != "c" && input != "d"){
+          cerr << "The characters entered are not supported by Snapshot." << '\n';
+          cerr << "Enter a new command and try again." << '\n' << '\n';
+        }
+
+        else {
+          if (input == "d") {
+            snapshotHeader();
+            snapshotAux_Disk();
+            snapshotAux_SystemInformation();
+          }
+          else if (input == "r"){
+            snapshotAux_ReadyDeque();
+            snapshotAux_SystemInformation();
+          }
+          else {
+
+            snapshotHeader();
+            snapshotAux(input);
+
+            snapshotAux_SystemInformation();
+          }
+        }
+      }
+      else {
+        cerr << "The characters entered are not a valid command." << '\n';
+        cerr << "Please enter a new command and try again." << '\n' << '\n';
+      }
+    }
+    return;
+  }
+
+  void Memory::snapshotHeader(){
+    cout << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " << 
+    setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+  }
+
+  void Memory::checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
+    if (!devQueues.empty()){
+      if (devQueues[callNum-1].empty()){
+        cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+      }
+
+      //The system call at the front of the queue is removed
+      else {
+        int finishedProcess = devQueues[callNum-1].front();
+        devQueues[callNum-1].pop_front();
+        if (emptyCPU){
+          currProcess = finishedProcess;
+          emptyCPU = false;
+        }
+        else {
+          addProcessToReadyQueue(finishedProcess);
+        }
+        cout << "A system call has completed" << '\n' << '\n';
+      }
+    }
+    else {
+      cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';              
+    }
+  }
+
+  void Memory::systemCallParameters(const bool& print, const char& ch, int& num){
+    string name = "";
+    cout << "Enter the file name: ";
+    cin >> name;
+    cout << '\n';
+    if (name.length() > 20){
+      name.resize(20);
+    }
+    processes[currProcess].name = name;
+
+    string memStart = "";
+    int n = 0;
+
+    cout << "Enter the starting location in memory: ";
+    cin >> memStart;
+    while (!intOrFloatErrorCheck(memStart, true, true)){
+      cin >> memStart;
+    }
+    processes[currProcess].memStart = intResult;
+
+    /*
+      If the system call is not for a printing device,
+      then the user will promted to confirm whether the action
+      is a read or a write. Error checking will be done to insure
+      that the user's input is either 'r' or 'w'. If the system call
+      is for printer devices, then the type is automatically 'w'
+    */
+    string typeIn = "";
+    if (!print){
+      cout << "Enter r if your action is a read or enter w if your action is a write: ";
+      cin >> typeIn;      
+      while (!typeErrorChecking(typeIn)){
+        cin >> typeIn;      
+      }
+      processes[currProcess].type = typeIn;
+    }
+    else {
+      processes[currProcess].type = "w";
+    }
+
+    /*
+      If the system is a write action, then
+      the user will be prompted to enter the
+      length of the file. The answer will be
+      verified as a valid interger.
+    */
+    if (strcmp(processes[currProcess].type.c_str(),"w")==0){
+      string input;
+
+      cout << '\n' << "Enter the length of the file: ";
+      cin >> input;
+      while (!intOrFloatErrorCheck(input, true, false)){
+        cin >> input;
+      }
+      processes[currProcess].length = intResult;
+    }
+
+    /*
+      When the user has been prompted for all
+      system call parameters, then the process
+      will be added to the appropiate device queue
+    */
+    if (ch == 'p'){
+      (printerQueues[num-1]).push_back(currProcess);
+    }
+    else if (ch == 'd'){
+      getCylinderChoice(num-1);
+      addProcessToDiskQueue(currProcess,num-1);
+    }
+    else { //ch == 'c'
+      cdQueues[num-1].push_back(currProcess);
+    }
+  }
+
+  void Memory::snapshotAux(const string& input){
+    vector<deque<int>>::iterator itV, itVe;
+    deque<int>::iterator itB, itE;
+      if (input == "c"){
+        if (!cdQueues.empty()){
+          itV = cdQueues.begin(); itVe = cdQueues.end();
+          itB = itV->begin(); itE = itV->end();
+        }
+      }
+      else { //input == "p"
+        if (!printerQueues.empty()){
+          itV = printerQueues.begin(); itVe = printerQueues.end();
+          itB = itV->begin(); itE = itV->end();        
+        }
+      }
+
+      int count = 1;
+      while (itV != itVe){
+        cout << "----" << input << count << '\n';
+        snapshotPrint(itB, itE);
+        ++itV;
+        ++count;
+        itB = itV->begin();
+        itE = itV->end();
+      }
+      cout << '\n' << '\n';
+  }
+
+  template<typename T>
+  void Memory::snapshotPrint(T& itB, T& itE){
+    while (itB != itE){
+      string ty = processes[*itB].type;
+      cout << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
+        << setw(10) << ty; 
+      if (ty == "w"){
+        cout << setw(10) << processes[*itB].length;
+      }
+      else {
+        cout << setw(20);
+      }
+      cout << processes[*itB].totalCPUTime << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+      cout << '\n';
+      ++itB;
+    }
+  }
+
+  bool Memory::typeErrorChecking(string& typeIn){
+    if (typeIn != "w" && typeIn != "r"){
+      cerr << "The character entered were not 'w' or 'r'." << '\n';
+      cerr << "Please enter a new command and try again." << '\n';
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+    /*
+    Will check if the system call input, which will have
+    already been verified to begin with either a 'p', 'd',
+    or 'c' is valid. The number following the chosen character
+    will be checked to insure it is not negative and falls within
+    the limits of the number of specific device queues present
+  */
+  bool Memory::systemCallInputChecking(string& input, int& num){
+    //Represents the string following either p,d, or c
+    string queueNum = input.substr(1);
+
+    /*Contents of quenum are fed in num to insure it can
+      be read as an integer. An error message is printed 
+      if this can't happen    
+    */
+    istringstream iss{queueNum};
+    if (iss >> num && (iss.eof() || isspace(iss.peek()))){
+      if (num <= 0){
+        cerr << "Chosen number is zero or negative. Please try again." << '\n' << '\n';
+        return false;
+      }
+      else {
+        /*checkIfsys
+          Each statement will check whether num is larger than the number
+          of chosen device queues present
+        */
+        if (input[0] == 'p' || input[0] == 'P'){
+          return checkIfsysCallNumLargerThanDevQueue(printerQueues, num);
+
+        }
+        else if (input[0] == 'd' || input[0] == 'D'){
+          return checkIfsysCallNumLargerThanSet(num);
+        }
+        else { //input[0] == 'c' || input[0] == 'C'
+          return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
+        }          
+      }
+    }
+    /*
+      If queuenum could not be read as integer into num
+    */
+    else {
+      cerr << "The command you entered was invalid." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';
+      return false;
+    }
+  }
+
+  void Memory::getCylinderChoice(const int& dequeNum){
+    string in;
+    cout << "Enter the cylinder that the file exists on: ";
+    cin >> in;
+    while (!intOrFloatErrorCheck(in, true, true) || !isCylinderChoiceValid(intResult,dequeNum)){
+      cout << "The chosen cylinder is invalid. Please enter a new value and try again: ";
+      cin >> in;
+    }
+  }
+
+  bool Memory::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
+    return cylinderNum < cylinderCount[dequeNum];
+  }
+
+  bool Memory::checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
+    if (callNum > static_cast<int>(devQueues.size())){
+      cerr << "Number entered is larger than current number of chosen device queues." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  bool Memory::checkIfsysCallNumLargerThanSet(const int& callNum){
+    if (callNum > static_cast<int>(diskSets0.size())){
+      cerr << "Number entered is larger than current number of chosen device queues." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';
+      return false;
+    }
+    else {
+      return true;
+    }
   }

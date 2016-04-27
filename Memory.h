@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <set>
+#include <stdio.h>
 #include "Process.cpp"
 using namespace std;
 
@@ -80,8 +81,6 @@ struct Memory {
   */
   static deque<int> readyQueue;
   static vector<deque<int>> printerQueues;
-  static vector<deque<int>> diskQueues0;
-  static vector<deque<int>> diskQueues1;
   static vector<deque<int>> cdQueues;
 
   struct lowest_Track_First {
@@ -115,7 +114,20 @@ struct Memory {
   void getInstallerInput_aux(const string& userMessage, const char& variableCode);
   bool checkInputForErrors(const char& variableCode);
   bool isHistoryParameterInRange();
-
+  bool checkForQueues(const string& input);
+  void waitForInput();
+  void snapshotHeader();
+  void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
+  void systemCallParameters(const bool& print, const char& ch, int& num);
+  void snapshotAux(const string& input);
+  template<typename T>
+  void snapshotPrint(T& itB, T& itE);
+  bool typeErrorChecking(string& typeIn);
+  bool systemCallInputChecking(string& input, int& num);
+  void getCylinderChoice(const int& dequeNum);
+  bool isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum);
+  bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
+  bool checkIfsysCallNumLargerThanSet(const int& callNum);
 };
 
 #endif

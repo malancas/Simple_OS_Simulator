@@ -35,8 +35,8 @@ struct Sysgen {
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    m.diskQueues0.resize(num);
-    m.diskQueues1.resize(num);
+    m.diskSets0.resize(num);
+    m.diskSets1.resize(num);
     m.cylinderCount.resize(num);
     m.scanDiskQueuesStatus.resize(num);
 

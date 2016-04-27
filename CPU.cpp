@@ -8,6 +8,7 @@
 #include <deque>
 #include <iomanip>
 #include <algorithm>
+#include <set>
 #include "Memory.h"
 #include "CPU.h"
 using namespace std;
@@ -72,8 +73,7 @@ using namespace std;
         }
 
         else {
-          if ((input[0] == 'p' && !m.printerQueues.empty()) || (input[0] == 'c' && !m.cdQueues.empty()) ||
-            (input[0] == 'd' && !m.diskSets0.empty())){
+          if (m.checkForQueues(input)){
             int num = 0;
 
             //If the function determines the user's input is valid,
@@ -159,9 +159,11 @@ using namespace std;
             os.str("");
             os.clear();
             m.snapshotAux_Disk();
+            m.snapshotAux_SystemInformation();
           }
           else if (input == "r"){
             m.snapshotAux_ReadyDeque();
+            m.snapshotAux_SystemInformation();
           }
           else {
 
@@ -243,38 +245,6 @@ using namespace std;
       os << '\n' << '\n';
   }
 
-  void CPU::snapshotAux_Disk(){
-    multiset<Process>::iterator scanIt, scanItEnd, waitingIt, waitingItEnd;
-    for (int i = 0; i < m.scanDiskQueuesStatus.size(); ++i){
-      os << "----" << "Scan Queue" << '\n';
-      if (m.scanDiskQueuesStatus[i] == 1){
-        snapshotAux_Disk2(m.diskSets1[i].begin(), m.diskSets1[i].end());
-        os << '\n';
-        os << "----" << "Waiting Queue" << '\n';
-        snapshotAux_Disk2(m.diskSets0[i].begin(), m.diskSets0[i].end());
-      }
-      else {
-        snapshotAux_Disk2(m.diskSets0[i].begin(), m.diskSets0[i].end());
-        os << '\n';
-        os << "----" << "Waiting Queue" << '\n';
-        snapshotAux_Disk2(m.diskSets1[i].begin(), m.diskSets1[i].end());
-      }
-      os << '\n' << '\n';
-    }
-  }
-
-  void CPU::snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd){
-    while (scanIt != scanItEnd){
-      os << scanIt->pid << setw(10) << scanIt->name << setw(10) << scanIt->memStart 
-        << setw(10) << scanIt->type << setw(10);
-      if (scanIt->type == "w"){
-        os << scanIt->length << setw(10);
-      }
-      os << scanIt->totalCPUTime << setw(10) << (scanIt->totalCPUTime / scanIt->cpuUsageCount) << '\n';
-      ++scanIt;
-    }
-  }
-
   /*
     Will check if the system call input, which will have
     already been verified to begin with either a 'p', 'd',
@@ -306,7 +276,7 @@ using namespace std;
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          return checkIfsysCallNumLargerThanDevQueue(m.diskQueues0, num);
+          return checkIfsysCallNumLargerThanSet(num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
           return checkIfsysCallNumLargerThanDevQueue(m.cdQueues, num);          
@@ -444,6 +414,17 @@ using namespace std;
   */
   bool CPU::checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
     if (callNum > static_cast<int>(devQueues.size())){
+      cerr << "Number entered is larger than current number of chosen device queues." << '\n';
+      cerr << "Please enter a new command and try again." << '\n' << '\n';
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  bool CPU::checkIfsysCallNumLargerThanSet(const int& callNum){
+    if (callNum > static_cast<int>(m.diskSets0.size())){
       cerr << "Number entered is larger than current number of chosen device queues." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';
       return false;
