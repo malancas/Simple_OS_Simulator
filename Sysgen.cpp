@@ -4,10 +4,9 @@
 #include "Memory.h"
 using namespace std;
 
-struct Sysgen {
+struct Sysgen : public Memory {
   //Helps give Sysgen functions access
   //to Memory class variables
-  Memory m;
 
   //VARIABLES
   /*
@@ -31,41 +30,43 @@ struct Sysgen {
   void getInstallerInput(){
     //Set the number of printer device queues
     getInstallerInput_aux("Enter the number of printer devices: ", 'o');
-    m.printerQueues.resize(num);
+    printerQueues.resize(num);
 
     //Set the number of disk device queues
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    m.diskSets0.resize(num);
-    m.diskSets1.resize(num);
-    m.cylinderCount.resize(num);
-    m.scanDiskQueuesStatus.resize(num);
+    //diskSets0.resize(num);
+    //diskSets1.resize(num);
+    diskDeques0.resize(num);
+    diskDeques1.resize(num);
+    cylinderCount.resize(num);
+    scanDiskQueuesStatus.resize(num);
 
     //The elements are set to false, meaning that scanDiskQueues0 will
     //begin the program as representing the scan queues
-    fill(m.scanDiskQueuesStatus.begin(),m.scanDiskQueuesStatus.end(),false);
+    fill(scanDiskQueuesStatus.begin(),scanDiskQueuesStatus.end(),false);
 
     //Set the number of CD device queues
     getInstallerInput_aux("Enter the number of CD devices: ", 'o');
-    m.cdQueues.resize(num);
+    cdQueues.resize(num);
 
     //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", 'h');
-    m.historyParameter = floatNum;
+    historyParameter = floatNum;
 
     //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
-    m.initialBurstEstimate = floatNum;
-    cout << "Initial burst estimate: " << m.initialBurstEstimate << '\n';
+    initialBurstEstimate = floatNum;
+    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
-    int n = m.cylinderCount.size();
+    int n = cylinderCount.size();
     //The two strings are used to create the message used in the user prompt.
     //The message's content depends on which disk device it asking about.
     string messageBase = "Enter the number of cylinders in disk device ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
       getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
-      m.cylinderCount[i] = num;
+      cylinderCount[i] = num;
     }
   } 
 

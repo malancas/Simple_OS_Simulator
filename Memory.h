@@ -56,10 +56,6 @@ struct Memory {
 
   static float floatResult;
 
-  static int num;
-  
-  static float floatNum;
-
   /*
     Number of cylinders in the hard drive
   */
@@ -82,6 +78,8 @@ struct Memory {
   static deque<int> readyQueue;
   static vector<deque<int>> printerQueues;
   static vector<deque<int>> cdQueues;
+  static vector<deque<int>> diskDeques0;
+  static vector<deque<int>> diskDeques1;
 
   struct lowest_Track_First {
     bool operator() (const Process& lhs, const Process& rhs) const{
@@ -95,39 +93,18 @@ struct Memory {
     }
   };
 
-  vector<multiset<Process, lowest_Track_First>> diskSets0;
-  vector<multiset<Process, highest_Track_First>> diskSets1;
+  //vector<multiset<Process, lowest_Track_First>> diskSets0;
+  //vector<multiset<Process, highest_Track_First>> diskSets1;
 
-  void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
-  void addProcessToDiskQueue(const int& pid, const int& queueNum);
-  void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
+  //void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+  void addProcessToDiskDeque(const int& pid, const int& queueNum);
+  void checkForSystemCallinDiskQueue(const int& callNum, const bool& zeroIsWaiting);
+  //void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
   void addProcessToReadyQueue(const int& pid);
-  void terminateProcess();
-  void snapshotAux_Disk();
-  void snapshotAux_Disk2(multiset<Process>::iterator scanIt, multiset<Process>::iterator scanItEnd);
-  void handleInterruptandSystemCall();
-  bool intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK);
   float sjwAlgorithm();
-  void snapshotAux_ReadyDeque();
-  void snapshotAux_SystemInformation();
-  void getInstallerInput();
-  void getInstallerInput_aux(const string& userMessage, const char& variableCode);
-  bool checkInputForErrors(const char& variableCode);
-  bool isHistoryParameterInRange();
-  bool checkForQueues(const string& input);
-  void waitForInput();
-  void snapshotHeader();
   void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
-  void systemCallParameters(const bool& print, const char& ch, int& num);
-  void snapshotAux(const string& input);
-  template<typename T>
-  void snapshotPrint(T& itB, T& itE);
-  bool typeErrorChecking(string& typeIn);
-  bool systemCallInputChecking(string& input, int& num);
-  void getCylinderChoice(const int& dequeNum);
-  bool isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum);
-  bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
-  bool checkIfsysCallNumLargerThanSet(const int& callNum);
+  static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
+  static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
 };
 
 #endif
