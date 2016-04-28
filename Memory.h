@@ -89,6 +89,7 @@ struct Memory {
   static vector<deque<int>> cdQueues;
   static vector<deque<int>> diskDeques0;
   static vector<deque<int>> diskDeques1;
+  static deque<int> jobPool;
 
   struct lowest_Track_First {
     bool operator() (const Process& lhs, const Process& rhs) const{

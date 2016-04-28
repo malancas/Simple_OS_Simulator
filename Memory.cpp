@@ -49,6 +49,7 @@ using namespace std;
   vector<deque<int>> Memory::cdQueues = {};
   vector<deque<int>> Memory::diskDeques0 = {};
   vector<deque<int>> Memory::diskDeques1 = {};
+  deque<int> Memory::jobPool = {};
 
   Memory::Memory() {};
 

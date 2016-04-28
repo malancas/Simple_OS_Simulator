@@ -31,27 +31,36 @@ using namespace std;
         if (getProcessSize()){
           cout << "New process made!" << '\n';
           processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate,intResult)));
-          if (emptyCPU){
-            currProcess = pidCounter;
-            emptyCPU = false;          
-            cout << "The CPU is now occupied!" << '\n' << '\n';
-            //If the CPU is already occupied, the
-            //process is added to the ready queue
+          //if (intResult <= freeMemory){
+          if (processes[pidCounter].size <= freeMemory){
+            //totalMemorySize -= intResult;
+            totalMemorySize -= processes[pidCounter].size;
+
+            if (emptyCPU){
+              currProcess = pidCounter;
+              emptyCPU = false;          
+              cout << "The CPU is now occupied!" << '\n' << '\n';
+              //If the CPU is already occupied, the
+              //process is added to the ready queue
+            }
+            //If the CPU isn't empty and the user issues an 'A',
+            //a process is created and added to the ready queue
+            else {
+              handleInterruptandSystemCall();
+
+              //The current process is readded to the ready queue
+              addProcessToReadyQueue(currProcess);
+
+              //The new process is added to the ready queue
+              addProcessToReadyQueue(pidCounter);
+
+              currProcess = readyQueue.front();
+              readyQueue.pop_front();
+              emptyCPU = false;
+            }
           }
-          //If the CPU isn't empty and the user issues an 'A',
-          //a process is created and added to the ready queue
           else {
-            handleInterruptandSystemCall();
-
-            //The current process is readded to the ready queue
-            addProcessToReadyQueue(currProcess);
-
-            //The new process is added to the ready queue
-            addProcessToReadyQueue(pidCounter);
-
-            currProcess = readyQueue.front();
-            readyQueue.pop_front();
-            emptyCPU = false;
+            jobPool.push_back(pidCounter);
           }
           ++(pidCounter);
         }
