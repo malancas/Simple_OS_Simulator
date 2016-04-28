@@ -37,13 +37,16 @@ struct Process {
   //the track that the process is stored on
   int track;
 
+  //The process' size
+  int size;
+
   //CONSTRUCTORS
   Process() : pid(), type(), name(), memStart(), length(), burstEstimate(),
-   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), track() {}
+   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), track(), size(-1) {}
   
-  Process(int pd, int burstEst) : pid(pd), type(), name(), memStart(),
+  Process(int pd, int burstEst, int sz) : pid(pd), type(), name(), memStart(),
    length(), burstEstimate(burstEst), nextBurstEstimate(), remainingBurst(burstEst), 
-   totalCPUTime(0), cpuUsageCount(0), track() {}
+   totalCPUTime(0), cpuUsageCount(0), track(), size(sz) {}
 
   //OPERATOR OVERLOADING
   friend ostream& operator<<(ostream& os, const Process& obj)

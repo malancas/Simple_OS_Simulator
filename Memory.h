@@ -42,19 +42,28 @@ struct Memory {
 
   static bool firstDiskSystemCall;
 
-  static bool isScanQueues;
-
   static float systemTotalCPUTime;
 
   static int systemTotalcpuUsageCount;
 
+  //Signals whether the CPU is empty
   static bool emptyCPU;
 
+  //Contains the pid of the process
+  //currently using the CPU
   static int currProcess;
 
   static int intResult;
 
   static float floatResult;
+
+  static int totalMemorySize;
+
+  static int freeMemory;
+
+  static int maximumProcessSize;
+
+  static int pageSize;
 
   /*
     Number of cylinders in the hard drive

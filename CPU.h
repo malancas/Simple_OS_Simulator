@@ -95,6 +95,8 @@ struct CPU : public Memory {
   void snapshotAux_Disk();
 
   void snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd);
+
+  bool getProcessSize();
 };
 
 #endif

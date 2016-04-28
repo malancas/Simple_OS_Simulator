@@ -5,9 +5,6 @@
 using namespace std;
 
 struct Sysgen : public Memory {
-  //Helps give Sysgen functions access
-  //to Memory class variables
-
   //VARIABLES
   /*
     Used in various functions
@@ -62,12 +59,25 @@ struct Sysgen : public Memory {
     int n = cylinderCount.size();
     //The two strings are used to create the message used in the user prompt.
     //The message's content depends on which disk device it asking about.
-    string messageBase = "Enter the number of cylinders in disk device ";
+    string messageBase = "Enter the number of cylinders in disk device: ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
       getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
       cylinderCount[i] = num;
     }
+
+    //Set the total memory size in the OS
+    getInstallerInput_aux("Enter the total memory size: ", 'i');
+    totalMemorySize = num;
+    freeMemory = num;
+
+    //Set the maximum process size
+    getInstallerInput_aux("Enter the maximum process size: ", 'i');
+    maximumProcessSize = num;
+
+    //Set the page size
+    getInstallerInput_aux("Enter the page size: ", 'i');
+    pageSize = num;
   } 
 
   void getInstallerInput_aux(const string& userMessage, const char& variableCode){

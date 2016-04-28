@@ -20,8 +20,6 @@ using namespace std;
 
   bool Memory::firstDiskSystemCall = true;
 
-  bool Memory::isScanQueues = true;
-
   float Memory::systemTotalCPUTime = 0;
 
   int Memory::systemTotalcpuUsageCount = 0;
@@ -34,6 +32,14 @@ using namespace std;
 
   float Memory::floatResult = 0;
 
+  int Memory::totalMemorySize = 0;
+
+  int Memory::freeMemory = 0;
+
+  int Memory::maximumProcessSize = 0;
+
+  int Memory::pageSize = 0;
+
   vector<int> Memory::cylinderCount = {};
 
   vector<bool> Memory::scanDiskQueuesStatus = {};
@@ -45,17 +51,6 @@ using namespace std;
   vector<deque<int>> Memory::diskDeques1 = {};
 
   Memory::Memory() {};
-
-/*
-  void Memory::addProcessToWaitingQueue(const int& pid, const int&setNum, const bool& zeroIsWaiting){
-    if (zeroIsWaiting){
-    	diskSets0[setNum].insert(processes[pid]);
-    }
-    else {
-    	diskSets1[setNum].insert(processes[pid]);
-    }
-  }
-*/  
 
   void Memory::addProcessToDiskDeque(const int& pid, const int& queueNum){
     if (firstDiskSystemCall){
@@ -74,127 +69,6 @@ using namespace std;
     }
   }
 
-/*
-  void Memory::checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting){
-    if (zeroIsWaiting){
-      if (diskSets1.empty()){
-          cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
-          cerr << "Please enter a new command and try again." << '\n' << '\n';
-          return;       
-      }
-      else if (diskSets1[callNum].empty()){
-          cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
-          scanDiskQueuesStatus[callNum] = 0;
-        return;
-      }
-      else {
-        int finishedProcess = (diskSets1[callNum].begin())->pid;
-        diskSets1[callNum].erase(diskSets1[callNum].begin());
-        if (diskSets1[callNum].empty()){
-          scanDiskQueuesStatus[callNum] = 0;
-        }
-
-        if (emptyCPU){
-          currProcess = finishedProcess;
-          emptyCPU = false;
-        }
-        else {
-          addProcessToReadyQueue(finishedProcess);
-        }
-        cout << "A system call has completed" << '\n' << '\n';
-      }
-    }
-    else {
-      if (diskSets0.empty()){
-          cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
-          cerr << "Please enter a new command and try again." << '\n' << '\n';
-          return;       
-      }
-      else if (diskSets0[callNum].empty()){
-          cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
-          scanDiskQueuesStatus[callNum] = 1;
-        return;
-      }
-      else {
-        int finishedProcess = (diskSets0[callNum].begin())->pid;
-        diskSets0[callNum].erase(diskSets0[callNum].begin());
-        if (diskSets0[callNum].empty()){
-          scanDiskQueuesStatus[callNum] = 1;
-        }
-
-        if (emptyCPU){
-          currProcess = finishedProcess;
-          emptyCPU = false;
-        }
-        else {
-          addProcessToReadyQueue(finishedProcess);
-        }
-        cout << "A system call has completed" << '\n' << '\n';
-      }
-    }
-  }
-*/
-
-/*
-  void Memory::checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting){
-    if (zeroIsWaiting){
-    	if (diskSets1.empty()){
-    	    cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
-      		cerr << "Please enter a new command and try again." << '\n' << '\n';
-      		return;      	
-    	}
-    	else if (diskSets1[callNum].empty()){
-        	cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
-          scanDiskQueuesStatus[callNum] = 0;
-    		return;
-    	}
-    	else {
-    		int finishedProcess = (diskSets1[callNum].begin())->pid;
-    		diskSets1[callNum].erase(diskSets1[callNum].begin());
-    		if (diskSets1[callNum].empty()){
-    			scanDiskQueuesStatus[callNum] = 0;
-    		}
-
-    		if (emptyCPU){
-    			currProcess = finishedProcess;
-    			emptyCPU = false;
-    		}
-    		else {
-    			addProcessToReadyQueue(finishedProcess);
-    		}
-   			cout << "A system call has completed" << '\n' << '\n';
-    	}
-    }
-    else {
-    	if (diskSets0.empty()){
-    	    cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
-      		cerr << "Please enter a new command and try again." << '\n' << '\n';
-      		return;      	
-    	}
-    	else if (diskSets0[callNum].empty()){
-        	cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
-          scanDiskQueuesStatus[callNum] = 1;
-    		return;
-    	}
-    	else {
-    		int finishedProcess = (diskSets0[callNum].begin())->pid;
-    		diskSets0[callNum].erase(diskSets0[callNum].begin());
-    		if (diskSets0[callNum].empty()){
-    			scanDiskQueuesStatus[callNum] = 1;
-    		}
-
-    		if (emptyCPU){
-    			currProcess = finishedProcess;
-    			emptyCPU = false;
-    		}
-    		else {
-    			addProcessToReadyQueue(finishedProcess);
-    		}
-   			cout << "A system call has completed" << '\n' << '\n';
-    	}
-  	}
-  }
-*/
   void Memory::addProcessToReadyQueue(const int& pid){
     //Represents the remaining burst of process to be inserted
     float burstOfNewProcess = processes[pid].remainingBurst;

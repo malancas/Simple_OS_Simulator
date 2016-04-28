@@ -28,31 +28,33 @@ using namespace std;
       //If the CPU is empty and the user issues an 'A',
       //a new process is created and added to the CPU
       if (input == "A"){
-        cout << "New process made!" << '\n';
-        processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate)));
-        if (emptyCPU){
-          currProcess = pidCounter;
-          emptyCPU = false;          
-          cout << "The CPU is now occupied!" << '\n' << '\n';
-          //If the CPU is already occupied, the
-          //process is added to the ready queue
+        if (getProcessSize()){
+          cout << "New process made!" << '\n';
+          processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate,intResult)));
+          if (emptyCPU){
+            currProcess = pidCounter;
+            emptyCPU = false;          
+            cout << "The CPU is now occupied!" << '\n' << '\n';
+            //If the CPU is already occupied, the
+            //process is added to the ready queue
+          }
+          //If the CPU isn't empty and the user issues an 'A',
+          //a process is created and added to the ready queue
+          else {
+            handleInterruptandSystemCall();
+
+            //The current process is readded to the ready queue
+            addProcessToReadyQueue(currProcess);
+
+            //The new process is added to the ready queue
+            addProcessToReadyQueue(pidCounter);
+
+            currProcess = readyQueue.front();
+            readyQueue.pop_front();
+            emptyCPU = false;
+          }
+          ++(pidCounter);
         }
-        //If the CPU isn't empty and the user issues an 'A',
-        //a process is created and added to the ready queue
-        else {
-          handleInterruptandSystemCall();
-
-          //The current process is readded to the ready queue
-          addProcessToReadyQueue(currProcess);
-
-          //The new process is added to the ready queue
-          addProcessToReadyQueue(pidCounter);
-
-          currProcess = readyQueue.front();
-          readyQueue.pop_front();
-          emptyCPU = false;
-        }
-        ++(pidCounter);
       }
       
       //If the user tries to terminate a process
@@ -641,4 +643,23 @@ using namespace std;
     } 
   }
 
-
+  /*
+    When a new process arrives, the Long Term Scheduler is prompted for 
+    its size. This size is error checked and then compared to the maximum
+    allowable process size specified during Sys gen to insure it is valid
+  */
+  bool CPU::getProcessSize(){
+    string input;
+    cout << "Enter size (in words) of the process: ";
+    cin >> input;
+    while (!intOrFloatErrorCheck(input, true, false)){
+      cin >> input;
+    }
+    if (intResult > totalMemorySize){
+      cerr << "Process rejected" << '\n';
+      cerr << "The number entered is larger than total memory size of " << totalMemorySize << '\n';
+      cerr << "Please announce the arrival of a new process with a different number and and try again." << '\n';
+      return false;
+    }
+    return true;
+  }
