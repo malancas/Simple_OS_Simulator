@@ -40,13 +40,17 @@ struct Process {
   //The process' size
   int size;
 
+  //Process' location code
+  string locationCode;
+
   //CONSTRUCTORS
   Process() : pid(), type(), name(), memStart(), length(), burstEstimate(),
-   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), track(), size(-1) {}
+   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), 
+   track(), size(-1), locationCode("") {}
   
   Process(int pd, int burstEst, int sz) : pid(pd), type(), name(), memStart(),
    length(), burstEstimate(burstEst), nextBurstEstimate(), remainingBurst(burstEst), 
-   totalCPUTime(0), cpuUsageCount(0), track(), size(sz) {}
+   totalCPUTime(0), cpuUsageCount(0), track(), size(sz), locationCode("") {}
 
   //OPERATOR OVERLOADING
   friend ostream& operator<<(ostream& os, const Process& obj)

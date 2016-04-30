@@ -97,6 +97,10 @@ struct CPU : public Memory {
   void snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd);
 
   bool getProcessSize();
+
+  void killProcess(const int& pid);
+
+  void findProcessToKill(const int& pid, deque<int>& processLocation);
 };
 
 #endif

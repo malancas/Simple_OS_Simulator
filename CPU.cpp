@@ -39,9 +39,8 @@ using namespace std;
             if (emptyCPU){
               currProcess = pidCounter;
               emptyCPU = false;          
+              processes[pidCounter].locationCode = "cpu";
               cout << "The CPU is now occupied!" << '\n' << '\n';
-              //If the CPU is already occupied, the
-              //process is added to the ready queue
             }
             //If the CPU isn't empty and the user issues an 'A',
             //a process is created and added to the ready queue
@@ -50,17 +49,24 @@ using namespace std;
 
               //The current process is readded to the ready queue
               addProcessToReadyQueue(currProcess);
+              //Its location code is changed
+              processes[currProcess].locationCode = "r";
 
               //The new process is added to the ready queue
               addProcessToReadyQueue(pidCounter);
+              //Its location code is changed to signify
+              //its in the ready deque
+              processes[pidCounter].locationCode = "r";
 
               currProcess = readyQueue.front();
+              processes[currProcess].locationCode = "cpu";
               readyQueue.pop_front();
               emptyCPU = false;
             }
           }
           else {
             jobPool.push_back(pidCounter);
+            processes[pidCounter].locationCode = "j";
           }
           ++(pidCounter);
         }
@@ -191,6 +197,9 @@ using namespace std;
             snapshotAux_SystemInformation();
           }
         }
+      }
+      else if (input[0] == 'K'){
+        //Check input is legitimate
       }
       else {
         cerr << "The characters entered are not a valid command." << '\n';
@@ -380,12 +389,14 @@ using namespace std;
       will be added to the appropiate device queue
     */
     if (ch == 'p'){
+      processes[currProcess].locationCode = "p" + to_string(num-1);
       (printerQueues[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
       addProcessToDiskDeque(currProcess,num-1);
     }
     else { //ch == 'c'
+      processes[currProcess].locationCode = "c" + to_string(num-1);
       cdQueues[num-1].push_back(currProcess);
     }
   }
@@ -414,9 +425,11 @@ using namespace std;
         if (emptyCPU){
           currProcess = finishedProcess;
           emptyCPU = false;
+          processes[finishedProcess].locationCode = "cpu";
         }
         else {
           addProcessToReadyQueue(finishedProcess);
+          processes[finishedProcess].locationCode = "r";
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
@@ -671,4 +684,56 @@ using namespace std;
       return false;
     }
     return true;
+  }
+
+  /*
+    Finds process with the pid used as the parameter and erases it from
+    the processes map and whatever deque it belongs to (job pool, ready deque etc)
+  */
+  void CPU::killProcess(const int& pid){
+    string locationCode = processes[pid].locationCode;
+    if (locationCode == "r"){
+      findProcessToKill(pid, readyQueue);
+    }
+    else if (locationCode == "j"){
+      findProcessToKill(pid, jobPool);
+    }
+    else if (locationCode[0] == 'c'){
+      string dequeNum_str = locationCode.substr(1);
+      int dequeNum = atoi(dequeNum_str.c_str()); 
+      findProcessToKill(pid, cdQueues[dequeNum]);
+    }
+    else if (locationCode[0] == 'p'){
+      string dequeNum_str = locationCode.substr(1);
+      int dequeNum = atoi(dequeNum_str.c_str()); 
+      findProcessToKill(pid, printerQueues[dequeNum]);
+    }
+    else { //locationCode[0] == 'd'
+      string dequeNum_str = locationCode.substr(2);
+      int dequeNum = atoi(dequeNum_str.c_str());
+      if (locationCode[1] == '1'){
+        findProcessToKill(pid, diskDeques1[dequeNum]);
+      }
+      else { // if locationCode[1] == '0'
+        findProcessToKill(pid, diskDeques0[dequeNum]);
+      }
+    }
+    processes.erase(pid);
+  }
+
+  /*
+    Searches whatever deque the process' pid is in to remove it
+  */
+  void CPU::findProcessToKill(const int& pid, deque<int>& processLocation){
+    deque<int>::iterator it = processLocation.begin();
+    deque<int>::iterator itEnd = processLocation.end();
+    while (it != itEnd){
+      if (*it == pid){
+        processLocation.erase(it);
+        return;
+      }
+      ++it;
+    }
+    //Should never reach this point
+    cout << "Process not found" << '\n';
   }

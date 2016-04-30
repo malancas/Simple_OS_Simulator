@@ -61,10 +61,12 @@ using namespace std;
     else {
       if (scanDiskQueuesStatus[queueNum] == 1){
       	//addProcessToWaitingQueue(pid,queueNum,true);
+        processes[pid].locationCode = "d0" + to_string(queueNum);
         diskDeques0[queueNum].push_back(pid);
       }
       else {
       	//addProcessToWaitingQueue(pid,queueNum,false);
+        processes[pid].locationCode = "d1" + to_string(queueNum);
         diskDeques1[queueNum].push_back(pid);
       }
     }
