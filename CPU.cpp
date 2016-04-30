@@ -198,8 +198,17 @@ using namespace std;
           }
         }
       }
+      /*
+        If the input's format is K<num>, where <num> is the
+        pid of a process to be killed, the killProcess function
+        will locate the process' pid in any of the possible deque
+        locations, remove it, and erase the process from the processes map
+      */
       else if (input[0] == 'K'){
-        //Check input is legitimate
+        int pidToErase;
+        if (isSystemCallInputValid(input, pidToErase)){
+          killProcess(pidToErase);
+        }
       }
       else {
         cerr << "The characters entered are not a valid command." << '\n';
