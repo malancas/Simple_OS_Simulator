@@ -67,16 +67,16 @@ struct Sysgen : public Memory {
     }
 
     //Set the total memory size in the OS
-    getInstallerInput_aux("Enter the total memory size: ", 'i');
+    getInstallerInput_aux("Enter the total memory size: ", 'o');
     totalMemorySize = num;
     freeMemory = num;
 
     //Set the maximum process size
-    getInstallerInput_aux("Enter the maximum process size: ", 'i');
+    getInstallerInput_aux("Enter the maximum process size: ", 'o');
     maximumProcessSize = num;
 
     //Set the page size
-    getInstallerInput_aux("Enter the page size: ", 'i');
+    getInstallerInput_aux("Enter the page size: ", 'p');
     pageSize = num;
   } 
 
@@ -98,7 +98,7 @@ struct Sysgen : public Memory {
     if (getline(cin, line)) {
       istringstream iss{line};
       //Checks if the input can be converted to an int
-      if (variableCode == 'o'){
+      if (variableCode == 'o' || variableCode == 'p'){
        if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
           
          //If it was successfully converted, then checks if
@@ -106,6 +106,14 @@ struct Sysgen : public Memory {
          if (num < 0){
            cerr << '\n' << "Negative number entered. Please try again" << '\n';
            return false;
+         }
+
+         if (variableCode == 'p'){
+            if (num > 0 && !(num & (num−1))){
+              return true;
+            }
+            cerr << "Page number entered is not a power of two" << '\n';
+            return false;
          }
   
          /*
