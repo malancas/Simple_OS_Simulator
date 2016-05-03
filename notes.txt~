@@ -1,0 +1,31 @@
+Snapshot should now also include total burst, average burst, estimated burst
+Burst time can go negative or 0. Have higher priority
+Display both active and waiting queue for disk snapshot, cylinder place
+Reorder ready queue after process arrival and system call completion
+
+Potential bug: can enter 0 as number of tracks in disk device in Sysgen
+
+total burst is updated using the weighted average equation. Use the initial tao at first to calculate the new one with this formula
+
+Use max int for maximum amount of tracks
+
+HW3:
+SYSGEN: Added sysgen input for maximum process size, memory size, page size
+
+CPU: Added arrival process size checking
+CPU: Processes added to job pool during process arrival if process size > free memory
+
+Questions
+Add processes from job pool when process is terminated?
+
+Location Codes:
+r = ready deque
+j = job pool
+c = cd deque
+p = printer deque
+d = disk deque
+cp = cpu
+d10 -> diskDeques1[0]
+p3 -> printerDeques[3]
+
+Add location codes at process arrival, system call, removal from device queue

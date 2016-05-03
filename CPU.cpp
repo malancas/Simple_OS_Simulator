@@ -46,7 +46,7 @@ using namespace std;
             //If the CPU isn't empty and the user issues an 'A',
             //a process is created and added to the ready queue
             else {
-              handleInterruptandSystemCall();
+              handleInterruptandSystemCall(false);
 
               //The current process is readded to the ready queue
               addProcessToReadyQueue(currProcess);
@@ -96,7 +96,7 @@ using namespace std;
             if(isSystemCallInputValid(input,num)){
               //The current process' burstEstimate and remainingBurst are updated
               //before it's added to a device queue
-              handleInterruptandSystemCall();
+              handleInterruptandSystemCall(true);
 
               
               //If the input is valid, the user will be prompted
@@ -126,7 +126,7 @@ using namespace std;
       else if (input[0]=='P' || input[0] == 'D' || input[0] == 'C'){
         int num = 0;
 
-        handleInterruptandSystemCall();
+        handleInterruptandSystemCall(false);
         addProcessToReadyQueue(currProcess);
         currProcess = readyQueue.front();
         readyQueue.pop_front();
@@ -160,7 +160,7 @@ using namespace std;
         printed to the terminal
       */
       else if (input == "S"){
-        handleInterruptandSystemCall();
+        handleInterruptandSystemCall(false);
         addProcessToReadyQueue(currProcess);
         currProcess = readyQueue.front();
         readyQueue.pop_front();
@@ -624,7 +624,7 @@ using namespace std;
   }
 
   //Updates the current process' burstEstimate and remaining burst variables
-  void CPU::handleInterruptandSystemCall(){
+  void CPU::handleInterruptandSystemCall(const bool& burstIsComplete){
     //Asking timer how long the current process has used the CPU
     string in;
     cout << "How long has the current process been using the CPU? ";
@@ -638,11 +638,18 @@ using namespace std;
 
     //The current process' remaining burst and burst estimate are updated
     unordered_map<int,Process>::iterator it = processes.find(currProcess);
-    it->second.remainingBurst = it->second.burstEstimate - floatResult;
-    it->second.burstEstimate = sjwAlgorithm();
-
     it->second.totalCPUTime += floatResult;
-    ++(it->second.cpuUsageCount);
+    
+    if (!burstIsComplete){
+      it->second.remainingBurst = it->second.burstEstimate - floatResult;
+      it->second.totalCPUTime += floatResult;
+    }
+    else {
+      ++(it->second.cpuUsageCount);
+
+      it->second.burstEstimate = sjwAlgorithm();
+      it->second.remainingBurst = it->second.burstEstimate;
+    }
   }
 
   void CPU::terminateProcess(){
@@ -651,6 +658,7 @@ using namespace std;
     }
     else {
       //Ask for time in CPU. Update burst time etc.
+      handleInterruptandSystemCall(true);
 
       unordered_map<int,Process>::iterator it = processes.find(currProcess);
 
@@ -769,7 +777,8 @@ using namespace std;
 bool CPU::isStringValidHexNumber(const string& hex_str){
   for (auto i: hex_str){
     if (!isxdigit(i)){
-      cerr << "The memory location entered is not a valid hexadecimal number" << '\n';
+      cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
+      cerr << "Enter a new hexadecimal integer and try again." << '\n';
     }
   }
 }
