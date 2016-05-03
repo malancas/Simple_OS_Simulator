@@ -11,7 +11,6 @@ struct Process {
   //Whether the process is read or write
   string type;
 
-  //the filename
   string name;
 
   //Starting location in memory
@@ -20,7 +19,6 @@ struct Process {
   //Starting location in logical memory, represented in hex
   string logicalMemoryAddress;
 
-  //file length
   int length;
 
   //The amount of time the process needs in the CPU to complete
@@ -40,10 +38,10 @@ struct Process {
   //the track that the process is stored on
   int track;
 
-  //The process' size
+  //In terms of pages
   int size;
 
-  //Process' location code
+  //Used to determine where a process is at any moment
   string locationCode;
 
   //CONSTRUCTORS

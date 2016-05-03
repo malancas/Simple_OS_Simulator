@@ -165,9 +165,10 @@ using namespace std;
         currProcess = readyQueue.front();
         readyQueue.pop_front();
 
-        cout << "Enter r, p, c, or d: ";
+        cout << "Enter r, p, c, d, m, or j: ";
         cin >> input; cout << '\n';
-        if (input != "r" && input != "p" && input != "c" && input != "d"){
+        if (input != "r" && input != "p" && input != "c" && input != "d" &&
+	    input != "m" && input != "j"){
           cerr << "The characters entered are not supported by Snapshot." << '\n';
           cerr << "Enter a new command and try again." << '\n' << '\n';
         }
@@ -175,10 +176,6 @@ using namespace std;
         else {
           if (input == "d") {
             snapshotHeader();
-            cout << os.str();
-            os.str("");
-            os.clear();
-            //SORT DISK QUEUES
             snapshotAux_Disk();
             snapshotAux_SystemInformation();
           }
@@ -186,17 +183,20 @@ using namespace std;
             snapshotAux_ReadyDeque();
             snapshotAux_SystemInformation();
           }
+	  else if (input == "j"){
+	    snapshotAux_JobPool();
+	  }
+	  else if (input == "m"){
+	    //System information/frame table with free frame list
+	  }
           else {
-
             snapshotHeader();
             snapshotAux(input);
-
-            cout << os.str();
-            os.str("");
-            os.clear();
-
             snapshotAux_SystemInformation();
           }
+	  cout << os.str();
+	  os.str("");
+	  os,clear();
         }
       }
       /*
@@ -503,37 +503,51 @@ using namespace std;
   }
 
   void CPU::snapshotAux_SystemInformation(){
-    cout << "Total System Average CPU Time" << '\n';
-    cout << "-----------------------------" << '\n';
+    os << "Total System Average CPU Time" << '\n';
+    os << "-----------------------------" << '\n';
     if (systemTotalcpuUsageCount > 0){
-      cout << systemTotalCPUTime / systemTotalcpuUsageCount;
+      os << systemTotalCPUTime / systemTotalcpuUsageCount;
     }
     else {
-      cout << "0";
+      os << "0";
     }
-    cout << '\n' << '\n';
+    os << '\n' << '\n';
   }
 
   void CPU::snapshotAux_ReadyDeque(){
     deque<int>::iterator itB = readyQueue.begin();
     deque<int>::iterator itE = readyQueue.end();
 
-    cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-    cout << "----r" << '\n';
+    os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+    os << "----r" << '\n';
     while (itB != itE){
-      cout << *itB << setw(10) << processes[*itB].totalCPUTime << setw(10);
+      os << *itB << setw(10) << processes[*itB].totalCPUTime << setw(10);
       if (processes[*itB].cpuUsageCount > 0){
         cout << (processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount);
       }
       else {
-        cout << "0";
+        os << "0";
       }
-      cout << '\n';
+      os << '\n';
 
       ++itB;
     }
-    cout << '\n';
+    os << '\n';
   }
+
+
+void CPU::snapshotAux_JobPool(){
+  deque<int>::iterator it = jobPool.begin();
+  deque<int>::iterator itE = jobPool.end();
+
+  os << "PID " << setw(10) << "Process Size " << '\n';
+  os << "----j" << '\n';
+  while (it != itE){
+    os << *it << setw(10) << processes[*it].size << '\n';
+    ++it;
+  }
+  os << '\n';
+}
 
 
   void CPU::snapshotAux_Disk(){
@@ -541,34 +555,34 @@ using namespace std;
       sort(diskDeques0[i].begin(),diskDeques1[i].end(),sortByHighestTrackFirst);
       sort(diskDeques0[i].begin(),diskDeques0[i].end(),sortByLowestTrackFirst);
 
-      cout << "----" << "Scan Queue " << i+1 << '\n';
+      os << "----" << "Scan Queue " << i+1 << '\n';
       if (scanDiskQueuesStatus[i] == 1){
         snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
-        cout << '\n';
-        cout << "----" << "Waiting Queue " << i+1 << '\n';
+        os << '\n';
+        os << "----" << "Waiting Queue " << i+1 << '\n';
         snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
       }
       else {
         snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
-        cout << '\n';
-        cout << "----" << "Waiting Queue " << i+1 << '\n';
+        os << '\n';
+        os << "----" << "Waiting Queue " << i+1 << '\n';
         snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
       }
-      cout << '\n' << '\n';
+      os << '\n' << '\n';
     }
   }
 
   void CPU::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
     while (scanIt != scanItEnd){
-      cout << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << processes[*scanIt].memStart 
+      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << processes[*scanIt].memStart 
         << setw(10) << processes[*scanIt].type << setw(10);
       if (processes[*scanIt].type == "w"){
-        cout << processes[*scanIt].length << setw(10);
+        os << processes[*scanIt].length << setw(10);
       }
       else {
-        cout << setw(20);
+        os << setw(20);
       }
-      cout << processes[*scanIt].totalCPUTime << setw(10) << 
+      os << processes[*scanIt].totalCPUTime << setw(10) << 
       (processes[*scanIt].totalCPUTime / processes[*scanIt].cpuUsageCount) << '\n';
       ++scanIt;
     }

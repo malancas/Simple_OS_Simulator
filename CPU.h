@@ -88,6 +88,8 @@ struct CPU : public Memory {
 
   void snapshotAux_ReadyDeque();
 
+  void snapshotAux_JobPool();
+
   void handleInterruptandSystemCall(const bool& burstIsComplete);
 
   void terminateProcess();
