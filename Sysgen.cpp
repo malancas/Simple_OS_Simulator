@@ -109,7 +109,7 @@ struct Sysgen : public Memory {
          }
 
          if (variableCode == 'p'){
-            if (num > 0 && !(num & (num−1))){
+            if (num > 0 && !(num & (num-1))){
               return true;
             }
             cerr << "Page number entered is not a power of two" << '\n';

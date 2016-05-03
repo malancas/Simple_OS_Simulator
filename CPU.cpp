@@ -205,6 +205,17 @@ using namespace std;
         locations, remove it, and erase the process from the processes map
       */
       else if (input[0] == 'K'){
+        /*
+        try {
+          string pid_str = input.substr(1);
+          int pidToErase = atoi(pid_str);
+          killProcess(pidToErase);
+        }
+        catch(...){
+          cerr << "The characters following 'K' don't form a valid integer." << '\n';
+          cerr << "Enter a new command and try again" << '\n';
+        }
+        */
         int pidToErase;
         if (isSystemCallInputValid(input, pidToErase)){
           killProcess(pidToErase);
@@ -625,11 +636,18 @@ using namespace std;
     }
 
     //The current process' remaining burst and burst estimate are updated
-    processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - floatResult;
-    processes[currProcess].burstEstimate = sjwAlgorithm();
+    unordered_map<int,Process>::iterator it = processes.find(currProcess);
+    it->second.remainingBurst = it->second.burstEstimate - floatResult;
+    it->second.burstEstimate = sjwAlgorithm();
 
-    (processes[currProcess].totalCPUTime) += floatResult;
-    ++(processes[currProcess].cpuUsageCount);
+    it->second.totalCPUTime += floatResult;
+    ++(it->second.cpuUsageCount);
+
+    //processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - floatResult;
+    //processes[currProcess].burstEstimate = sjwAlgorithm();
+
+    //(processes[currProcess].totalCPUTime) += floatResult;
+    //++(processes[currProcess].cpuUsageCount);
   }
 
   void CPU::terminateProcess(){
@@ -637,19 +655,21 @@ using namespace std;
       cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
     }
     else {
+      //Ask for time in CPU. Update burst time etc.
+
       unordered_map<int,Process>::iterator it = processes.find(currProcess);
 
-      cout << "Process terminated" << '\n';
-      cout << "------------------" << '\n';
-      cout << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-      cout << currProcess << setw(10) << it->second.totalCPUTime << setw(20);
+      os << "Process terminated" << '\n';
+      os << "------------------" << '\n';
+      os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+      os << currProcess << setw(10) << it->second.totalCPUTime << setw(20);
       if (it->second.cpuUsageCount > 0){
-        cout << (it->second.totalCPUTime / it->second.cpuUsageCount);
+        os << (it->second.totalCPUTime / it->second.cpuUsageCount);
       }
       else {
-        cout << "0";
+        os << "0";
       }
-      cout << '\n' << '\n';
+      os << '\n' << '\n';
 
       //The system's total cpu time and cpu usage count variables are updated with the
       //terminated process' corresponding variables. This updates the system's average
@@ -665,13 +685,16 @@ using namespace std;
         currProcess = readyQueue.front();
         readyQueue.pop_front();
         emptyCPU = false;
-        cout << "A new process has been added to the CPU." << '\n';
+        os << "A new process has been added to the CPU." << '\n';
       }
       else {
         emptyCPU = true;
       }
-      cout << '\n';
-    } 
+      os << '\n';
+    }
+    cout << os.str();
+    os.str("");
+    os.clear();
   }
 
   /*
