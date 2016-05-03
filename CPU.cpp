@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <set>
+#include <ctype.h>
 #include "CPU.h"
 #include "Memory.h"
 using namespace std;
@@ -361,10 +362,10 @@ using namespace std;
 
     cout << "Enter the starting location in memory: ";
     cin >> memStart;
-    while (!intOrFloatErrorCheck(memStart, true, true)){
+    while (!isStringValidHexNumber(memStart)){
       cin >> memStart;
     }
-    processes[currProcess].memStart = intResult;
+    processes[currProcess].logicalMemoryAddress = memStart;
 
     /*
       If the system call is not for a printing device,
@@ -642,12 +643,6 @@ using namespace std;
 
     it->second.totalCPUTime += floatResult;
     ++(it->second.cpuUsageCount);
-
-    //processes[currProcess].remainingBurst = processes[currProcess].burstEstimate - floatResult;
-    //processes[currProcess].burstEstimate = sjwAlgorithm();
-
-    //(processes[currProcess].totalCPUTime) += floatResult;
-    //++(processes[currProcess].cpuUsageCount);
   }
 
   void CPU::terminateProcess(){
@@ -769,3 +764,12 @@ using namespace std;
     //Should never reach this point
     cout << "Process not found" << '\n';
   }
+
+//Checks if a string is a valid hexadecimal number
+bool CPU::isStringValidHexNumber(const string& hex_str){
+  for (auto i: hex_str){
+    if (!isxdigit(i)){
+      cerr << "The memory location entered is not a valid hexadecimal number" << '\n';
+    }
+  }
+}

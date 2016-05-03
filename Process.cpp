@@ -17,6 +17,9 @@ struct Process {
   //Starting location in memory
   int memStart;
 
+  //Starting location in logical memory, represented in hex
+  string logicalMemoryAddress;
+
   //file length
   int length;
 
