@@ -196,7 +196,7 @@ using namespace std;
           }
 	  cout << os.str();
 	  os.str("");
-	  os,clear();
+	  os.clear();
         }
       }
       /*
@@ -741,7 +741,15 @@ void CPU::snapshotAux_JobPool(){
   */
   void CPU::killProcess(const int& pid){
     string locationCode = processes[pid].locationCode;
-    if (locationCode == "r"){
+    if (locationCode == "cpu"){
+      if (readyQueue.size()){
+	currProcess = readyQueue.front();
+	readyQueue.pop_front();
+      }
+      currProcess = -1;
+      emptyCPU = true;
+    }
+    else if (locationCode == "r"){
       findProcessToKill(pid, readyQueue);
     }
     else if (locationCode == "j"){

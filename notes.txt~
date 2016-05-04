@@ -29,3 +29,11 @@ d10 -> diskDeques1[0]
 p3 -> printerDeques[3]
 
 Add location codes at process arrival, system call, removal from device queue
+Job pool feeds into ready queue
+
+Added:
+1. kill interrupt (NEED TO IMPLEMENT CPU REMOVAL)
+2. start memmory prompt in hex
+3. sys gen page size, memory prompting
+4. tao next, burst number is only updated after termination or system call
+5. terminate process asks for time in CPU, updates accordingly 
