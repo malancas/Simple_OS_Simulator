@@ -138,3 +138,7 @@ using namespace std;
   bool Memory::sortByHighestTrackFirst(const int& lhs, const int& rhs){
     return processes[lhs].track > processes[rhs].track;
   }
+
+bool Memory::sortByLargestSizeFirst(const int& lhs, const int& rhs){
+  return processes[lhs].size > processes[rhs].size;
+}

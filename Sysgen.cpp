@@ -109,12 +109,19 @@ struct Sysgen : public Memory {
          }
 
          if (variableCode == 'p'){
+	   if (totalMemorySize % num){
+	     cerr << "Chosen page number doesn't evenly divide the total system memory." << '\n';
+	     cerr << "Enter a new number and try again." << '\n';
+	     return false;
+	   }
+	   else{
             if (num > 0 && !(num & (num-1))){
               return true;
             }
             cerr << "Page number entered is not a power of two" << '\n';
             return false;
-         }
+	   }
+	 }
   
          /*
          If the function is being used to error check input for the history parameter,

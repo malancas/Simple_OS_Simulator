@@ -32,10 +32,11 @@ using namespace std;
         if (getProcessSize()){
           cout << "New process made!" << '\n';
           processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate,intResult)));
-          //if (intResult <= freeMemory){
+	  processes[pidCounter].locationCode = "j";
+	  jobPool.push_back(pidCounter);
+   	  
           if (processes[pidCounter].size <= freeMemory){
-            //totalMemorySize -= intResult;
-            totalMemorySize -= processes[pidCounter].size;
+            freeMemory -= processes[pidCounter].size;
 
             if (emptyCPU){
               currProcess = pidCounter;
@@ -64,10 +65,6 @@ using namespace std;
               readyQueue.pop_front();
               emptyCPU = false;
             }
-          }
-          else {
-            jobPool.push_back(pidCounter);
-            processes[pidCounter].locationCode = "j";
           }
           ++(pidCounter);
         }
@@ -802,5 +799,19 @@ bool CPU::isStringValidHexNumber(const string& hex_str){
       cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
       cerr << "Enter a new hexadecimal integer and try again." << '\n';
     }
+  }
+}
+
+//Returns the pid of the largest process in the job pool that will fit
+//in the remaining free memory available
+int CPU::searchForJobThatFitsInMemory(){
+  sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
+  deque<int>::iterator it = jobPool.begin();
+  deque<int>::iterator itEnd = jobPool.end();
+  while (it != itEnd){
+    if (processes[*it].size <= freeMemory){
+      return *it;
+    }
+    ++it;
   }
 }

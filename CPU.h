@@ -105,6 +105,8 @@ struct CPU : public Memory {
   void findProcessToKill(const int& pid, deque<int>& processLocation);
 
   bool isStringValidHexNumber(const string& hex_str);
+
+  int searchForJobThatFitsInMemory();
 };
 
 #endif

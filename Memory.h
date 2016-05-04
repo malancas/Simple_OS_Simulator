@@ -115,6 +115,7 @@ struct Memory {
   void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
   static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
+  static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
 };
 
 #endif
