@@ -98,6 +98,8 @@ struct CPU : public Memory {
 
   void snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd);
 
+  void snapshotAux_memoryInformation();
+
   bool getProcessSize();
 
   void killProcess(const int& pid);
@@ -106,7 +108,7 @@ struct CPU : public Memory {
 
   bool isStringValidHexNumber(const string& hex_str);
 
-  int searchForJobThatFitsInMemory();
+  int searchForAndEraseJobThatFitsInMemory();
 };
 
 #endif

@@ -29,45 +29,37 @@ using namespace std;
       //If the CPU is empty and the user issues an 'A',
       //a new process is created and added to the CPU
       if (input == "A"){
+	if (!emptyCPU){	  
+	  handleInterruptandSystemCall(false);
+          //The current process is readded to the ready queue
+          addProcessToReadyQueue(currProcess);
+          //Its location code is changed
+          processes[currProcess].locationCode = "r";
+	  emptyCPU = true;
+	}
         if (getProcessSize()){
           cout << "New process made!" << '\n';
           processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate,intResult)));
 	  processes[pidCounter].locationCode = "j";
 	  jobPool.push_back(pidCounter);
-   	  
-          if (processes[pidCounter].size <= freeMemory){
-            freeMemory -= processes[pidCounter].size;
 
-            if (emptyCPU){
-              currProcess = pidCounter;
-              emptyCPU = false;          
-              processes[pidCounter].locationCode = "cpu";
-              cout << "The CPU is now occupied!" << '\n' << '\n';
-            }
-            //If the CPU isn't empty and the user issues an 'A',
-            //a process is created and added to the ready queue
-            else {
-              handleInterruptandSystemCall(false);
+	  ++(pidCounter);
 
-              //The current process is readded to the ready queue
-              addProcessToReadyQueue(currProcess);
-              //Its location code is changed
-              processes[currProcess].locationCode = "r";
-
-              //The new process is added to the ready queue
-              addProcessToReadyQueue(pidCounter);
-              //Its location code is changed to signify
-              //its in the ready deque
-              processes[pidCounter].locationCode = "r";
-
-              currProcess = readyQueue.front();
-              processes[currProcess].locationCode = "cpu";
-              readyQueue.pop_front();
-              emptyCPU = false;
-            }
-          }
-          ++(pidCounter);
-        }
+	  int chosenPID = searchForAndEraseJobThatFitsInMemory();
+	  if (chosenPID >= 0){
+	    freeMemory -= processes[chosenPID].size;
+	    processes[chosenPID].locationCode = "r";
+	    addProcessToReadyQueue(chosenPID);
+	  }
+	}
+	//Choose a process to put in the CPU
+	if (readyQueue.size()){
+	  currProcess = readyQueue.front();
+	  processes[currProcess].locationCode = "cpu";
+	  readyQueue.pop_front();
+	  emptyCPU = false;
+	  cout << "The CPU is now occupied!" << '\n' << '\n';
+	}
       }
       
       //If the user tries to terminate a process
@@ -534,6 +526,7 @@ using namespace std;
 
 
 void CPU::snapshotAux_JobPool(){
+  sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itE = jobPool.end();
 
@@ -584,6 +577,35 @@ void CPU::snapshotAux_JobPool(){
       ++scanIt;
     }
   }
+
+
+void CPU::snapshotAux_memoryInformation(){
+  vector<tuple<int,int>>::iterator it = frameTable.begin();
+  vector<tuple<int,int>>::iterator itEnd = frameTable.end();
+  
+  os << "Frame Table---------------" << '\n';
+  os << "Total number of frames: " << totalMemorySize/pageSize << '\n';
+  while (it != itEnd){
+    os << "Frame " << get<0>(*it) << " --->";
+    if (get<1>(*it) >= 0){
+      os << " Page " << get<1>(*it) << '\n';
+    }
+    else {
+      os << "Not assigned to any page" << '\n';
+    }
+
+    ++it;
+  }
+  os << '\n' << '\n';
+  vector<int>::iterator itFF = freeFrameList.begin();
+  vector<int>::iterator itFFEnd = freeFrameList.end();
+  os << "Free Frame List-----------" << '\n';
+  while (itFF != itFFEnd){
+    os << *itFF << '\n';
+    ++itFF;
+  }
+  os << '\n' << '\n';
+}
 
 
   /*
@@ -804,14 +826,17 @@ bool CPU::isStringValidHexNumber(const string& hex_str){
 
 //Returns the pid of the largest process in the job pool that will fit
 //in the remaining free memory available
-int CPU::searchForJobThatFitsInMemory(){
+int CPU::searchForAndEraseJobThatFitsInMemory(){
   sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itEnd = jobPool.end();
   while (it != itEnd){
     if (processes[*it].size <= freeMemory){
-      return *it;
+      int chosenPID = *it;
+      jobPool.erase(it);
+      return chosenPID;
     }
     ++it;
   }
+  return -1;
 }

@@ -24,7 +24,7 @@ j = job pool
 c = cd deque
 p = printer deque
 d = disk deque
-cp = cpu
+cpu = cpu
 d10 -> diskDeques1[0]
 p3 -> printerDeques[3]
 
@@ -32,8 +32,19 @@ Add location codes at process arrival, system call, removal from device queue
 Job pool feeds into ready queue
 
 Added:
-1. kill interrupt (NEED TO IMPLEMENT CPU REMOVAL)
-2. start memmory prompt in hex
+1. kill interrupt
+2. start memory prompt in hex
 3. sys gen page size, memory prompting
 4. tao next, burst number is only updated after termination or system call
-5. terminate process asks for time in CPU, updates accordingly 
+5. terminate process asks for time in CPU, updates accordingly
+6. updated process arrival to account for the job pool
+
+BINARY SEARCH: http://www.boost.org/doc/libs/1_50_0/libs/range/doc/html/range/reference/algorithms/non_mutating/binary_search.html
+
+QUESTIONS: How is memory divided up into frames?
+Is frame size = total memory / page size?
+Does it matter which frames a process' pages are assigned to? Does it matter if they're adjacent or not?
+Page sizes must evenly divide memory and be a power of 2
+If page number = n, max process size = 3n, logical address = any number between 0 and the maximum 2*n (each page starts at 0, 1n, and 2n)
+Offset = logical address - page base number it is closet to (ex. if logical address is between 2n and n, offset = logical address - n)
+Physical address = frame base number corresponding to page starting number + offset (ex. if frame 2 corresponds to page 2 and the logical address lies between page 2 and page 3, than the physical address = base number of frame 2 + offset)
