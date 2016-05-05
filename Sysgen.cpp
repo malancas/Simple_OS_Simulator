@@ -20,31 +20,31 @@ struct Sysgen : public Memory {
   //FUNCTIONS
   /*
     Reads the user's chosen number of device
-    queues and checks the input for errors.
+    deques and checks the input for errors.
     If the input is deemed valid, the device
-    queue vectors will be resized appropriately
+    deque vectors will be resized appropriately
   */
   void getInstallerInput(){
-    //Set the number of printer device queues
+    //Set the number of printer device deques
     getInstallerInput_aux("Enter the number of printer devices: ", 'o');
-    printerQueues.resize(num);
+    printerDeques.resize(num);
 
-    //Set the number of disk device queues
+    //Set the number of disk device deques
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
     //diskSets0.resize(num);
     //diskSets1.resize(num);
     diskDeques0.resize(num);
     diskDeques1.resize(num);
     cylinderCount.resize(num);
-    scanDiskQueuesStatus.resize(num);
+    scanDiskDequesStatus.resize(num);
 
-    //The elements are set to false, meaning that scanDiskQueues0 will
-    //begin the program as representing the scan queues
-    fill(scanDiskQueuesStatus.begin(),scanDiskQueuesStatus.end(),false);
+    //The elements are set to false, meaning that scanDiskDeques0 will
+    //begin the program as representing the scan deques
+    fill(scanDiskDequesStatus.begin(),scanDiskDequesStatus.end(),false);
 
-    //Set the number of CD device queues
+    //Set the number of CD device deques
     getInstallerInput_aux("Enter the number of CD devices: ", 'o');
-    cdQueues.resize(num);
+    cdDeques.resize(num);
 
     //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", 'h');

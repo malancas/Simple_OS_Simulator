@@ -17,8 +17,8 @@ struct Memory {
   
   /*
     Contains the Process objects, using their
-    PIDS as keys. This allows the ready queue
-    and device queues to deal with ints instead
+    PIDS as keys. This allows the ready deque
+    and device deques to deal with ints instead
     of objects
   */
   static unordered_map<int, Process> processes;
@@ -74,20 +74,20 @@ struct Memory {
   //Holds boolean values, each corresponding
   //to the disk vector that is acting as the
   //scan vector.
-  static vector<bool> scanDiskQueuesStatus;
+  static vector<bool> scanDiskDequesStatus;
   
   //CONTRUCTORS
   Memory();
 
   /*
-    The ready queue contains process PIDS
+    The ready deque contains process PIDS
     while each vector contains the number of
-    device queues specified during the sys gen
-    phase. Each of these queues contains PIDS
+    device deques specified during the sys gen
+    phase. Each of these deques contains PIDS
   */
-  static deque<int> readyQueue;
-  static vector<deque<int>> printerQueues;
-  static vector<deque<int>> cdQueues;
+  static deque<int> readyDeque;
+  static vector<deque<int>> printerDeques;
+  static vector<deque<int>> cdDeques;
   static vector<deque<int>> diskDeques0;
   static vector<deque<int>> diskDeques1;
   static deque<int> jobPool;
@@ -109,13 +109,13 @@ struct Memory {
   //vector<multiset<Process, lowest_Track_First>> diskSets0;
   //vector<multiset<Process, highest_Track_First>> diskSets1;
 
-  //void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
-  void addProcessToDiskDeque(const int& pid, const int& queueNum);
-  void checkForSystemCallinDiskQueue(const int& callNum, const bool& zeroIsWaiting);
+  //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+  void addProcessToDiskDeque(const int& pid, const int& dequeNum);
+  void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
   //void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
-  void addProcessToReadyQueue(const int& pid);
+  void addProcessToReadyDeque(const int& pid);
   float sjwAlgorithm();
-  void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
+  void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
   static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);

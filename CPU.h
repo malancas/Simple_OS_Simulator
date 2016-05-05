@@ -34,7 +34,7 @@ struct CPU : public Memory {
   void snapshotHeader();
 
   /*
-    Prints the data of each process in the chosen device queue
+    Prints the data of each process in the chosen device deque
     Each process gets its own line
   */
   template<typename T>
@@ -47,7 +47,7 @@ struct CPU : public Memory {
     already been verified to begin with either a 'p', 'd',
     or 'c' is valid. The number following the chosen character
     will be checked to insure it is not negative and falls within
-    the limits of the number of specific device queues present
+    the limits of the number of specific device deques present
   */
   bool isSystemCallInputValid(string& input, int& num);
 
@@ -70,15 +70,15 @@ struct CPU : public Memory {
   //false and the system call request is rejected
   bool typeErrorChecking(string& typeIn);
 
-  void checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum);
+  void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
 
-  bool checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum);
+  bool checkIfsysCallNumLargerThanDevDeque(const vector<deque<int>>& devDeques, const int& callNum);
 
   bool checkIfsysCallNumLargerThanSet(const int& callNum);
 
-  //void addProcessToDiskQueue(const int& pid, const int& queueNum);
+  //void addProcessToDiskDeque(const int& pid, const int& dequeNum);
 
-  void addProcessToWaitingQueue(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
+  void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
 
   void getCylinderChoice(const int& dequeNum);
 

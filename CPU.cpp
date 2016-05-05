@@ -31,8 +31,8 @@ using namespace std;
       if (input == "A"){
 	if (!emptyCPU){	  
 	  handleInterruptandSystemCall(false);
-          //The current process is readded to the ready queue
-          addProcessToReadyQueue(currProcess);
+          //The current process is readded to the ready deque
+          addProcessToReadyDeque(currProcess);
           //Its location code is changed
           processes[currProcess].locationCode = "r";
 	  emptyCPU = true;
@@ -49,14 +49,14 @@ using namespace std;
 	  if (chosenPID >= 0){
 	    freeMemory -= processes[chosenPID].size;
 	    processes[chosenPID].locationCode = "r";
-	    addProcessToReadyQueue(chosenPID);
+	    addProcessToReadyDeque(chosenPID);
 	  }
 	}
 	//Choose a process to put in the CPU
-	if (readyQueue.size()){
-	  currProcess = readyQueue.front();
+	if (readyDeque.size()){
+	  currProcess = readyDeque.front();
 	  processes[currProcess].locationCode = "cpu";
-	  readyQueue.pop_front();
+	  readyDeque.pop_front();
 	  emptyCPU = false;
 	  cout << "The CPU is now occupied!" << '\n' << '\n';
 	}
@@ -77,26 +77,26 @@ using namespace std;
         }
 
         else {
-          if ((input[0]=='p' && !printerQueues.empty()) || (input[0]=='d' && !diskDeques0.empty())
-           || (input[0]=='c' && !cdQueues.empty())){
+          if ((input[0]=='p' && !printerDeques.empty()) || (input[0]=='d' && !diskDeques0.empty())
+           || (input[0]=='c' && !cdDeques.empty())){
             int num = 0;
 
             //If the function determines the user's input is valid,
             if(isSystemCallInputValid(input,num)){
               //The current process' burstEstimate and remainingBurst are updated
-              //before it's added to a device queue
+              //before it's added to a device deque
               handleInterruptandSystemCall(true);
 
               
               //If the input is valid, the user will be prompted
               //for system call paramters and the call will be
-              //added to the appropriate device queue 
+              //added to the appropriate device deque 
               //setSystemCallVariables(print, input[0], num);
               setSystemCallVariables(input[0]=='p', input[0], num);
               cout << "System call added!" << '\n' << '\n';
-              if (!readyQueue.empty()){
-                currProcess = readyQueue.front();
-                readyQueue.pop_front();
+              if (!readyDeque.empty()){
+                currProcess = readyDeque.front();
+                readyDeque.pop_front();
                 emptyCPU = false;
               }
               else {
@@ -105,7 +105,7 @@ using namespace std;
             }            
           }
           else {
-            cerr << "There are no queues available of the chosen device." << '\n';
+            cerr << "There are no deques available of the chosen device." << '\n';
             cerr << "Please enter a new command and try again." << '\n' << '\n';
           }
         }
@@ -116,43 +116,43 @@ using namespace std;
         int num = 0;
 
         handleInterruptandSystemCall(false);
-        addProcessToReadyQueue(currProcess);
-        currProcess = readyQueue.front();
-        readyQueue.pop_front();
+        addProcessToReadyDeque(currProcess);
+        currProcess = readyDeque.front();
+        readyDeque.pop_front();
 
         //If the user's input is determined to be valid
         if (isSystemCallInputValid(input,num)){
           if (input[0]=='P'){
-            checkForSystemCallinQueue(printerQueues, num);
+            checkForSystemCallinDeque(printerDeques, num);
           }
           else if (input[0]=='D'){
-            if (scanDiskQueuesStatus[num-1] == 1){
+            if (scanDiskDequesStatus[num-1] == 1){
               sort(diskDeques1[num-1].begin(),diskDeques1[num-1].end(),sortByHighestTrackFirst);
-              checkForSystemCallinQueue(diskDeques1, num);
+              checkForSystemCallinDeque(diskDeques1, num);
             }
             else {
               sort(diskDeques0[num-1].begin(),diskDeques0[num-1].end(),sortByLowestTrackFirst);
-              checkForSystemCallinQueue(diskDeques0, num); 
+              checkForSystemCallinDeque(diskDeques0, num); 
             }
-            //checkForSystemCallinDiskSet(num-1,scanDiskQueuesStatus[num-1]);
+            //checkForSystemCallinDiskSet(num-1,scanDiskDequesStatus[num-1]);
           }
           else if (input[0]=='C') {
-            checkForSystemCallinQueue(cdQueues, num);
+            checkForSystemCallinDeque(cdDeques, num);
           }
         }     
       }
 
       /*If the user types 'S' for the snapshot function,
         the user will prompted for whether to print the contents
-        of the ready, printer, cd, or disk queues. The contents of
-        the chosen queue will read into an ostream object and 
+        of the ready, printer, cd, or disk deques. The contents of
+        the chosen deque will read into an ostream object and 
         printed to the terminal
       */
       else if (input == "S"){
         handleInterruptandSystemCall(false);
-        addProcessToReadyQueue(currProcess);
-        currProcess = readyQueue.front();
-        readyQueue.pop_front();
+        addProcessToReadyDeque(currProcess);
+        currProcess = readyDeque.front();
+        readyDeque.pop_front();
 
         cout << "Enter r, p, c, d, m, or j: ";
         cin >> input; cout << '\n';
@@ -229,7 +229,7 @@ using namespace std;
   }
 
   /*
-    Prints the data of each process in the chosen device queue
+    Prints the data of each process in the chosen device deque
     Each process gets its own line
   */
   template<typename T>
@@ -254,14 +254,14 @@ using namespace std;
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
       if (input == "c"){
-        if (!cdQueues.empty()){
-          itV = cdQueues.begin(); itVe = cdQueues.end();
+        if (!cdDeques.empty()){
+          itV = cdDeques.begin(); itVe = cdDeques.end();
           itB = itV->begin(); itE = itV->end();
         }
       }
       else { //input == "p"
-        if (!printerQueues.empty()){
-          itV = printerQueues.begin(); itVe = printerQueues.end();
+        if (!printerDeques.empty()){
+          itV = printerDeques.begin(); itVe = printerDeques.end();
           itB = itV->begin(); itE = itV->end();        
         }
       }
@@ -283,17 +283,17 @@ using namespace std;
     already been verified to begin with either a 'p', 'd',
     or 'c' is valid. The number following the chosen character
     will be checked to insure it is not negative and falls within
-    the limits of the number of specific device queues present
+    the limits of the number of specific device deques present
   */
   bool CPU::isSystemCallInputValid(string& input, int& num){
     //Represents the string following either p,d, or c
-    string queueNum = input.substr(1);
+    string dequeNum = input.substr(1);
 
     /*Contents of quenum are fed in num to insure it can
       be read as an integer. An error message is printed 
       if this can't happen    
     */
-    istringstream iss{queueNum};
+    istringstream iss{dequeNum};
     if (iss >> num && (iss.eof() || isspace(iss.peek()))){
       if (num <= 0){
         cerr << "Chosen number is zero or negative. Please try again." << '\n' << '\n';
@@ -302,27 +302,27 @@ using namespace std;
       else {
         /*checkIfsys
           Each statement will check whether num is larger than the number
-          of chosen device queues present
+          of chosen device deques present
         */
         if (input[0] == 'p' || input[0] == 'P'){
-          return checkIfsysCallNumLargerThanDevQueue(printerQueues, num);
+          return checkIfsysCallNumLargerThanDevDeque(printerDeques, num);
 
         }
         else if (input[0] == 'd' || input[0] == 'D'){
-          if (scanDiskQueuesStatus[num-1] == 1){
-            return checkIfsysCallNumLargerThanDevQueue(diskDeques1,num);
+          if (scanDiskDequesStatus[num-1] == 1){
+            return checkIfsysCallNumLargerThanDevDeque(diskDeques1,num);
           }
-          return checkIfsysCallNumLargerThanDevQueue(diskDeques0,num);
+          return checkIfsysCallNumLargerThanDevDeque(diskDeques0,num);
 
           //return checkIfsysCallNumLargerThanSet(num);
         }
         else { //input[0] == 'c' || input[0] == 'C'
-          return checkIfsysCallNumLargerThanDevQueue(cdQueues, num);          
+          return checkIfsysCallNumLargerThanDevDeque(cdDeques, num);          
         }          
       }
     }
     /*
-      If queuenum could not be read as integer into num
+      If dequenum could not be read as integer into num
     */
     else {
       cerr << "The command you entered was invalid." << '\n';
@@ -396,18 +396,18 @@ using namespace std;
     /*
       When the user has been prompted for all
       system call parameters, then the process
-      will be added to the appropiate device queue
+      will be added to the appropiate device deque
     */
     if (ch == 'p'){
       processes[currProcess].locationCode = "p" + to_string(num-1);
-      (printerQueues[num-1]).push_back(currProcess);
+      (printerDeques[num-1]).push_back(currProcess);
     }
     else if (ch == 'd'){
       addProcessToDiskDeque(currProcess,num-1);
     }
     else { //ch == 'c'
       processes[currProcess].locationCode = "c" + to_string(num-1);
-      cdQueues[num-1].push_back(currProcess);
+      cdDeques[num-1].push_back(currProcess);
     }
   }
 
@@ -422,30 +422,30 @@ using namespace std;
     }
   }
 
-  void CPU::checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
-    if (!devQueues.empty()){
-      if (devQueues[callNum-1].empty()){
-        cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+  void CPU::checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum){
+    if (!devDeques.empty()){
+      if (devDeques[callNum-1].empty()){
+        cerr << "No system calls are currently in the chosen deque " << callNum << '\n' << '\n';
       }
 
-      //The system call at the front of the queue is removed
+      //The system call at the front of the deque is removed
       else {
-        int finishedProcess = devQueues[callNum-1].front();
-        devQueues[callNum-1].pop_front();
+        int finishedProcess = devDeques[callNum-1].front();
+        devDeques[callNum-1].pop_front();
         if (emptyCPU){
           currProcess = finishedProcess;
           emptyCPU = false;
           processes[finishedProcess].locationCode = "cpu";
         }
         else {
-          addProcessToReadyQueue(finishedProcess);
+          addProcessToReadyDeque(finishedProcess);
           processes[finishedProcess].locationCode = "r";
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
     }
     else {
-      cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
+      cerr << "There are no deques of this type. No processes exist in these deques." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';              
     }
   }
@@ -453,9 +453,9 @@ using namespace std;
   /*
     Checks whether the 
   */
-  bool CPU::checkIfsysCallNumLargerThanDevQueue(const vector<deque<int>>& devQueues, const int& callNum){
-    if (callNum > static_cast<int>(devQueues.size())){
-      cerr << "Number entered is larger than current number of chosen device queues." << '\n';
+  bool CPU::checkIfsysCallNumLargerThanDevDeque(const vector<deque<int>>& devDeques, const int& callNum){
+    if (callNum > static_cast<int>(devDeques.size())){
+      cerr << "Number entered is larger than current number of chosen device deques." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';
       return false;
     }
@@ -467,7 +467,7 @@ using namespace std;
 /*
   bool CPU::checkIfsysCallNumLargerThanSet(const int& callNum){
     if (callNum > static_cast<int>(diskSets0.size())){
-      cerr << "Number entered is larger than current number of chosen device queues." << '\n';
+      cerr << "Number entered is larger than current number of chosen device deques." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';
       return false;
     }
@@ -504,8 +504,8 @@ using namespace std;
   }
 
   void CPU::snapshotAux_ReadyDeque(){
-    deque<int>::iterator itB = readyQueue.begin();
-    deque<int>::iterator itE = readyQueue.end();
+    deque<int>::iterator itB = readyDeque.begin();
+    deque<int>::iterator itE = readyDeque.end();
 
     os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
     os << "----r" << '\n';
@@ -541,21 +541,21 @@ void CPU::snapshotAux_JobPool(){
 
 
   void CPU::snapshotAux_Disk(){
-    for (int i = 0; i < scanDiskQueuesStatus.size(); ++i){
+    for (int i = 0; i < scanDiskDequesStatus.size(); ++i){
       sort(diskDeques0[i].begin(),diskDeques1[i].end(),sortByHighestTrackFirst);
       sort(diskDeques0[i].begin(),diskDeques0[i].end(),sortByLowestTrackFirst);
 
-      os << "----" << "Scan Queue " << i+1 << '\n';
-      if (scanDiskQueuesStatus[i] == 1){
+      os << "----" << "Scan Deque " << i+1 << '\n';
+      if (scanDiskDequesStatus[i] == 1){
         snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
         os << '\n';
-        os << "----" << "Waiting Queue " << i+1 << '\n';
+        os << "----" << "Waiting Deque " << i+1 << '\n';
         snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
       }
       else {
         snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
         os << '\n';
-        os << "----" << "Waiting Queue " << i+1 << '\n';
+        os << "----" << "Waiting Deque " << i+1 << '\n';
         snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
       }
       os << '\n' << '\n';
@@ -717,9 +717,9 @@ void CPU::snapshotAux_memoryInformation(){
 
       processes.erase(currProcess);
 
-      if (!readyQueue.empty()){
-        currProcess = readyQueue.front();
-        readyQueue.pop_front();
+      if (!readyDeque.empty()){
+        currProcess = readyDeque.front();
+        readyDeque.pop_front();
         emptyCPU = false;
         os << "A new process has been added to the CPU." << '\n';
       }
@@ -761,15 +761,15 @@ void CPU::snapshotAux_memoryInformation(){
   void CPU::killProcess(const int& pid){
     string locationCode = processes[pid].locationCode;
     if (locationCode == "cpu"){
-      if (readyQueue.size()){
-	currProcess = readyQueue.front();
-	readyQueue.pop_front();
+      if (readyDeque.size()){
+	currProcess = readyDeque.front();
+	readyDeque.pop_front();
       }
       currProcess = -1;
       emptyCPU = true;
     }
     else if (locationCode == "r"){
-      findProcessToKill(pid, readyQueue);
+      findProcessToKill(pid, readyDeque);
     }
     else if (locationCode == "j"){
       findProcessToKill(pid, jobPool);
@@ -777,12 +777,12 @@ void CPU::snapshotAux_memoryInformation(){
     else if (locationCode[0] == 'c'){
       string dequeNum_str = locationCode.substr(1);
       int dequeNum = atoi(dequeNum_str.c_str()); 
-      findProcessToKill(pid, cdQueues[dequeNum]);
+      findProcessToKill(pid, cdDeques[dequeNum]);
     }
     else if (locationCode[0] == 'p'){
       string dequeNum_str = locationCode.substr(1);
       int dequeNum = atoi(dequeNum_str.c_str()); 
-      findProcessToKill(pid, printerQueues[dequeNum]);
+      findProcessToKill(pid, printerDeques[dequeNum]);
     }
     else { //locationCode[0] == 'd'
       string dequeNum_str = locationCode.substr(2);

@@ -42,11 +42,11 @@ using namespace std;
 
   vector<int> Memory::cylinderCount = {};
 
-  vector<bool> Memory::scanDiskQueuesStatus = {};
+  vector<bool> Memory::scanDiskDequesStatus = {};
 
-  deque<int> Memory::readyQueue = {};
-  vector<deque<int>> Memory::printerQueues = {};
-  vector<deque<int>> Memory::cdQueues = {};
+  deque<int> Memory::readyDeque = {};
+  vector<deque<int>> Memory::printerDeques = {};
+  vector<deque<int>> Memory::cdDeques = {};
   vector<deque<int>> Memory::diskDeques0 = {};
   vector<deque<int>> Memory::diskDeques1 = {};
   deque<int> Memory::jobPool = {};
@@ -55,50 +55,50 @@ vector<int> Memory::freeFrameList = {};
 
   Memory::Memory() {};
 
-  void Memory::addProcessToDiskDeque(const int& pid, const int& queueNum){
+  void Memory::addProcessToDiskDeque(const int& pid, const int& dequeNum){
     if (firstDiskSystemCall){
-      diskDeques0[queueNum].push_back(pid);
+      diskDeques0[dequeNum].push_back(pid);
       firstDiskSystemCall = false;
     }
     else {
-      if (scanDiskQueuesStatus[queueNum] == 1){
-      	//addProcessToWaitingQueue(pid,queueNum,true);
-        processes[pid].locationCode = "d0" + to_string(queueNum);
-        diskDeques0[queueNum].push_back(pid);
+      if (scanDiskDequesStatus[dequeNum] == 1){
+      	//addProcessToWaitingDeque(pid,dequeNum,true);
+        processes[pid].locationCode = "d0" + to_string(dequeNum);
+        diskDeques0[dequeNum].push_back(pid);
       }
       else {
-      	//addProcessToWaitingQueue(pid,queueNum,false);
-        processes[pid].locationCode = "d1" + to_string(queueNum);
-        diskDeques1[queueNum].push_back(pid);
+      	//addProcessToWaitingDeque(pid,dequeNum,false);
+        processes[pid].locationCode = "d1" + to_string(dequeNum);
+        diskDeques1[dequeNum].push_back(pid);
       }
     }
   }
 
-  void Memory::addProcessToReadyQueue(const int& pid){
+  void Memory::addProcessToReadyDeque(const int& pid){
     //Represents the remaining burst of process to be inserted
     float burstOfNewProcess = processes[pid].remainingBurst;
     /*
-      The ready queue is traversed and the remaining burst
-      member variable of each process in the ready queue is
+      The ready deque is traversed and the remaining burst
+      member variable of each process in the ready deque is
       compared to the new process' remaining burst. If the 
-      burst in the ready queue is larger than burstOfNewProcess, 
+      burst in the ready deque is larger than burstOfNewProcess, 
       the pid of the new process is inserted at the current place
       of the iterator and the function returns
     */
-    deque<int>::iterator it = readyQueue.begin();
-    while (it != readyQueue.end()){
+    deque<int>::iterator it = readyDeque.begin();
+    while (it != readyDeque.end()){
       if (processes[*it].remainingBurst > burstOfNewProcess){
-        readyQueue.insert(it, pid);
+        readyDeque.insert(it, pid);
         return;
       }
       ++it;
     }
     /*
       If the new process' remaining burst is bigger than every other
-      process' remaining burst in the readyQueue, it is pushed to the
-      back of the queue
+      process' remaining burst in the readyDeque, it is pushed to the
+      back of the deque
     */
-    readyQueue.push_back(pid);
+    readyDeque.push_back(pid);
   }
 
   
@@ -107,28 +107,28 @@ vector<int> Memory::freeFrameList = {};
     return (1 - historyParameter) * processes[currProcess].burstEstimate + historyParameter * floatResult;
   }
 
-  void Memory::checkForSystemCallinQueue(vector<deque<int>>& devQueues, const int& callNum){
-    if (!devQueues.empty()){
-      if (devQueues[callNum-1].empty()){
-        cerr << "No system calls are currently in the chosen queue " << callNum << '\n' << '\n';
+  void Memory::checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum){
+    if (!devDeques.empty()){
+      if (devDeques[callNum-1].empty()){
+        cerr << "No system calls are currently in the chosen deque " << callNum << '\n' << '\n';
       }
 
-      //The system call at the front of the queue is removed
+      //The system call at the front of the deque is removed
       else {
-        int finishedProcess = devQueues[callNum-1].front();
-        devQueues[callNum-1].pop_front();
+        int finishedProcess = devDeques[callNum-1].front();
+        devDeques[callNum-1].pop_front();
         if (emptyCPU){
           currProcess = finishedProcess;
           emptyCPU = false;
         }
         else {
-          addProcessToReadyQueue(finishedProcess);
+          addProcessToReadyDeque(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }
     }
     else {
-      cerr << "There are no queues of this type. No processes exist in these queues." << '\n';
+      cerr << "There are no deques of this type. No processes exist in these deques." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';              
     }
   }
