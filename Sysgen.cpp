@@ -78,6 +78,21 @@ struct Sysgen : public Memory {
     //Set the page size
     getInstallerInput_aux("Enter the page size: ", 'p');
     pageSize = num;
+
+    //The frame table is resized to reflect the number of frames in memory
+    frameTable.resize(totalMemorySize/pageSize);
+    
+    for (int i = 0; i < frameTable.size(); ++i){
+      frameTable[i].resize(3);
+      frameTable[i][0] = i;
+      frameTable[i][1] = -1;
+      frameTable[i][2] = -1;
+    }
+
+    freeFrameList.resize(frameTable.size());
+    for (int i = 0; i < freeFrameList.size(); ++i){
+      freeFrameList[i] = i;
+    }
   } 
 
   void getInstallerInput_aux(const string& userMessage, const char& variableCode){

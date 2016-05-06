@@ -8,7 +8,6 @@
 #include <iostream>
 #include <set>
 #include <stdio.h>
-#include <tuple>
 #include "Process.cpp"
 using namespace std;
 
@@ -91,7 +90,7 @@ struct Memory {
   static vector<deque<int>> diskDeques0;
   static vector<deque<int>> diskDeques1;
   static deque<int> jobPool;
-  static vector<tuple<int,int>> frameTable;
+  static vector<vector<int>> frameTable;
   static vector<int> freeFrameList;
 
   struct lowest_Track_First {

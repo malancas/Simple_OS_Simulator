@@ -530,7 +530,7 @@ void CPU::snapshotAux_JobPool(){
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itE = jobPool.end();
 
-  os << "PID " << setw(10) << "Process Size " << '\n';
+  os << "PID  " << setw(10) << "  Process Size" << '\n';
   os << "----j" << '\n';
   while (it != itE){
     os << *it << setw(10) << processes[*it].size << '\n';
@@ -580,25 +580,25 @@ void CPU::snapshotAux_JobPool(){
 
 
 void CPU::snapshotAux_memoryInformation(){
-  vector<tuple<int,int>>::iterator it = frameTable.begin();
-  vector<tuple<int,int>>::iterator itEnd = frameTable.end();
+  vector<vector<int>>::iterator it = frameTable.begin();
+  vector<vector<int>>::iterator itEnd = frameTable.end();
   
   os << "Frame Table---------------" << '\n';
-  os << "Total number of frames: " << totalMemorySize/pageSize << '\n';
+  os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){
-    os << "Frame " << get<0>(*it) << " --->";
-    if (get<1>(*it) >= 0){
-      os << " Page " << get<1>(*it) << '\n';
+    os << "Frame " << it->at(0) << " ---> ";
+    if (it->at(2) > -1){
+      os << "Process PID " << it->at(1) << ", Page " << it->at(2);
     }
-    else {
-      os << "Not assigned to any page" << '\n';
-    }
-
+    os << '\n';
+    
     ++it;
   }
   os << '\n' << '\n';
+
   vector<int>::iterator itFF = freeFrameList.begin();
   vector<int>::iterator itFFEnd = freeFrameList.end();
+  
   os << "Free Frame List-----------" << '\n';
   while (itFF != itFFEnd){
     os << *itFF << '\n';
@@ -674,12 +674,10 @@ void CPU::snapshotAux_memoryInformation(){
     it->second.totalCPUTime += floatResult;
     
     if (!burstIsComplete){
-      it->second.remainingBurst = it->second.burstEstimate - floatResult;
-      it->second.totalCPUTime += floatResult;
+      it->second.remainingBurst = it->second.remainingBurst - floatResult;
     }
     else {
       ++(it->second.cpuUsageCount);
-
       it->second.burstEstimate = sjwAlgorithm();
       it->second.remainingBurst = it->second.burstEstimate;
     }
