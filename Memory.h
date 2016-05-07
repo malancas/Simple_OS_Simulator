@@ -8,7 +8,6 @@
 #include <iostream>
 #include <set>
 #include <stdio.h>
-#include <tuple>
 #include "Process.cpp"
 using namespace std;
 
@@ -91,23 +90,10 @@ struct Memory {
   static vector<deque<int>> diskDeques0;
   static vector<deque<int>> diskDeques1;
   static deque<int> jobPool;
-  static vector<tuple<int,int>> frameTable;
-  static vector<int> freeFrameList;
+  static vector<vector<int>> frameTable;
+  static deque<int> freeFrameList;
+  static vector<int> pageTable;
 
-  struct lowest_Track_First {
-    bool operator() (const Process& lhs, const Process& rhs) const{
-      return lhs.track < rhs.track;
-    }
-  };
-
-  struct highest_Track_First {
-    bool operator() (const Process& lhs, const Process& rhs) const{
-      return lhs.track > rhs.track;
-    }
-  };
-
-  //vector<multiset<Process, lowest_Track_First>> diskSets0;
-  //vector<multiset<Process, highest_Track_First>> diskSets1;
 
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
   void addProcessToDiskDeque(const int& pid, const int& dequeNum);

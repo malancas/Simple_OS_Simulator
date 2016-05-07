@@ -109,6 +109,12 @@ struct CPU : public Memory {
   bool isStringValidHexNumber(const string& hex_str);
 
   int searchForAndEraseJobThatFitsInMemory();
+
+  void checkForJobThatFitsInMemory();
+
+  void addJobToMemory(const int& pid);
+
+  void restoreFrameTableAndFreeFrameList(const int& pid);
 };
 
 #endif

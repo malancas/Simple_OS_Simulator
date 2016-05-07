@@ -50,8 +50,9 @@ using namespace std;
   vector<deque<int>> Memory::diskDeques0 = {};
   vector<deque<int>> Memory::diskDeques1 = {};
   deque<int> Memory::jobPool = {};
-vector<tuple<int,int>> Memory::frameTable = {};
-vector<int> Memory::freeFrameList = {};
+vector<vector<int>> Memory::frameTable = {};
+deque<int> Memory::freeFrameList = {};
+vector<int> Memory::pageTable = {};
 
   Memory::Memory() {};
 

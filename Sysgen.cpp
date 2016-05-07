@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
+#include <time.h>
 #include "Memory.h"
 using namespace std;
 
@@ -78,6 +80,12 @@ struct Sysgen : public Memory {
     //Set the page size
     getInstallerInput_aux("Enter the page size: ", 'p');
     pageSize = num;
+
+    frameTable.resize(totalMemorySize/pageSize);
+    freeFrameList.resize(totalMemorySize/pageSize);
+    pageTable.resize(totalMemorySize/pageSize);
+
+    setUpPageTable();
   } 
 
   void getInstallerInput_aux(const string& userMessage, const char& variableCode){
@@ -174,5 +182,23 @@ struct Sysgen : public Memory {
   */
   bool isHistoryParameterInRange(){
     return (floatNum >= 0 && floatNum <= 1);
+  }
+
+  void setUpPageTable(){
+    srand(time(NULL));
+    unordered_map<int,int> numberAlreadyUsed;
+    
+    int totalPages = maximumProcessSize/pageSize;
+    for (int i = 0; i < totalPages; ++i){
+      int num = -1;
+      numberAlreadyUsed[-1] = -1;
+      
+      while (numberAlreadyUsed.find(num) !=
+	     numberAlreadyUsed.end()){
+	num = rand() % totalMemorySize;
+      }
+      pageTable[i] = num;
+      numberAlreadyUsed[num] = num;
+    }
   }
 };
