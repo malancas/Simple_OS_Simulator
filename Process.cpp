@@ -22,7 +22,7 @@ struct Process {
 
   int length;
 
-  //The amount of time the process needs in the CPU to complete
+  //The amount of time the process needs in the Cpu to complete
   float burstEstimate;
 
   //The estimation of the process' next burst
@@ -30,10 +30,10 @@ struct Process {
 
   float remainingBurst;
 
-  //The total amount of time spent in CPU
-  float totalCPUTime;
+  //The total amount of time spent in Cpu
+  float totalCpuTime;
 
-  //Number of times the process occupied the CPU
+  //Number of times the process occupied the Cpu
   int cpuUsageCount;
 
   //the track that the process is stored on
@@ -49,19 +49,19 @@ struct Process {
 
   //CONSTRUCTORS
   Process() : pid(), type(), name(), memStart(), length(), burstEstimate(),
-   nextBurstEstimate(), remainingBurst(0), totalCPUTime(0), cpuUsageCount(0), 
+   nextBurstEstimate(), remainingBurst(0), totalCpuTime(0), cpuUsageCount(0), 
    track(), size(-1), locationCode("") {}
   
   Process(int pd, int burstEst, int sz) : pid(pd), type(), name(), memStart(),
    length(), burstEstimate(burstEst), nextBurstEstimate(), remainingBurst(burstEst), 
-   totalCPUTime(0), cpuUsageCount(0), track(), size(sz), locationCode("") {}
+   totalCpuTime(0), cpuUsageCount(0), track(), size(sz), locationCode("") {}
 
   //OPERATOR OVERLOADING
   friend ostream& operator<<(ostream& os, const Process& obj)
   {
     os << obj.pid << " " << obj.name << " " << obj.memStart << " " 
-    << obj.type << " " << obj.length << " " << obj.totalCPUTime 
-    << " " << obj.totalCPUTime/obj.cpuUsageCount << '\n';
+    << obj.type << " " << obj.length << " " << obj.totalCpuTime 
+    << " " << obj.totalCpuTime/obj.cpuUsageCount << '\n';
     return os;
   }
 };

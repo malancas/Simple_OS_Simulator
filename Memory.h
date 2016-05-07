@@ -42,12 +42,12 @@ struct Memory {
 
   static bool firstDiskSystemCall;
 
-  static float systemTotalCPUTime;
+  static float systemTotalCpuTime;
 
   static int systemTotalcpuUsageCount;
 
   //Signals whether the CPU is empty
-  static bool emptyCPU;
+  static bool emptyCpu;
 
   //Contains the pid of the process
   //currently using the CPU
@@ -91,8 +91,7 @@ struct Memory {
   static vector<deque<int>> diskDeques1;
   static deque<int> jobPool;
   static vector<vector<int>> frameTable;
-<<<<<<< HEAD
-  static vector<int> freeFrameList;
+  static deque<int> freeFrameList;
 
   struct lowest_Track_First {
     bool operator() (const Process& lhs, const Process& rhs) const{
@@ -105,14 +104,6 @@ struct Memory {
       return lhs.track > rhs.track;
     }
   };
-
-  //vector<multiset<Process, lowest_Track_First>> diskSets0;
-  //vector<multiset<Process, highest_Track_First>> diskSets1;
-=======
-  static deque<int> freeFrameList;
-  static vector<int> pageTable;
-
->>>>>>> Implement-Memory-With-Page-Tables
 
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
   void addProcessToDiskDeque(const int& pid, const int& dequeNum);

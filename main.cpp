@@ -2,7 +2,7 @@
 #include <string>
 #include <cassert>
 #include "Sysgen.cpp"
-#include "CPU.h"
+#include "Cpu.h"
 using namespace std;
 
 int main(){
@@ -26,7 +26,7 @@ int main(){
     calls. 
   */
   //m.waitForInput();
-  CPU c;
+  Cpu c;
   c.waitForInput();
 
   return 0;

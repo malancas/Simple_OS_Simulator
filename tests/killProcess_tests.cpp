@@ -1,4 +1,4 @@
-#include "../CPU.h"
+#include "../Cpu.h"
 #include "../Memory.h"
 #include <cassert>
 #include <iostream>
@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
 	Memory m;
-	CPU c;
+	Cpu c;
 
 	m.totalMemorySize = 128;
 	m.pageSize = 2;

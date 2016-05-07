@@ -20,11 +20,11 @@ using namespace std;
 
   bool Memory::firstDiskSystemCall = true;
 
-  float Memory::systemTotalCPUTime = 0;
+  float Memory::systemTotalCpuTime = 0;
 
   int Memory::systemTotalcpuUsageCount = 0;
 
-  bool Memory::emptyCPU = true;
+  bool Memory::emptyCpu = true;
 
   int Memory::currProcess = -1;
 
@@ -51,12 +51,7 @@ using namespace std;
   vector<deque<int>> Memory::diskDeques1 = {};
   deque<int> Memory::jobPool = {};
 vector<vector<int>> Memory::frameTable = {};
-<<<<<<< HEAD
-vector<int> Memory::freeFrameList = {};
-=======
 deque<int> Memory::freeFrameList = {};
-vector<int> Memory::pageTable = {};
->>>>>>> Implement-Memory-With-Page-Tables
 
   Memory::Memory() {};
 
@@ -122,9 +117,9 @@ vector<int> Memory::pageTable = {};
       else {
         int finishedProcess = devDeques[callNum-1].front();
         devDeques[callNum-1].pop_front();
-        if (emptyCPU){
+        if (emptyCpu){
           currProcess = finishedProcess;
-          emptyCPU = false;
+          emptyCpu = false;
         }
         else {
           addProcessToReadyDeque(finishedProcess);

@@ -11,7 +11,7 @@ using namespace std;
 
 struct Process;
 
-struct CPU : public Memory {
+struct Cpu : public Memory {
   //VARIABLES
 
   //Used to store integer results of
@@ -26,7 +26,7 @@ struct CPU : public Memory {
   ostringstream os;
 
   //CONTRUCTORS
-  CPU();
+  Cpu();
 
   //FUNCTIONS
   void waitForInput();

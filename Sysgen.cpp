@@ -74,35 +74,36 @@ struct Sysgen : public Memory {
     freeMemory = num;
 
     //Set the maximum process size
-    getInstallerInput_aux("Enter the maximum process size: ", 'o');
+    num = 0;
+    cout << "Enter the maximum process size: " << '\n';
+    while(!checkInputForErrors('o') || !maximumProcessSizeIsSmallerThanTotalMemory(num)){
+      cout << "Enter the maximum process size: ";
+    }
+    cout << '\n';
     maximumProcessSize = num;
 
     //Set the page size
-    getInstallerInput_aux("Enter the page size: ", 'p');
+    num = 0;
+    cout << "Enter the page size: " << '\n';
+    while(!checkInputForErrors('p') || !pageSizeIsSmallerThanMaxProcessSize(num)){
+      cout << "Enter the page size: : ";
+    }
+    cout << '\n';
     pageSize = num;
 
-<<<<<<< HEAD
     //The frame table is resized to reflect the number of frames in memory
     frameTable.resize(totalMemorySize/pageSize);
     
     for (int i = 0; i < frameTable.size(); ++i){
-      frameTable[i].resize(3);
-      frameTable[i][0] = i;
+      frameTable[i].resize(2);
+      frameTable[i][0] = -1;
       frameTable[i][1] = -1;
-      frameTable[i][2] = -1;
     }
 
     freeFrameList.resize(frameTable.size());
     for (int i = 0; i < freeFrameList.size(); ++i){
       freeFrameList[i] = i;
     }
-=======
-    frameTable.resize(totalMemorySize/pageSize);
-    freeFrameList.resize(totalMemorySize/pageSize);
-    pageTable.resize(totalMemorySize/pageSize);
-
-    setUpPageTable();
->>>>>>> Implement-Memory-With-Page-Tables
   } 
 
   void getInstallerInput_aux(const string& userMessage, const char& variableCode){
@@ -201,21 +202,15 @@ struct Sysgen : public Memory {
     return (floatNum >= 0 && floatNum <= 1);
   }
 
-  void setUpPageTable(){
-    srand(time(NULL));
-    unordered_map<int,int> numberAlreadyUsed;
-    
-    int totalPages = maximumProcessSize/pageSize;
-    for (int i = 0; i < totalPages; ++i){
-      int num = -1;
-      numberAlreadyUsed[-1] = -1;
-      
-      while (numberAlreadyUsed.find(num) !=
-	     numberAlreadyUsed.end()){
-	num = rand() % totalMemorySize;
-      }
-      pageTable[i] = num;
-      numberAlreadyUsed[num] = num;
-    }
+  bool maximumProcessSizeIsSmallerThanTotalMemory(const int& maxSize){
+    if (maxSize < totalMemorySize){return true;}
+    cerr << "The number entered is larger than the total amount of memory" << '\n' << '\n';
+    return false;
+  }
+
+  bool pageSizeIsSmallerThanMaxProcessSize(const int& maxSize){
+    if (maxSize < maximumProcessSize){return true;}
+    cerr << "The number entered is larger than the maximum process size" << '\n' << '\n';
+    return false;
   }
 };

@@ -10,14 +10,14 @@
 #include <algorithm>
 #include <set>
 #include <ctype.h>
-#include "CPU.h"
+#include "Cpu.h"
 #include "Memory.h"
 using namespace std;
 
-  CPU::CPU() {}
+  Cpu::Cpu() {}
 
   //FUNCTIONS
-  void CPU::waitForInput(){
+  void Cpu::waitForInput(){
     string input = "";
 
     //If input == q, the function and program will close
@@ -26,16 +26,16 @@ using namespace std;
       cin >> input;
       cout << '\n';
 
-      //If the CPU is empty and the user issues an 'A',
-      //a new process is created and added to the CPU
+      //If the Cpu is empty and the user issues an 'A',
+      //a new process is created and added to the Cpu
       if (input == "A"){
-	if (!emptyCPU){	  
+	if (!emptyCpu){	  
 	  handleInterruptandSystemCall(false);
           //The current process is readded to the ready deque
           addProcessToReadyDeque(currProcess);
           //Its location code is changed
           processes[currProcess].locationCode = "r";
-	  emptyCPU = true;
+	  emptyCpu = true;
 	}
         if (getProcessSize()){
           cout << "New process made!" << '\n';
@@ -49,18 +49,18 @@ using namespace std;
 	  //potentially fit in memory
 	  checkForJobThatFitsInMemory();
 	}
-	//Choose a process to put in the CPU
+	//Choose a process to put in the Cpu
 	if (readyDeque.size()){
 	  currProcess = readyDeque.front();
 	  processes[currProcess].locationCode = "cpu";
 	  readyDeque.pop_front();
-	  emptyCPU = false;
-	  cout << "The CPU is now occupied!" << '\n' << '\n';
+	  emptyCpu = false;
+	  cout << "The Cpu is now occupied!" << '\n' << '\n';
 	}
       }
       
       //If the user tries to terminate a process
-      //while the CPU is empty
+      //while the Cpu is empty
       else if (input == "t"){
         terminateProcess();
 
@@ -69,19 +69,19 @@ using namespace std;
 	if (!readyDeque.empty()){
 	  currProcess = readyDeque.front();
 	  readyDeque.pop_front();
-	  emptyCPU = false;
-	  cout << "A new process has been added to the CPU." << '\n';
+	  emptyCpu = false;
+	  cout << "A new process has been added to the Cpu." << '\n';
 	}
 	else {
-	  emptyCPU = true;
+	  emptyCpu = true;
 	}
       }
 
       //If the user issues a system call in the form of either
       //p<number>, d<number>, or c<number>
       else if (input[0]=='p' || input[0]=='d' || input[0]=='c'){
-        if (emptyCPU){
-          cerr << "The CPU is empty, system calls cannot be made." <<'\n';
+        if (emptyCpu){
+          cerr << "The Cpu is empty, system calls cannot be made." <<'\n';
           cerr << "Add a process with the A command before issuing a system call." << '\n' << '\n';
         }
 
@@ -106,10 +106,10 @@ using namespace std;
               if (!readyDeque.empty()){
                 currProcess = readyDeque.front();
                 readyDeque.pop_front();
-                emptyCPU = false;
+                emptyCpu = false;
               }
               else {
-                emptyCPU = true;
+                emptyCpu = true;
               }
             }            
           }
@@ -185,6 +185,7 @@ using namespace std;
 	    snapshotAux_JobPool();
 	  }
 	  else if (input == "m"){
+      snapshotAux_memoryInformation();
 	    //System information/frame table with free frame list
 	  }
           else {
@@ -225,9 +226,9 @@ using namespace std;
     Prints a header for the snapshot function indicating what each value
      being printed signifies
   */
-  void CPU::snapshotHeader(){
+  void Cpu::snapshotHeader(){
     os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " << 
-    setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+    setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
   }
 
   /*
@@ -235,7 +236,7 @@ using namespace std;
     Each process gets its own line
   */
   template<typename T>
-  void CPU::snapshotPrint(T& itB, T& itE){
+  void Cpu::snapshotPrint(T& itB, T& itE){
     while (itB != itE){
       string ty = processes[*itB].type;
       os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
@@ -246,13 +247,13 @@ using namespace std;
       else {
         os << setw(20);
       }
-      os << processes[*itB].totalCPUTime << setw(10) << processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount;
+      os << processes[*itB].totalCpuTime << setw(10) << processes[*itB].totalCpuTime / processes[*itB].cpuUsageCount;
       os << '\n';
       ++itB;
     }
   }
 
-  void CPU::snapshotAux(const string& input){
+  void Cpu::snapshotAux(const string& input){
     vector<deque<int>>::iterator itV, itVe;
     deque<int>::iterator itB, itE;
       if (input == "c"){
@@ -287,7 +288,7 @@ using namespace std;
     will be checked to insure it is not negative and falls within
     the limits of the number of specific device deques present
   */
-  bool CPU::isSystemCallInputValid(string& input, int& num){
+  bool Cpu::isSystemCallInputValid(string& input, int& num){
     //Represents the string following either p,d, or c
     string dequeNum = input.substr(1);
 
@@ -338,7 +339,7 @@ using namespace std;
     a printer device (signified by the print bool), the function will not
     ask for certain parameters
   */
-  void CPU::setSystemCallVariables(const bool& print, const char& ch, int& num){
+  void Cpu::setSystemCallVariables(const bool& print, const char& ch, int& num){
     string name = "";
     cout << "Enter the file name: ";
     cin >> name;
@@ -413,7 +414,7 @@ using namespace std;
     }
   }
 
-  bool CPU::typeErrorChecking(string& typeIn){
+  bool Cpu::typeErrorChecking(string& typeIn){
     if (typeIn != "w" && typeIn != "r"){
       cerr << "The character entered were not 'w' or 'r'." << '\n';
       cerr << "Please enter a new command and try again." << '\n';
@@ -424,7 +425,7 @@ using namespace std;
     }
   }
 
-  void CPU::checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum){
+  void Cpu::checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum){
     if (!devDeques.empty()){
       if (devDeques[callNum-1].empty()){
         cerr << "No system calls are currently in the chosen deque " << callNum << '\n' << '\n';
@@ -434,9 +435,9 @@ using namespace std;
       else {
         int finishedProcess = devDeques[callNum-1].front();
         devDeques[callNum-1].pop_front();
-        if (emptyCPU){
+        if (emptyCpu){
           currProcess = finishedProcess;
-          emptyCPU = false;
+          emptyCpu = false;
           processes[finishedProcess].locationCode = "cpu";
         }
         else {
@@ -452,10 +453,8 @@ using namespace std;
     }
   }
 
-  /*
-    Checks whether the 
-  */
-  bool CPU::checkIfsysCallNumLargerThanDevDeque(const vector<deque<int>>& devDeques, const int& callNum){
+
+  bool Cpu::checkIfsysCallNumLargerThanDevDeque(const vector<deque<int>>& devDeques, const int& callNum){
     if (callNum > static_cast<int>(devDeques.size())){
       cerr << "Number entered is larger than current number of chosen device deques." << '\n';
       cerr << "Please enter a new command and try again." << '\n' << '\n';
@@ -466,20 +465,7 @@ using namespace std;
     }
   }
 
-/*
-  bool CPU::checkIfsysCallNumLargerThanSet(const int& callNum){
-    if (callNum > static_cast<int>(diskSets0.size())){
-      cerr << "Number entered is larger than current number of chosen device deques." << '\n';
-      cerr << "Please enter a new command and try again." << '\n' << '\n';
-      return false;
-    }
-    else {
-      return true;
-    }
-  }
-*/
-
-  void CPU::getCylinderChoice(const int& dequeNum){
+  void Cpu::getCylinderChoice(const int& dequeNum){
     string in;
     cout << "Enter the cylinder that the file exists on: ";
     cin >> in;
@@ -489,15 +475,15 @@ using namespace std;
     }
   }
 
-  bool CPU::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
+  bool Cpu::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
     return cylinderNum < cylinderCount[dequeNum];
   }
 
-  void CPU::snapshotAux_SystemInformation(){
-    os << "Total System Average CPU Time" << '\n';
+  void Cpu::snapshotAux_SystemInformation(){
+    os << "Total System Average Cpu Time" << '\n';
     os << "-----------------------------" << '\n';
     if (systemTotalcpuUsageCount > 0){
-      os << systemTotalCPUTime / systemTotalcpuUsageCount;
+      os << systemTotalCpuTime / systemTotalcpuUsageCount;
     }
     else {
       os << "0";
@@ -505,34 +491,54 @@ using namespace std;
     os << '\n' << '\n';
   }
 
-  void CPU::snapshotAux_ReadyDeque(){
+  void Cpu::snapshotAux_ReadyDeque(){
     deque<int>::iterator itB = readyDeque.begin();
     deque<int>::iterator itE = readyDeque.end();
 
-    os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
+    os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
     os << "----r" << '\n';
     while (itB != itE){
-      os << *itB << setw(10) << processes[*itB].totalCPUTime << setw(10);
+      os << *itB << setw(10) << processes[*itB].totalCpuTime << setw(10);
       if (processes[*itB].cpuUsageCount > 0){
-        cout << (processes[*itB].totalCPUTime / processes[*itB].cpuUsageCount);
+        cout << (processes[*itB].totalCpuTime / processes[*itB].cpuUsageCount);
       }
       else {
         os << "0";
       }
       os << '\n';
 
+      vector<int>::iterator itPg = processes[*itB].pageTable.begin();
+      vector<int>::iterator itPgEnd = processes[*itB].pageTable.end();
+      int size = processes[*itB].pageTable.size()-1;
+      int count = 0;
+
+      os << "Page table: ";
+      while (itPg != itPgEnd){
+        os << *itPg;
+        if (count < size){
+          os << ", ";
+        }
+        if (!(count % 15)){
+          os << '\n';
+        }
+        ++itPg;
+        ++count;
+      }
+
       ++itB;
+
+      os << '\n' << '\n';
     }
     os << '\n';
   }
 
 
-void CPU::snapshotAux_JobPool(){
+void Cpu::snapshotAux_JobPool(){
   sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itE = jobPool.end();
 
-  os << "PID " << setw(10) << "Process Size " << '\n';
+  os << "PID  " << setw(10) << "  Process Size" << '\n';
   os << "----j" << '\n';
   while (it != itE){
     os << *it << setw(10) << processes[*it].size << '\n';
@@ -542,7 +548,7 @@ void CPU::snapshotAux_JobPool(){
 }
 
 
-  void CPU::snapshotAux_Disk(){
+  void Cpu::snapshotAux_Disk(){
     for (int i = 0; i < scanDiskDequesStatus.size(); ++i){
       sort(diskDeques0[i].begin(),diskDeques1[i].end(),sortByHighestTrackFirst);
       sort(diskDeques0[i].begin(),diskDeques0[i].end(),sortByLowestTrackFirst);
@@ -564,7 +570,7 @@ void CPU::snapshotAux_JobPool(){
     }
   }
 
-  void CPU::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
+  void Cpu::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
     while (scanIt != scanItEnd){
       os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << processes[*scanIt].memStart 
         << setw(10) << processes[*scanIt].type << setw(10);
@@ -574,35 +580,44 @@ void CPU::snapshotAux_JobPool(){
       else {
         os << setw(20);
       }
-      os << processes[*scanIt].totalCPUTime << setw(10) << 
-      (processes[*scanIt].totalCPUTime / processes[*scanIt].cpuUsageCount) << '\n';
+      os << processes[*scanIt].totalCpuTime << setw(10) << 
+      (processes[*scanIt].totalCpuTime / processes[*scanIt].cpuUsageCount) << '\n';
       ++scanIt;
     }
   }
 
 
-void CPU::snapshotAux_memoryInformation(){
+void Cpu::snapshotAux_memoryInformation(){
+  int size = freeFrameList.size();
+
+  os << "Free Frame List-----------" << '\n';
+  for (int i = 0; i < size; ++i){
+    os << freeFrameList[i];
+    if (i < size-1){
+      os << ", ";
+    }
+    if (!(i % 15)){
+      os << '\n';
+    }
+  }
+
+  os << '\n' << '\n';
+
   vector<vector<int>>::iterator it = frameTable.begin();
   vector<vector<int>>::iterator itEnd = frameTable.end();
   
   os << "Frame Table---------------" << '\n';
-  os << "Total number of frames: " << totalMemorySize/pageSize << '\n';
+  os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){
-    os << "Frame " << it-frameTable.begin() << " --->";
     if (it->at(0) > -1){
-      os << "Process PID " << it->at(0) << ", " << "Page " << it->at(1) << '\n';
+      os << "p" << it->at(0) << ", " << "page " << it->at(1) << '\n';
+    }
+    else {
+      os << "F";
     }
     os << '\n';
 
     ++it;
-  }
-  os << '\n' << '\n';
-  deque<int>::iterator itFF = freeFrameList.begin();
-  deque<int>::iterator itFFEnd = freeFrameList.end();
-  os << "Free Frame List-----------" << '\n';
-  while (itFF != itFFEnd){
-    os << *itFF << '\n';
-    ++itFF;
   }
   os << '\n' << '\n';
 }
@@ -613,7 +628,7 @@ void CPU::snapshotAux_memoryInformation(){
     if the user input entered to represent a integer can actually
     be represented an integer and if the integer is negative or not
   */
-  bool CPU::intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK){
+  bool Cpu::intOrFloatErrorCheck(string in, const bool& checkingInt, const bool& zeroValuesOK){
     istringstream iss{in};
     //Checks if the input can be converted to an int
     if (checkingInt){
@@ -657,10 +672,10 @@ void CPU::snapshotAux_memoryInformation(){
   }
 
   //Updates the current process' burstEstimate and remaining burst variables
-  void CPU::handleInterruptandSystemCall(const bool& burstIsComplete){
-    //Asking timer how long the current process has used the CPU
+  void Cpu::handleInterruptandSystemCall(const bool& burstIsComplete){
+    //Asking timer how long the current process has used the Cpu
     string in;
-    cout << "How long has the current process been using the CPU? ";
+    cout << "How long has the current process been using the Cpu? ";
     cin >> in;
     cout << '\n';
 
@@ -671,26 +686,24 @@ void CPU::snapshotAux_memoryInformation(){
 
     //The current process' remaining burst and burst estimate are updated
     unordered_map<int,Process>::iterator it = processes.find(currProcess);
-    it->second.totalCPUTime += floatResult;
+    it->second.totalCpuTime += floatResult;
     
     if (!burstIsComplete){
-      it->second.remainingBurst = it->second.burstEstimate - floatResult;
-      it->second.totalCPUTime += floatResult;
+      it->second.remainingBurst = it->second.remainingBurst - floatResult;
     }
     else {
       ++(it->second.cpuUsageCount);
-
       it->second.burstEstimate = sjwAlgorithm();
       it->second.remainingBurst = it->second.burstEstimate;
     }
   }
 
-  void CPU::terminateProcess(){
-    if (emptyCPU){
-      cerr << "The CPU is unoccupied, no process present to be terminated" << '\n' << '\n';
+  void Cpu::terminateProcess(){
+    if (emptyCpu){
+      cerr << "The Cpu is unoccupied, no process present to be terminated" << '\n' << '\n';
     }
     else {
-      //Ask for time in CPU. Update burst time etc.
+      //Ask for time in Cpu. Update burst time etc.
       handleInterruptandSystemCall(true);
 
       unordered_map<int,Process>::iterator it = processes.find(currProcess);
@@ -700,10 +713,10 @@ void CPU::snapshotAux_memoryInformation(){
       
       os << "Process terminated" << '\n';
       os << "------------------" << '\n';
-      os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
-      os << currProcess << setw(10) << it->second.totalCPUTime << setw(20);
+      os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+      os << currProcess << setw(10) << it->second.totalCpuTime << setw(20);
       if (it->second.cpuUsageCount > 0){
-        os << (it->second.totalCPUTime / it->second.cpuUsageCount);
+        os << (it->second.totalCpuTime / it->second.cpuUsageCount);
       }
       else {
         os << "0";
@@ -712,9 +725,9 @@ void CPU::snapshotAux_memoryInformation(){
 
       //The system's total cpu time and cpu usage count variables are updated with the
       //terminated process' corresponding variables. This updates the system's average
-      //total CPU time 
+      //total Cpu time 
       if (it->second.cpuUsageCount > 0){
-        systemTotalCPUTime += it->second.totalCPUTime;
+        systemTotalCpuTime += it->second.totalCpuTime;
         systemTotalcpuUsageCount += it->second.cpuUsageCount;
       }
 
@@ -732,7 +745,7 @@ void CPU::snapshotAux_memoryInformation(){
     its size. This size is error checked and then compared to the maximum
     allowable process size specified during Sys gen to insure it is valid
   */
-  bool CPU::getProcessSize(){
+  bool Cpu::getProcessSize(){
     string input;
     cout << "Enter size (in words) of the process: ";
     cin >> input;
@@ -742,7 +755,7 @@ void CPU::snapshotAux_memoryInformation(){
     if (intResult > totalMemorySize){
       cerr << "Process rejected" << '\n';
       cerr << "The number entered is larger than total memory size of " << totalMemorySize << '\n';
-      cerr << "Please announce the arrival of a new process with a different number and and try again." << '\n';
+      cerr << "Please announce the arrival of a new process with a different number and and try again." << '\n' << '\n';
       return false;
     }
     return true;
@@ -752,7 +765,7 @@ void CPU::snapshotAux_memoryInformation(){
     Finds process with the pid used as the parameter and erases it from
     the processes map and whatever deque it belongs to (job pool, ready deque etc)
   */
-  void CPU::killProcess(const int& pid){
+  void Cpu::killProcess(const int& pid){
     restoreFrameTableAndFreeFrameList(pid);
     freeMemory += processes[pid].size;
     
@@ -763,7 +776,7 @@ void CPU::snapshotAux_memoryInformation(){
 	readyDeque.pop_front();
       }
       currProcess = -1;
-      emptyCPU = true;
+      emptyCpu = true;
     }
     else if (locationCode == "r"){
       findProcessToKill(pid, readyDeque);
@@ -797,7 +810,7 @@ void CPU::snapshotAux_memoryInformation(){
   /*
     Searches whatever deque the process' pid is in to remove it
   */
-  void CPU::findProcessToKill(const int& pid, deque<int>& processLocation){
+  void Cpu::findProcessToKill(const int& pid, deque<int>& processLocation){
     deque<int>::iterator it = processLocation.begin();
     deque<int>::iterator itEnd = processLocation.end();
     while (it != itEnd){
@@ -812,7 +825,7 @@ void CPU::snapshotAux_memoryInformation(){
   }
 
 //Checks if a string is a valid hexadecimal number
-bool CPU::isStringValidHexNumber(const string& hex_str){
+bool Cpu::isStringValidHexNumber(const string& hex_str){
   for (auto i: hex_str){
     if (!isxdigit(i)){
       cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
@@ -823,7 +836,7 @@ bool CPU::isStringValidHexNumber(const string& hex_str){
 
 //Returns the pid of the largest process in the job pool that will fit
 //in the remaining free memory available
-int CPU::searchForAndEraseJobThatFitsInMemory(){
+int Cpu::searchForAndEraseJobThatFitsInMemory(){
   sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itEnd = jobPool.end();
@@ -838,7 +851,7 @@ int CPU::searchForAndEraseJobThatFitsInMemory(){
   return -1;
 }
 
-void CPU::checkForJobThatFitsInMemory(){
+void Cpu::checkForJobThatFitsInMemory(){
   int chosenPID = searchForAndEraseJobThatFitsInMemory();
   if (chosenPID > -1){
     freeMemory -= processes[chosenPID].size;
@@ -848,7 +861,7 @@ void CPU::checkForJobThatFitsInMemory(){
   }
 }
 
-void CPU::addJobToMemory(const int& pid){
+void Cpu::addJobToMemory(const int& pid){
   int processSize = processes[pid].size;
   int pagesNeeded = processSize / pageSize;
   if (processSize % pageSize){
@@ -868,7 +881,7 @@ void CPU::addJobToMemory(const int& pid){
   }
 }
                                                                                                                   
-void CPU::restoreFrameTableAndFreeFrameList(const int& pid){
+void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
   vector<int>::iterator it = processes[pid].pageTable.begin();
   vector<int>::iterator itEnd = processes[pid].pageTable.end();
 
