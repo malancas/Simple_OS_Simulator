@@ -91,6 +91,7 @@ struct Memory {
   static vector<deque<int>> diskDeques1;
   static deque<int> jobPool;
   static vector<vector<int>> frameTable;
+<<<<<<< HEAD
   static vector<int> freeFrameList;
 
   struct lowest_Track_First {
@@ -107,6 +108,11 @@ struct Memory {
 
   //vector<multiset<Process, lowest_Track_First>> diskSets0;
   //vector<multiset<Process, highest_Track_First>> diskSets1;
+=======
+  static deque<int> freeFrameList;
+  static vector<int> pageTable;
+
+>>>>>>> Implement-Memory-With-Page-Tables
 
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
   void addProcessToDiskDeque(const int& pid, const int& dequeNum);

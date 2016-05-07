@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 struct Process {
@@ -43,6 +44,8 @@ struct Process {
 
   //Used to determine where a process is at any moment
   string locationCode;
+
+  vector<int> pageTable;
 
   //CONSTRUCTORS
   Process() : pid(), type(), name(), memStart(), length(), burstEstimate(),

@@ -532,7 +532,7 @@ void CPU::snapshotAux_JobPool(){
   deque<int>::iterator it = jobPool.begin();
   deque<int>::iterator itE = jobPool.end();
 
-  os << "PID  " << setw(10) << "  Process Size" << '\n';
+  os << "PID " << setw(10) << "Process Size " << '\n';
   os << "----j" << '\n';
   while (it != itE){
     os << *it << setw(10) << processes[*it].size << '\n';
@@ -586,23 +586,8 @@ void CPU::snapshotAux_memoryInformation(){
   vector<vector<int>>::iterator itEnd = frameTable.end();
   
   os << "Frame Table---------------" << '\n';
-  os << "Total number of frames: " << frameTable.size() << '\n';
+  os << "Total number of frames: " << totalMemorySize/pageSize << '\n';
   while (it != itEnd){
-<<<<<<< HEAD
-    os << "Frame " << it->at(0) << " ---> ";
-    if (it->at(2) > -1){
-      os << "Process PID " << it->at(1) << ", Page " << it->at(2);
-    }
-    os << '\n';
-    
-    ++it;
-  }
-  os << '\n' << '\n';
-
-  vector<int>::iterator itFF = freeFrameList.begin();
-  vector<int>::iterator itFFEnd = freeFrameList.end();
-  
-=======
     os << "Frame " << it-frameTable.begin() << " --->";
     if (it->at(0) > -1){
       os << "Process PID " << it->at(0) << ", " << "Page " << it->at(1) << '\n';
@@ -614,7 +599,6 @@ void CPU::snapshotAux_memoryInformation(){
   os << '\n' << '\n';
   deque<int>::iterator itFF = freeFrameList.begin();
   deque<int>::iterator itFFEnd = freeFrameList.end();
->>>>>>> Implement-Memory-With-Page-Tables
   os << "Free Frame List-----------" << '\n';
   while (itFF != itFFEnd){
     os << *itFF << '\n';
@@ -690,10 +674,12 @@ void CPU::snapshotAux_memoryInformation(){
     it->second.totalCPUTime += floatResult;
     
     if (!burstIsComplete){
-      it->second.remainingBurst = it->second.remainingBurst - floatResult;
+      it->second.remainingBurst = it->second.burstEstimate - floatResult;
+      it->second.totalCPUTime += floatResult;
     }
     else {
       ++(it->second.cpuUsageCount);
+
       it->second.burstEstimate = sjwAlgorithm();
       it->second.remainingBurst = it->second.burstEstimate;
     }

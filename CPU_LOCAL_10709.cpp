@@ -45,9 +45,12 @@ using namespace std;
 
 	  ++(pidCounter);
 
-	  //Looks in the job pool for jobs that
-	  //potentially fit in memory
-	  checkForJobThatFitsInMemory();
+	  int chosenPID = searchForAndEraseJobThatFitsInMemory();
+	  if (chosenPID >= 0){
+	    freeMemory -= processes[chosenPID].size;
+	    processes[chosenPID].locationCode = "r";
+	    addProcessToReadyDeque(chosenPID);
+	  }
 	}
 	//Choose a process to put in the CPU
 	if (readyDeque.size()){
@@ -63,18 +66,6 @@ using namespace std;
       //while the CPU is empty
       else if (input == "t"){
         terminateProcess();
-
-	checkForJobThatFitsInMemory();
-	 
-	if (!readyDeque.empty()){
-	  currProcess = readyDeque.front();
-	  readyDeque.pop_front();
-	  emptyCPU = false;
-	  cout << "A new process has been added to the CPU." << '\n';
-	}
-	else {
-	  emptyCPU = true;
-	}
       }
 
       //If the user issues a system call in the form of either
@@ -203,15 +194,22 @@ using namespace std;
         will locate the process' pid in any of the possible deque
         locations, remove it, and erase the process from the processes map
       */
-      else if (input == "K"){
-	string in;
-	int pidToErase;
-	cout << "Enter the pid of the process to kill: ";
-	cin >> in;
-	while (isSystemCallInputValid(in,pidToErase)){
-	  cin >> in;
-	}
-        killProcess(pidToErase);
+      else if (input[0] == 'K'){
+        /*
+        try {
+          string pid_str = input.substr(1);
+          int pidToErase = atoi(pid_str);
+          killProcess(pidToErase);
+        }
+        catch(...){
+          cerr << "The characters following 'K' don't form a valid integer." << '\n';
+          cerr << "Enter a new command and try again" << '\n';
+        }
+        */
+        int pidToErase;
+        if (isSystemCallInputValid(input, pidToErase)){
+          killProcess(pidToErase);
+        }
       }
       else {
         cerr << "The characters entered are not a valid command." << '\n';
@@ -588,7 +586,6 @@ void CPU::snapshotAux_memoryInformation(){
   os << "Frame Table---------------" << '\n';
   os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){
-<<<<<<< HEAD
     os << "Frame " << it->at(0) << " ---> ";
     if (it->at(2) > -1){
       os << "Process PID " << it->at(1) << ", Page " << it->at(2);
@@ -602,19 +599,6 @@ void CPU::snapshotAux_memoryInformation(){
   vector<int>::iterator itFF = freeFrameList.begin();
   vector<int>::iterator itFFEnd = freeFrameList.end();
   
-=======
-    os << "Frame " << it-frameTable.begin() << " --->";
-    if (it->at(0) > -1){
-      os << "Process PID " << it->at(0) << ", " << "Page " << it->at(1) << '\n';
-    }
-    os << '\n';
-
-    ++it;
-  }
-  os << '\n' << '\n';
-  deque<int>::iterator itFF = freeFrameList.begin();
-  deque<int>::iterator itFFEnd = freeFrameList.end();
->>>>>>> Implement-Memory-With-Page-Tables
   os << "Free Frame List-----------" << '\n';
   while (itFF != itFFEnd){
     os << *itFF << '\n';
@@ -709,9 +693,6 @@ void CPU::snapshotAux_memoryInformation(){
 
       unordered_map<int,Process>::iterator it = processes.find(currProcess);
 
-      //Memory used by the process is returned to the freeMemory counter
-      freeMemory += it->second.size;
-      
       os << "Process terminated" << '\n';
       os << "------------------" << '\n';
       os << "PID " << setw(10) << "Total CPU Time " << setw(10) << "Average Burst Time " << '\n';
@@ -734,6 +715,15 @@ void CPU::snapshotAux_memoryInformation(){
 
       processes.erase(currProcess);
 
+      if (!readyDeque.empty()){
+        currProcess = readyDeque.front();
+        readyDeque.pop_front();
+        emptyCPU = false;
+        os << "A new process has been added to the CPU." << '\n';
+      }
+      else {
+        emptyCPU = true;
+      }
       os << '\n';
     }
     cout << os.str();
@@ -767,9 +757,6 @@ void CPU::snapshotAux_memoryInformation(){
     the processes map and whatever deque it belongs to (job pool, ready deque etc)
   */
   void CPU::killProcess(const int& pid){
-    restoreFrameTableAndFreeFrameList(pid);
-    freeMemory += processes[pid].size;
-    
     string locationCode = processes[pid].locationCode;
     if (locationCode == "cpu"){
       if (readyDeque.size()){
@@ -850,51 +837,4 @@ int CPU::searchForAndEraseJobThatFitsInMemory(){
     ++it;
   }
   return -1;
-}
-
-void CPU::checkForJobThatFitsInMemory(){
-  int chosenPID = searchForAndEraseJobThatFitsInMemory();
-  if (chosenPID > -1){
-    freeMemory -= processes[chosenPID].size;
-    addJobToMemory(chosenPID);
-    processes[chosenPID].locationCode = "r";
-    addProcessToReadyDeque(chosenPID);
-  }
-}
-
-void CPU::addJobToMemory(const int& pid){
-  int processSize = processes[pid].size;
-  int pagesNeeded = processSize / pageSize;
-  if (processSize % pageSize){
-    ++pagesNeeded;
-  }
-  for (int i = 0; i < pagesNeeded; ++i){
-    //frameTable[freeFrameTable[i]] represents the frame
-    //that freeFrameTable[i] stores
-    frameTable[freeFrameList[i]][0] = pid;
-    //i represents the process' page currently being stored
-    //in relation to the chosen frame
-    frameTable[freeFrameList[i]][1] = i;
-    processes[pid].pageTable[i] = freeFrameList[i];
-  }
-  for (int j = 0; j < pagesNeeded; ++j){
-    freeFrameList.pop_front();
-  }
-}
-                                                                                                                  
-void CPU::restoreFrameTableAndFreeFrameList(const int& pid){
-  vector<int>::iterator it = processes[pid].pageTable.begin();
-  vector<int>::iterator itEnd = processes[pid].pageTable.end();
-
-  while (it != itEnd){
-    //Reset the pid and page vector slots
-    //to -1
-    frameTable[*it][0] = -1;
-    frameTable[*it][1] = -1;
-
-    //Add the missing frames back to the
-    //freeFrameList
-    freeFrameList.push_back(*it);
-    ++it;
-  }
 }

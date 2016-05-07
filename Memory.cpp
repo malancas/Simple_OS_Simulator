@@ -51,7 +51,12 @@ using namespace std;
   vector<deque<int>> Memory::diskDeques1 = {};
   deque<int> Memory::jobPool = {};
 vector<vector<int>> Memory::frameTable = {};
+<<<<<<< HEAD
 vector<int> Memory::freeFrameList = {};
+=======
+deque<int> Memory::freeFrameList = {};
+vector<int> Memory::pageTable = {};
+>>>>>>> Implement-Memory-With-Page-Tables
 
   Memory::Memory() {};
 
