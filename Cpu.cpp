@@ -354,7 +354,7 @@ using namespace std;
 
     cout << "Enter the starting location in memory: ";
     cin >> memStart;
-    while (!isStringValidHexNumber(memStart) || !isLogicalAddressInRange(pid,memStart)){
+    while (!isStringValidHexNumber(memStart) || !isLogicalAddressInRange(currProcess,memStart)){
       cin >> memStart;
     }
     processes[currProcess].logicalMemoryAddress = memStart;
@@ -824,6 +824,7 @@ void Cpu::snapshotAux_memoryInformation(){
     }
     //Should never reach this point
     cout << "Process not found" << '\n';
+    cout << "Function should never reach this point" << '\n';
   }
 
 //Checks if a string is a valid hexadecimal number
@@ -836,8 +837,9 @@ bool Cpu::isStringValidHexNumber(const string& hex_str){
   }
 }
 
+//Checks if the chosen logical address is valid for the process in question
 bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
-  int converted = //convert to decimal
+  int converted = (int)strtol(hex_str.c_str(),nullptr,16);//convert to decimal
   if (converted >= 0 && converted <= pageSize * processes[pid].pageTable.size()){
     return true;
   }
@@ -852,7 +854,7 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
   //Use 0 instead of 16 for third parameter if the hex
   //string begins with 0x
   unordered_map<int,Process>::iterator it = processes.find(pid);
-  int decimalValue = (int)strtol(hex_str,NULL,16);
+  int decimalValue = (int)strtol(hex_str.c_str(),nullptr,16);
   int offset = 0;
   int pageCount = it->second.pageTable.size();
   int i = 1; bool found = false;
