@@ -108,6 +108,10 @@ struct Cpu : public Memory {
 
   bool isStringValidHexNumber(const string& hex_str);
 
+  bool isLogicalAddressInRange(const int& pid, const string& hex_str);
+
+  void computePhysicalAddress(const int& pid, const string& hex_str);
+  
   int searchForAndEraseJobThatFitsInMemory();
 
   void checkForJobThatFitsInMemory();

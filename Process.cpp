@@ -42,6 +42,8 @@ struct Process {
   //In terms of pages
   int size;
 
+  int physicalAddress;
+
   //Used to determine where a process is at any moment
   string locationCode;
 

@@ -354,10 +354,12 @@ using namespace std;
 
     cout << "Enter the starting location in memory: ";
     cin >> memStart;
-    while (!isStringValidHexNumber(memStart)){
+    while (!isStringValidHexNumber(memStart) || !isLogicalAddressInRange(pid,memStart)){
       cin >> memStart;
     }
     processes[currProcess].logicalMemoryAddress = memStart;
+    computePhysicalAddress(currProcess, memStart);
+    cout << "Physical address: " << hex << processes[currProcess].physicalAddress << '\n';
 
     /*
       If the system call is not for a printing device,
@@ -829,9 +831,38 @@ bool Cpu::isStringValidHexNumber(const string& hex_str){
   for (auto i: hex_str){
     if (!isxdigit(i)){
       cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
-      cerr << "Enter a new hexadecimal integer and try again." << '\n';
+      cerr << "Enter a new hexadecimal value and try again." << '\n';
     }
   }
+}
+
+bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
+  int converted = //convert to decimal
+  if (converted >= 0 && converted <= pageSize * processes[pid].pageTable.size()){
+    return true;
+  }
+  cerr << "The logical address entered isn't in range of the process' size" << '\n';
+  cerr << "Enter a new hex value and try again." << '\n';
+  return false;
+}
+
+//Uses the logical hex memory to computer a corresponding physical address
+//in decimal
+void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
+  //Use 0 instead of 16 for third parameter if the hex
+  //string begins with 0x
+  unordered_map<int,Process>::iterator it = processes.find(pid);
+  int decimalValue = (int)strtol(hex_str,NULL,16);
+  int offset = 0;
+  int pageCount = it->second.pageTable.size();
+  int i = 1; bool found = false;
+  while (i < pageCount+1 && !found){
+    if (decimalValue < i*pageSize){
+      offset = decimalValue - (i-1)*pageSize;
+      found = true;
+    }
+  }
+  it->second.physicalAddress = it->second.pageTable[i-1] + offset;
 }
 
 //Returns the pid of the largest process in the job pool that will fit
