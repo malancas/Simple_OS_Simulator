@@ -121,6 +121,8 @@ struct Cpu : public Memory {
   void restoreFrameTableAndFreeFrameList(const int& pid);
 
   void addAsManyJobsAsPossibleToMemory();
+
+  void printProcessInfo(const int& pid);
 };
 
 #endif

@@ -223,7 +223,7 @@ struct Sysgen : public Memory {
   }
 
   bool numberIsPowerOfTwo(const int& num){
-    if (x > 0 && !(x & (x-1))){return true;}
+    if (num > 0 && !(num & (num-1))){return true;}
     cerr << "The number entered is not a power of 2" << '\n' << '\n';
   }
 };

@@ -186,7 +186,7 @@ using namespace std;
 	    snapshotAux_JobPool();
 	  }
 	  else if (input == "m"){
-      snapshotAux_memoryInformation();
+	    snapshotAux_memoryInformation();
 	    //System information/frame table with free frame list
 	  }
           else {
@@ -207,13 +207,20 @@ using namespace std;
       */
       else if (input == "K"){
 	string in;
-	int pidToErase;
 	cout << "Enter the pid of the process to kill: ";
 	cin >> in;
-	while (isSystemCallInputValid(in,pidToErase)){
+	while (!intOrFloatErrorCheck(in, true, true) && intResult < pidCounter){
 	  cin >> in;
 	}
-        killProcess(pidToErase);
+	if (intResult == currProcess){
+	  handleInterruptandSystemCall(true);
+	}
+	else {
+	  handleInterruptandSystemCall(false);
+	}
+
+        killProcess(intResult);
+	printProcessInfo(intResult);
 	addAsManyJobsAsPossibleToMemory();
       }
       else {
@@ -250,7 +257,22 @@ using namespace std;
         os << setw(20);
       }
       os << processes[*itB].totalCpuTime << setw(10) << processes[*itB].totalCpuTime / processes[*itB].cpuUsageCount;
-      os << '\n';
+      os << '\n' << '\n';
+
+      vector<int>::iterator itPt = processes[*itB].pageTable.begin();
+      vector<int>::iterator itPtEnd = processes[*itB].pageTable.end();
+      int count = 0;
+      os << "Page table" << '\n';
+      os << "----------" << '\n';
+      while (itPt != itPtEnd){
+	os << *itPt << " ";
+	if (!(count % 15) && count > 0){
+	  os << '\n';
+	}
+	++count;
+	++itPt;
+      }
+      
       ++itB;
     }
   }
@@ -509,7 +531,7 @@ using namespace std;
       else {
         os << "0";
       }
-      os << '\n';
+      os << '\n' << '\n';
 
       vector<int>::iterator itPg = processes[*itB].pageTable.begin();
       vector<int>::iterator itPgEnd = processes[*itB].pageTable.end();
@@ -522,7 +544,7 @@ using namespace std;
         if (count < size){
           os << ", ";
         }
-        if (!(count % 15)){
+        if (!(count % 15) && count != 0){
           os << '\n';
         }
         ++itPg;
@@ -586,6 +608,22 @@ void Cpu::snapshotAux_JobPool(){
       }
       os << processes[*scanIt].totalCpuTime << setw(10) << 
       (processes[*scanIt].totalCpuTime / processes[*scanIt].cpuUsageCount) << '\n';
+
+      vector<int>::iterator itPg = processes[*scanIt].pageTable.begin();
+      vector<int>::iterator itPgEnd = processes[*scanIt].pageTable.end();
+      int size = processes[*scanIt].pageTable.size()-1;
+      int count = 0;
+
+      os << "Page table: ";
+      while (itPg != itPgEnd){
+        os << *itPg << " ";
+        if (!(count % 15) && count != 0){
+          os << '\n';
+        }
+        ++itPg;
+        ++count;
+      }
+      
       ++scanIt;
     }
   }
@@ -762,6 +800,13 @@ void Cpu::snapshotAux_memoryInformation(){
       cerr << "Please announce the arrival of a new process with a different number and and try again." << '\n' << '\n';
       return false;
     }
+    if (intResult > maximumProcessSize){
+      cerr << "Process rejected" << '\n';
+      cerr << "The number entered is larger than the largest process size specified (" <<
+	maximumProcessSize << ")" << '\n';
+      cerr << "Please announce the arrival of a new process with a different number and try again." << '\n' << '\n';
+      return false;
+    }
     return true;
   }
 
@@ -907,13 +952,15 @@ void Cpu::addJobToMemory(const int& pid){
   if (processSize % pageSize){
     ++pagesNeeded;
   }
+
+  processes[pid].pageTable.resize(pagesNeeded);
   for (int i = 0; i < pagesNeeded; ++i){
     //frameTable[freeFrameTable[i]] represents the frame
     //that freeFrameTable[i] stores
     
+
     //i represents the process' page currently being stored
     //in relation to the chosen frame
-
     frameTable[freeFrameList[i]] = {pid,i};
     processes[pid].pageTable[i] = freeFrameList[i];
   }
@@ -929,8 +976,7 @@ void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
   while (it != itEnd){
     //Reset the pid and page vector slots
     //to -1
-    frameTable[*it][0] = -1;
-    frameTable[*it][1] = -1;
+    frameTable[*it] = {-1,-1};
 
     //Add the missing frames back to the
     //freeFrameList
@@ -944,4 +990,34 @@ void Cpu::addAsManyJobsAsPossibleToMemory(){
   while (jobAdded){
     jobAdded = checkForJobThatFitsInMemory();
   }
+}
+
+void Cpu::printProcessInfo(const int& pid){
+  unordered_map<int,Process>::iterator it = processes.find(pid);
+
+  //Memory used by the process is returned to the freeMemory counter
+  freeMemory += it->second.size;
+      
+  os << "Process killed" << '\n';
+  os << "------------------" << '\n';
+  os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+  os << pid << setw(10) << it->second.totalCpuTime << setw(20);
+  if (it->second.cpuUsageCount > 0){
+    os << (it->second.totalCpuTime / it->second.cpuUsageCount);
+  }
+  else {
+    os << "0";
+  }
+  os << '\n' << '\n';
+
+  //The system's total cpu time and cpu usage count variables are updated with the
+  //terminated process' corresponding variables. This updates the system's average
+  //total Cpu time 
+  if (it->second.cpuUsageCount > 0){
+    systemTotalCpuTime += it->second.totalCpuTime;
+    systemTotalcpuUsageCount += it->second.cpuUsageCount;
+  }
+  cout << os.str();
+  os.str("");
+  os.clear();
 }
