@@ -236,8 +236,8 @@ using namespace std;
      being printed signifies
   */
   void Cpu::snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Memstart " << setw(10) << "R/W " << setw(10) << "File Length " << 
-    setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "Location in Memory " << setw(10) << "R/W " << setw(10) << "File Length " << 
+      setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
   }
 
   /*
@@ -248,7 +248,7 @@ using namespace std;
   void Cpu::snapshotPrint(T& itB, T& itE){
     while (itB != itE){
       string ty = processes[*itB].type;
-      os << *itB << setw(10) << processes[*itB].name << setw(10) << processes[*itB].memStart
+      os << *itB << setw(10) << processes[*itB].name << setw(10) << setw(10) << hex << processes[*itB].physicalAddress
         << setw(10) << ty; 
       if (ty == "w"){
         os << setw(10) << processes[*itB].length;
@@ -598,8 +598,8 @@ void Cpu::snapshotAux_JobPool(){
 
   void Cpu::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
     while (scanIt != scanItEnd){
-      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << processes[*scanIt].memStart 
-        << setw(10) << processes[*scanIt].type << setw(10);
+      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << hex <<
+	processes[*scanIt].memStart  << setw(10) << processes[*scanIt].type << setw(10);
       if (processes[*scanIt].type == "w"){
         os << processes[*scanIt].length << setw(10);
       }
