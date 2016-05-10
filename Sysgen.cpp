@@ -69,24 +69,32 @@ struct Sysgen : public Memory {
     }
 
     //Set the total memory size in the OS
-    getInstallerInput_aux("Enter the total memory size: ", 'o');
+    num = 0;
+    string message = "Enter the total memory amount: ";
+    cout << message;
+    while (!checkInputForErrors('o') || !numberIsPowerOfTwo(num)){
+      cout << message;
+    }
+    cout << '\n';
     totalMemorySize = num;
     freeMemory = num;
 
     //Set the maximum process size
     num = 0;
-    cout << "Enter the maximum process size: " << '\n';
+    message = "Enter the maximum process size: ";
+    cout << message;
     while(!checkInputForErrors('o') || !maximumProcessSizeIsSmallerThanTotalMemory(num)){
-      cout << "Enter the maximum process size: ";
+      cout << message;
     }
     cout << '\n';
     maximumProcessSize = num;
 
     //Set the page size
     num = 0;
-    cout << "Enter the page size: " << '\n';
+    message = "Enter the page size: ";
+    cout << message;
     while(!checkInputForErrors('p') || !pageSizeIsSmallerThanMaxProcessSize(num)){
-      cout << "Enter the page size: : ";
+      cout << message;
     }
     cout << '\n';
     pageSize = num;
@@ -212,5 +220,10 @@ struct Sysgen : public Memory {
     if (maxSize < maximumProcessSize){return true;}
     cerr << "The number entered is larger than the maximum process size" << '\n' << '\n';
     return false;
+  }
+
+  bool numberIsPowerOfTwo(const int& num){
+    if (x > 0 && !(x & (x-1))){return true;}
+    cerr << "The number entered is not a power of 2" << '\n' << '\n';
   }
 };
