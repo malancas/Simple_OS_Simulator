@@ -93,7 +93,8 @@ struct Sysgen : public Memory {
     num = 0;
     message = "Enter the page size: ";
     cout << message;
-    while(!checkInputForErrors('p') || !pageSizeIsSmallerThanMaxProcessSize(num)){
+    while(!checkInputForErrors('p') || !pageSizeIsSmallerThanMaxProcessSize(num) ||
+	  !numberIsPowerOfTwo(num)){
       cout << message;
     }
     cout << '\n';

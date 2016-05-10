@@ -903,10 +903,18 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
   //Use 0 instead of 16 for third parameter if the hex
   //string begins with 0x
   unordered_map<int,Process>::iterator it = processes.find(pid);
-  int decimalValue = (int)strtol(hex_str.c_str(),nullptr,16);
+  int decimalValue;
+  if (hex_str[0] == '0' && hex_str[1] == 'x'){
+    decimalValue = (int)strtol(hex_str.c_str(),nullptr,0);
+  }
+  else {
+    decimalValue = (int)strtol(hex_str.c_str(),nullptr,16);
+  }
+  
   int offset = 0;
   int pageCount = it->second.pageTable.size();
-  int i = 1; bool found = false;
+  int i = 1;
+  bool found = false;
   while (i < pageCount+1 && !found){
     if (decimalValue < i*pageSize){
       offset = decimalValue - (i-1)*pageSize;
