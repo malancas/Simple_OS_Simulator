@@ -114,7 +114,7 @@ struct Cpu : public Memory {
   
   int searchForAndEraseJobThatFitsInMemory();
 
-  void checkForJobThatFitsInMemory();
+  bool checkForJobThatFitsInMemory();
 
   void addJobToMemory(const int& pid);
 

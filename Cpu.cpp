@@ -48,7 +48,10 @@ using namespace std;
 
 	  //Looks in the job pool for jobs that
 	  //potentially fit in memory
-	  checkForJobThatFitsInMemory();
+	  bool jobAdded = true;
+	  while (jobAdded){
+	    jobAdded = checkForJobThatFitsInMemory();
+	  }
 	}
 	//Choose a process to put in the Cpu
 	if (readyDeque.size()){
@@ -888,14 +891,16 @@ int Cpu::searchForAndEraseJobThatFitsInMemory(){
   return -1;
 }
 
-void Cpu::checkForJobThatFitsInMemory(){
+bool Cpu::checkForJobThatFitsInMemory(){
   int chosenPID = searchForAndEraseJobThatFitsInMemory();
   if (chosenPID > -1){
     freeMemory -= processes[chosenPID].size;
     addJobToMemory(chosenPID);
     processes[chosenPID].locationCode = "r";
     addProcessToReadyDeque(chosenPID);
+    return true;
   }
+  return false;
 }
 
 void Cpu::addJobToMemory(const int& pid){
