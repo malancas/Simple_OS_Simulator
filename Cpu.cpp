@@ -159,10 +159,12 @@ using namespace std;
         printed to the terminal
       */
       else if (input == "S"){
-        handleInterruptandSystemCall(false);
-        addProcessToReadyDeque(currProcess);
-        currProcess = readyDeque.front();
-        readyDeque.pop_front();
+	if (!emptyCpu){ 
+	  handleInterruptandSystemCall(false);
+	  addProcessToReadyDeque(currProcess);
+	  currProcess = readyDeque.front();
+	  readyDeque.pop_front();
+	}
 
         cout << "Enter r, p, c, d, m, or j: ";
         cin >> input; cout << '\n';

@@ -218,7 +218,7 @@ struct Sysgen : public Memory {
   }
 
   bool pageSizeIsSmallerThanMaxProcessSize(const int& maxSize){
-    if (maxSize < maximumProcessSize){return true;}
+    if (maxSize <= maximumProcessSize){return true;}
     cerr << "The number entered is larger than the maximum process size" << '\n' << '\n';
     return false;
   }
