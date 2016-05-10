@@ -123,6 +123,8 @@ struct Cpu : public Memory {
   void addAsManyJobsAsPossibleToMemory();
 
   void printProcessInfo(const int& pid);
+
+  bool chosenTrackFitsOnDisk(const int& track, const int& diskNum);
 };
 
 #endif

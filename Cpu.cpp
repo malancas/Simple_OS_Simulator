@@ -383,7 +383,7 @@ using namespace std;
     }
     processes[currProcess].logicalMemoryAddress = memStart;
     computePhysicalAddress(currProcess, memStart);
-    cout << "Physical address: " << hex << processes[currProcess].physicalAddress << '\n';
+    cout << "Physical address: " << hex << processes[currProcess].physicalAddress << '\n' << '\n';
 
     /*
       If the system call is not for a printing device,
@@ -420,6 +420,16 @@ using namespace std;
         cin >> input;
       }
       processes[currProcess].length = intResult;
+    }
+
+    if (ch == 'd'){
+      string input;
+      cout << '\n' << "Enter the track the process exists on: ";
+      cin >> input;
+      while (!intOrFloatErrorCheck(input, true, true)|| !chosenTrackFitsOnDisk(intResult, num-1)){
+	  cin >> input;
+      }
+      processes[currProcess].track = intResult;
     }
 
     /*
@@ -576,7 +586,7 @@ void Cpu::snapshotAux_JobPool(){
 
   void Cpu::snapshotAux_Disk(){
     for (int i = 0; i < scanDiskDequesStatus.size(); ++i){
-      sort(diskDeques0[i].begin(),diskDeques1[i].end(),sortByHighestTrackFirst);
+      sort(diskDeques1[i].begin(),diskDeques1[i].end(),sortByHighestTrackFirst);
       sort(diskDeques0[i].begin(),diskDeques0[i].end(),sortByLowestTrackFirst);
 
       os << "----" << "Scan Deque " << i+1 << '\n';
@@ -598,8 +608,8 @@ void Cpu::snapshotAux_JobPool(){
 
   void Cpu::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
     while (scanIt != scanItEnd){
-      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << hex <<
-	processes[*scanIt].memStart  << setw(10) << processes[*scanIt].type << setw(10);
+      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << hex << processes[*scanIt].physicalAddress
+	 << setw(10) << processes[*scanIt].type << setw(10);
       if (processes[*scanIt].type == "w"){
         os << processes[*scanIt].length << setw(10);
       }
@@ -876,18 +886,34 @@ void Cpu::snapshotAux_memoryInformation(){
 
 //Checks if a string is a valid hexadecimal number
 bool Cpu::isStringValidHexNumber(const string& hex_str){
-  for (auto i: hex_str){
+  string sub = "";
+  if (hex_str[0] == '0' && hex_str[1] == 'x'){
+    sub = hex_str.substr(2);
+  }
+  else {
+    sub = hex_str;
+  }
+  for (auto i: sub){
     if (!isxdigit(i)){
       cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
       cerr << "Enter a new hexadecimal value and try again." << '\n';
+      return false;
     }
   }
+  return true;
 }
 
 
 //Checks if the chosen logical address is valid for the process in question
 bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
-  int converted = (int)strtol(hex_str.c_str(),nullptr,16);//convert to decimal
+  string sub = "";
+  if (hex_str[0] == '0' && hex_str[1] == 'x'){
+    sub = hex_str.substr(2);
+  }
+  else {
+    sub = hex_str;
+  }
+  int converted = (int)strtol(sub.c_str(),nullptr,16);//convert to decimal
   if (converted >= 0 && converted <= pageSize * processes[pid].pageTable.size()){
     return true;
   }
@@ -904,24 +930,30 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
   //string begins with 0x
   unordered_map<int,Process>::iterator it = processes.find(pid);
   int decimalValue;
+  string subbed = "";
   if (hex_str[0] == '0' && hex_str[1] == 'x'){
-    decimalValue = (int)strtol(hex_str.c_str(),nullptr,0);
+    subbed = hex_str.substr(2);
   }
   else {
-    decimalValue = (int)strtol(hex_str.c_str(),nullptr,16);
+    subbed = hex_str;
   }
+  decimalValue = (int)strtol(subbed.c_str(),nullptr,16);
   
-  int offset = 0;
+  int offset = decimalValue % pageSize;
+  
   int pageCount = it->second.pageTable.size();
+  int correspondingPage;
   int i = 1;
   bool found = false;
   while (i < pageCount+1 && !found){
     if (decimalValue < i*pageSize){
-      offset = decimalValue - (i-1)*pageSize;
+      correspondingPage = i-1;
       found = true;
     }
+    ++i;
   }
-  it->second.physicalAddress = it->second.pageTable[i-1] + offset;
+  int physicalPage = it->second.pageTable[correspondingPage];
+  it->second.physicalAddress = (physicalPage+1 * pageSize) + offset;
 }
 
 
@@ -1029,3 +1061,10 @@ void Cpu::printProcessInfo(const int& pid){
   os.str("");
   os.clear();
 }
+
+ bool Cpu::chosenTrackFitsOnDisk(const int& track, const int& diskNum){
+   if (track < cylinderCount[diskNum]){return true;}
+   cerr << "The track entered is higher than the number of tracks on the disk" << '\n';
+   cerr << "Enter a new track number and try again." << '\n';
+   return false;
+ }
