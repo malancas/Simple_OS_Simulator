@@ -215,7 +215,7 @@ using namespace std;
 	if (intResult == currProcess){
 	  handleInterruptandSystemCall(true);
 	}
-	else {
+	else if (!emptyCpu){
 	  handleInterruptandSystemCall(false);
 	}
 
@@ -260,17 +260,21 @@ using namespace std;
 
       vector<int>::iterator itPt = processes[*itB].pageTable.begin();
       vector<int>::iterator itPtEnd = processes[*itB].pageTable.end();
+      int size = processes[*itB].pageTable.size() - 1;
       int count = 0;
-      os << "Page table" << '\n';
-      os << "----------" << '\n';
+      os << "Process #" << *itB << " page table: " << '\n';
       while (itPt != itPtEnd){
-	os << *itPt << " ";
+	os << *itPt;
+	if (count < size){
+	  os << ", ";
+	}
 	if (!(count % 15) && count > 0){
 	  os << '\n';
 	}
 	++count;
 	++itPt;
       }
+      os << '\n' << '\n';
       
       ++itB;
     }
@@ -382,7 +386,7 @@ using namespace std;
     }
     processes[currProcess].logicalMemoryAddress = memStart;
     computePhysicalAddress(currProcess, memStart);
-    cout << "Physical address: " << processes[currProcess].physicalAddress << '\n' << '\n';
+    cout << "Physical address: " << hex << "0x" << processes[currProcess].physicalAddress << '\n' << '\n';
 
     /*
       If the system call is not for a printing device,
