@@ -220,7 +220,6 @@ using namespace std;
 	}
 
         killProcess(intResult);
-	printProcessInfo(intResult);
 	addAsManyJobsAsPossibleToMemory();
       }
       else {
@@ -236,8 +235,8 @@ using namespace std;
      being printed signifies
   */
   void Cpu::snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "Location in Memory " << setw(10) << "R/W " << setw(10) << "File Length " << 
-      setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+    os << "PID " << setw(10) << "Filename " << setw(10) << "MemStart " << setw(10) << "R/W " << setw(10) << "Length " << 
+      setw(10) << "Total Cpu Time " << setw(10) << "Ave Burst Time " << '\n';
   }
 
   /*
@@ -248,8 +247,8 @@ using namespace std;
   void Cpu::snapshotPrint(T& itB, T& itE){
     while (itB != itE){
       string ty = processes[*itB].type;
-      os << *itB << setw(10) << processes[*itB].name << setw(10) << setw(10) << hex << processes[*itB].physicalAddress
-        << setw(10) << ty; 
+      os << *itB << setw(10) << processes[*itB].name << setw(10) <<
+	"0x" << hex << processes[*itB].physicalAddress << setw(10) << ty; 
       if (ty == "w"){
         os << setw(10) << processes[*itB].length;
       }
@@ -383,7 +382,7 @@ using namespace std;
     }
     processes[currProcess].logicalMemoryAddress = memStart;
     computePhysicalAddress(currProcess, memStart);
-    cout << "Physical address: " << hex << processes[currProcess].physicalAddress << '\n' << '\n';
+    cout << "Physical address: " << processes[currProcess].physicalAddress << '\n' << '\n';
 
     /*
       If the system call is not for a printing device,
@@ -531,7 +530,8 @@ using namespace std;
     deque<int>::iterator itB = readyDeque.begin();
     deque<int>::iterator itE = readyDeque.end();
 
-    os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+    os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Avg. Burst "
+       << setw(15) << " Page Table" << '\n';
     os << "----r" << '\n';
     while (itB != itE){
       os << *itB << setw(10) << processes[*itB].totalCpuTime << setw(10);
@@ -541,14 +541,14 @@ using namespace std;
       else {
         os << "0";
       }
-      os << '\n' << '\n';
+      os << setw(15) << " -- ";
 
       vector<int>::iterator itPg = processes[*itB].pageTable.begin();
       vector<int>::iterator itPgEnd = processes[*itB].pageTable.end();
       int size = processes[*itB].pageTable.size()-1;
       int count = 0;
 
-      os << "Page table: ";
+      //os << "Process #" << *itB << " page table: ";
       while (itPg != itPgEnd){
         os << *itPg;
         if (count < size){
@@ -560,10 +560,9 @@ using namespace std;
         ++itPg;
         ++count;
       }
-
-      ++itB;
-
+     
       os << '\n' << '\n';
+      ++itB;
     }
     os << '\n';
   }
@@ -608,7 +607,8 @@ void Cpu::snapshotAux_JobPool(){
 
   void Cpu::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
     while (scanIt != scanItEnd){
-      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << hex << processes[*scanIt].physicalAddress
+      os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << "0x"
+	 << hex << processes[*scanIt].physicalAddress
 	 << setw(10) << processes[*scanIt].type << setw(10);
       if (processes[*scanIt].type == "w"){
         os << processes[*scanIt].length << setw(10);
@@ -624,15 +624,19 @@ void Cpu::snapshotAux_JobPool(){
       int size = processes[*scanIt].pageTable.size()-1;
       int count = 0;
 
-      os << "Page table: ";
+      os << "Process #" << *scanIt << " page table: ";
       while (itPg != itPgEnd){
-        os << *itPg << " ";
+	os << *itPg;
+	if (count < size){
+	  os << ", ";
+	}
         if (!(count % 15) && count != 0){
           os << '\n';
         }
         ++itPg;
         ++count;
       }
+      os << '\n' << '\n';
       
       ++scanIt;
     }
@@ -644,7 +648,7 @@ void Cpu::snapshotAux_memoryInformation(){
 
   os << "Free Frame List-----------" << '\n';
   for (int i = 0; i < size; ++i){
-    os << freeFrameList[i];
+    os << freeFrameList[i]+1;
     if (i < size-1){
       os << ", ";
     }
@@ -663,7 +667,7 @@ void Cpu::snapshotAux_memoryInformation(){
   os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){
     if (it->size() == 2 && it->at(0) > -1){
-      os << "p" << it->at(0) << ", " << "page " << it->at(1);
+      os << "p" << it->at(0) << ", " << "pg " << it->at(1);
     }
     else {
       os << "F";
@@ -863,6 +867,7 @@ void Cpu::snapshotAux_memoryInformation(){
         findProcessToKill(pid, diskDeques0[dequeNum]);
       }
     }
+    printProcessInfo(intResult);
     processes.erase(pid);
   }
 
@@ -953,7 +958,7 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
     ++i;
   }
   int physicalPage = it->second.pageTable[correspondingPage];
-  it->second.physicalAddress = (physicalPage+1 * pageSize) + offset;
+  processes[pid].physicalAddress = (physicalPage+1 * pageSize) + offset;
 }
 
 

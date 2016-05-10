@@ -1,0 +1,22 @@
+#include "../Cpu.h"
+#include "../Memory.h"
+#include <cassert>
+
+using namespace std;
+
+int main(){
+  Memory m;
+  Cpu c;
+
+  m.pageSize = 20;
+  m.totalMemorySize = 1000;
+
+  m.processes = {{0,Process(0,5,54)},{1,Process(1,5,5)},{2,Process(2,5,5)},{3,Process(3,5,4)},{4,Process(4,5,5)}};
+  m.processes[0].size = 20;
+  m.processes[1].size = 46;
+  c.processes[4].size = 100;
+  m.processes[3].size = 50;
+  c.processes[2].size = 50;
+
+  return 0;
+}
