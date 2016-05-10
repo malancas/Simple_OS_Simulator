@@ -48,10 +48,7 @@ using namespace std;
 
 	  //Looks in the job pool for jobs that
 	  //potentially fit in memory
-	  bool jobAdded = true;
-	  while (jobAdded){
-	    jobAdded = checkForJobThatFitsInMemory();
-	  }
+	  addAsManyJobsAsPossibleToMemory();
 	}
 	//Choose a process to put in the Cpu
 	if (readyDeque.size()){
@@ -68,7 +65,7 @@ using namespace std;
       else if (input == "t"){
         terminateProcess();
 
-	checkForJobThatFitsInMemory();
+	addAsManyJobsAsPossibleToMemory();
 	 
 	if (!readyDeque.empty()){
 	  currProcess = readyDeque.front();
@@ -217,6 +214,7 @@ using namespace std;
 	  cin >> in;
 	}
         killProcess(pidToErase);
+	addAsManyJobsAsPossibleToMemory();
       }
       else {
         cerr << "The characters entered are not a valid command." << '\n';
@@ -938,5 +936,12 @@ void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
     //freeFrameList
     freeFrameList.push_back(*it);
     ++it;
+  }
+}
+
+void Cpu::addAsManyJobsAsPossibleToMemory(){
+  bool jobAdded = true;
+  while (jobAdded){
+    jobAdded = checkForJobThatFitsInMemory();
   }
 }
