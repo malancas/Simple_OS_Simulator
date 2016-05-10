@@ -18,6 +18,7 @@ using namespace std;
 
   //FUNCTIONS
   void Cpu::waitForInput(){
+    emptyCpu = true;
     string input = "";
 
     //If input == q, the function and program will close
@@ -598,12 +599,13 @@ void Cpu::snapshotAux_memoryInformation(){
     if (i < size-1){
       os << ", ";
     }
-    if (!(i % 15)){
+    if (!(i % 15) && i != 0){
       os << '\n';
     }
   }
 
   os << '\n' << '\n';
+
 
   vector<vector<int>>::iterator it = frameTable.begin();
   vector<vector<int>>::iterator itEnd = frameTable.end();
@@ -611,14 +613,13 @@ void Cpu::snapshotAux_memoryInformation(){
   os << "Frame Table---------------" << '\n';
   os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){
-    if (it->at(0) > -1){
-      os << "p" << it->at(0) << ", " << "page " << it->at(1) << '\n';
+    if (it->size() == 2 && it->at(0) > -1){
+      os << "p" << it->at(0) << ", " << "page " << it->at(1);
     }
     else {
       os << "F";
     }
     os << '\n';
-
     ++it;
   }
   os << '\n' << '\n';
@@ -837,6 +838,7 @@ bool Cpu::isStringValidHexNumber(const string& hex_str){
   }
 }
 
+
 //Checks if the chosen logical address is valid for the process in question
 bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
   int converted = (int)strtol(hex_str.c_str(),nullptr,16);//convert to decimal
@@ -847,6 +849,7 @@ bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
   cerr << "Enter a new hex value and try again." << '\n';
   return false;
 }
+
 
 //Uses the logical hex memory to computer a corresponding physical address
 //in decimal
@@ -866,6 +869,7 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
   }
   it->second.physicalAddress = it->second.pageTable[i-1] + offset;
 }
+
 
 //Returns the pid of the largest process in the job pool that will fit
 //in the remaining free memory available
@@ -903,10 +907,11 @@ void Cpu::addJobToMemory(const int& pid){
   for (int i = 0; i < pagesNeeded; ++i){
     //frameTable[freeFrameTable[i]] represents the frame
     //that freeFrameTable[i] stores
-    frameTable[freeFrameList[i]][0] = pid;
+    
     //i represents the process' page currently being stored
     //in relation to the chosen frame
-    frameTable[freeFrameList[i]][1] = i;
+
+    frameTable[freeFrameList[i]] = {pid,i};
     processes[pid].pageTable[i] = freeFrameList[i];
   }
   for (int j = 0; j < pagesNeeded; ++j){
