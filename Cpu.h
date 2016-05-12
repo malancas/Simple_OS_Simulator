@@ -10,6 +10,7 @@
 using namespace std;
 
 struct Process;
+struct Snapshot;
 
 struct Cpu : public Memory {
   //VARIABLES
@@ -30,17 +31,6 @@ struct Cpu : public Memory {
 
   //FUNCTIONS
   void waitForInput();
-
-  void snapshotHeader();
-
-  /*
-    Prints the data of each process in the chosen device deque
-    Each process gets its own line
-  */
-  template<typename T>
-  void snapshotPrint(T& itB, T& itE);
-
-  void snapshotAux(const string& input);
 
   /*
     Will check if the system call input, which will have
@@ -84,21 +74,9 @@ struct Cpu : public Memory {
 
   inline bool isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum);
 
-  void snapshotAux_SystemInformation();
-
-  void snapshotAux_ReadyDeque();
-
-  void snapshotAux_JobPool();
-
   void handleInterruptandSystemCall(const bool& burstIsComplete);
 
   void terminateProcess();
-
-  void snapshotAux_Disk();
-
-  void snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd);
-
-  void snapshotAux_memoryInformation();
 
   bool getProcessSize();
 
