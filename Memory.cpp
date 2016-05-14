@@ -50,8 +50,11 @@ using namespace std;
   vector<deque<int>> Memory::diskDeques0 = {};
   vector<deque<int>> Memory::diskDeques1 = {};
   deque<int> Memory::jobPool = {};
-vector<vector<int>> Memory::frameTable = {};
-deque<int> Memory::freeFrameList = {};
+	vector<vector<int>> Memory::frameTable = {};
+	deque<int> Memory::freeFrameList = {};
+
+  vector<multiset<int,Memory::SortByLowCmp>> Memory::diskSets0 = {};
+  vector<multiset<int,Memory::SortByHighCmp>> Memory::diskSets1 = {};
 
   Memory::Memory() {};
 
@@ -80,8 +83,8 @@ deque<int> Memory::freeFrameList = {};
     /*
       The ready deque is traversed and the remaining burst
       member variable of each process in the ready deque is
-      compared to the new process' remaining burst. If the 
-      burst in the ready deque is larger than burstOfNewProcess, 
+      compared to the new process' remaining burst. If the
+      burst in the ready deque is larger than burstOfNewProcess,
       the pid of the new process is inserted at the current place
       of the iterator and the function returns
     */
@@ -101,7 +104,7 @@ deque<int> Memory::freeFrameList = {};
     readyDeque.push_back(pid);
   }
 
-  
+
   //Returns the result of the algorithm based on the current process' values
   float Memory::sjwAlgorithm(){
     return (1 - historyParameter) * processes[currProcess].burstEstimate + historyParameter * floatResult;
@@ -129,7 +132,7 @@ deque<int> Memory::freeFrameList = {};
     }
     else {
       cerr << "There are no deques of this type. No processes exist in these deques." << '\n';
-      cerr << "Please enter a new command and try again." << '\n' << '\n';              
+      cerr << "Please enter a new command and try again." << '\n' << '\n';
     }
   }
 

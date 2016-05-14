@@ -13,7 +13,7 @@ using namespace std;
 
 struct Memory {
   //VARIABLES
-  
+
   /*
     Contains the Process objects, using their
     PIDS as keys. This allows the ready deque
@@ -74,7 +74,7 @@ struct Memory {
   //to the disk vector that is acting as the
   //scan vector.
   static vector<bool> scanDiskDequesStatus;
-  
+
   //CONTRUCTORS
   Memory();
 
@@ -93,18 +93,6 @@ struct Memory {
   static vector<vector<int>> frameTable;
   static deque<int> freeFrameList;
 
-  struct lowest_Track_First {
-    bool operator() (const Process& lhs, const Process& rhs) const{
-      return lhs.track < rhs.track;
-    }
-  };
-
-  struct highest_Track_First {
-    bool operator() (const Process& lhs, const Process& rhs) const{
-      return lhs.track > rhs.track;
-    }
-  };
-
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
   void addProcessToDiskDeque(const int& pid, const int& dequeNum);
   void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
@@ -115,6 +103,22 @@ struct Memory {
   static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
+
+  struct SortByLowCmp{
+		bool operator() (int x, int y) { return processes[x].track < processes[y].track; }
+  };
+
+  struct SortByHighCmp{
+		bool operator() (int x, int y) { return processes[x].track > processes[y].track; }
+  };
+
+/*
+  auto f = [](const int& x, const int& y)
+  {return processes[x].size < processes[y].size;};
+*/
+
+  static vector<multiset<int,SortByLowCmp>> diskSets0;
+  static vector<multiset<int,SortByHighCmp>> diskSets1;
 };
 
 #endif
