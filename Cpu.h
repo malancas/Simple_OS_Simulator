@@ -66,8 +66,6 @@ struct Cpu : public Memory {
 
   bool checkIfsysCallNumLargerThanSet(const int& callNum);
 
-  //void addProcessToDiskDeque(const int& pid, const int& dequeNum);
-
   void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
 
   void getCylinderChoice(const int& dequeNum);
@@ -89,16 +87,8 @@ struct Cpu : public Memory {
   bool isLogicalAddressInRange(const int& pid, const string& hex_str);
 
   void computePhysicalAddress(const int& pid, const string& hex_str);
-  
-  int searchForAndEraseJobThatFitsInMemory();
-
-  bool checkForJobThatFitsInMemory();
-
-  void addJobToMemory(const int& pid);
 
   void restoreFrameTableAndFreeFrameList(const int& pid);
-
-  void addAsManyJobsAsPossibleToMemory();
 
   void printProcessInfo(const int& pid);
 
