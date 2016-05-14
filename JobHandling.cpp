@@ -9,9 +9,8 @@ using namespace std;
 //Returns the pid of the largest process in the job pool that will fit
 //in the remaining free memory available
 int JobHandling::searchForAndEraseJobThatFitsInMemory(){
-  sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
-  deque<int>::iterator it = jobPool.begin();
-  deque<int>::iterator itEnd = jobPool.end();
+  multiset<int,SortBySize>::iterator it = jobPool.begin();
+  multiset<int,SortBySize>::iterator itEnd = jobPool.end();
   while (it != itEnd){
     if (processes[*it].size <= freeMemory){
       int chosenPID = *it;
@@ -29,7 +28,7 @@ bool JobHandling::checkForJobThatFitsInMemory(){
     freeMemory -= processes[chosenPID].size;
     addJobToMemory(chosenPID);
     processes[chosenPID].locationCode = "r";
-    addProcessToReadyDeque(chosenPID);
+    readySet.insert(chosenPID);
     return true;
   }
   return false;

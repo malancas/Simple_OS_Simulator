@@ -49,12 +49,14 @@ using namespace std;
   vector<deque<int>> Memory::cdDeques = {};
   vector<deque<int>> Memory::diskDeques0 = {};
   vector<deque<int>> Memory::diskDeques1 = {};
-  deque<int> Memory::jobPool = {};
 	vector<vector<int>> Memory::frameTable = {};
 	deque<int> Memory::freeFrameList = {};
 
   vector<multiset<int,Memory::SortByLowCmp>> Memory::diskSets0 = {};
   vector<multiset<int,Memory::SortByHighCmp>> Memory::diskSets1 = {};
+  set<int,Memory::SortByLowBurst> Memory::readySet = {};
+  set<int,Memory::SortBySize> Memory::jobPool = {};
+
 
   Memory::Memory() {};
 
@@ -75,33 +77,6 @@ using namespace std;
         diskSets1[dequeNum].insert(pid);
       }
     }
-  }
-
-  void Memory::addProcessToReadyDeque(const int& pid){
-    //Represents the remaining burst of process to be inserted
-    float burstOfNewProcess = processes[pid].remainingBurst;
-    /*
-      The ready deque is traversed and the remaining burst
-      member variable of each process in the ready deque is
-      compared to the new process' remaining burst. If the
-      burst in the ready deque is larger than burstOfNewProcess,
-      the pid of the new process is inserted at the current place
-      of the iterator and the function returns
-    */
-    deque<int>::iterator it = readyDeque.begin();
-    while (it != readyDeque.end()){
-      if (processes[*it].remainingBurst > burstOfNewProcess){
-        readyDeque.insert(it, pid);
-        return;
-      }
-      ++it;
-    }
-    /*
-      If the new process' remaining burst is bigger than every other
-      process' remaining burst in the readyDeque, it is pushed to the
-      back of the deque
-    */
-    readyDeque.push_back(pid);
   }
 
 
@@ -125,7 +100,7 @@ using namespace std;
           emptyCpu = false;
         }
         else {
-          addProcessToReadyDeque(finishedProcess);
+        	readySet.insert(finishedProcess);
         }
         cout << "A system call has completed" << '\n' << '\n';
       }

@@ -8,7 +8,7 @@ using namespace std;
      being printed signifies
   */
   void Snapshot::snapshotHeader(){
-    os << "PID " << setw(10) << "Filename " << setw(10) << "MemStart " << setw(10) << "R/W " << setw(10) << "Length " << 
+    os << "PID " << setw(10) << "Filename " << setw(10) << "MemStart " << setw(10) << "R/W " << setw(10) << "Length " <<
       setw(10) << "Total Cpu Time " << setw(10) << "Ave Burst Time " << '\n';
   }
 
@@ -21,7 +21,7 @@ using namespace std;
     while (itB != itE){
       string ty = processes[*itB].type;
       os << *itB << setw(10) << processes[*itB].name << setw(10) <<
-	"0x" << hex << processes[*itB].physicalAddress << setw(10) << ty; 
+	"0x" << hex << processes[*itB].physicalAddress << setw(10) << ty;
       if (ty == "w"){
         os << setw(10) << processes[*itB].length;
       }
@@ -48,7 +48,7 @@ using namespace std;
 	++itPt;
       }
       os << '\n' << '\n';
-      
+
       ++itB;
     }
   }
@@ -65,7 +65,7 @@ void Snapshot::snapshotAux(const string& input){
       else { //input == "p"
         if (!printerDeques.empty()){
           itV = printerDeques.begin(); itVe = printerDeques.end();
-          itB = itV->begin(); itE = itV->end();        
+          itB = itV->begin(); itE = itV->end();
         }
       }
 
@@ -127,7 +127,7 @@ void Snapshot::snapshotAux(const string& input){
         ++itPg;
         ++count;
       }
-     
+
       os << '\n' << '\n';
       ++itB;
     }
@@ -135,9 +135,8 @@ void Snapshot::snapshotAux(const string& input){
   }
 
 void Snapshot::snapshotAux_JobPool(){
-  sort(jobPool.begin(), jobPool.end(), sortByLargestSizeFirst);
-  deque<int>::iterator it = jobPool.begin();
-  deque<int>::iterator itE = jobPool.end();
+  multiset<int>::iterator it = jobPool.begin();
+  multiset<int>::iterator itE = jobPool.end();
 
   os << "PID  " << setw(10) << "  Process Size" << '\n';
   os << "----j" << '\n';
@@ -182,7 +181,7 @@ void Snapshot::snapshotAux_JobPool(){
       else {
         os << setw(20);
       }
-      os << processes[*scanIt].totalCpuTime << setw(10) << 
+      os << processes[*scanIt].totalCpuTime << setw(10) <<
       (processes[*scanIt].totalCpuTime / processes[*scanIt].cpuUsageCount) << '\n';
 
       vector<int>::iterator itPg = processes[*scanIt].pageTable.begin();
@@ -203,7 +202,7 @@ void Snapshot::snapshotAux_JobPool(){
         ++count;
       }
       os << '\n' << '\n';
-      
+
       ++scanIt;
     }
   }
@@ -227,7 +226,7 @@ void Snapshot::snapshotAux_memoryInformation(){
 
   vector<vector<int>>::iterator it = frameTable.begin();
   vector<vector<int>>::iterator itEnd = frameTable.end();
-  
+
   os << "Frame Table---------------" << '\n';
   os << "Total number of frames: " << frameTable.size() << '\n';
   while (it != itEnd){

@@ -89,7 +89,6 @@ struct Memory {
   static vector<deque<int>> cdDeques;
   static vector<deque<int>> diskDeques0;
   static vector<deque<int>> diskDeques1;
-  static deque<int> jobPool;
   static vector<vector<int>> frameTable;
   static deque<int> freeFrameList;
 
@@ -97,7 +96,6 @@ struct Memory {
   void addProcessToDiskDeque(const int& pid, const int& dequeNum);
   void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
   //void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
-  void addProcessToReadyDeque(const int& pid);
   float sjwAlgorithm();
   void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
   static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
@@ -105,11 +103,19 @@ struct Memory {
   static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
 
   struct SortByLowCmp{
-		bool operator() (int x, int y) { return processes[x].track < processes[y].track; }
+		bool operator() (const int& x, const int& y) { return processes[x].track < processes[y].track; }
   };
 
   struct SortByHighCmp{
-		bool operator() (int x, int y) { return processes[x].track > processes[y].track; }
+		bool operator() (const int& x, const int& y) { return processes[x].track > processes[y].track; }
+  };
+
+  struct SortByLowBurst{
+  	bool operator() (const int& x, const int& y) { return processes[x].remainingBurst < processes[y].remainingBurst; }
+  };
+
+  struct SortBySize{
+  	bool operator() (const int& x, const int& y) { return processes[x].size > processes[y].size; }
   };
 
 /*
@@ -119,6 +125,8 @@ struct Memory {
 
   static vector<multiset<int,SortByLowCmp>> diskSets0;
   static vector<multiset<int,SortByHighCmp>> diskSets1;
+  static set<int,SortByLowBurst> readySet;
+  static set<int,SortBySize> jobPool;
 };
 
 #endif
