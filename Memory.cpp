@@ -60,19 +60,19 @@ using namespace std;
 
   void Memory::addProcessToDiskDeque(const int& pid, const int& dequeNum){
     if (firstDiskSystemCall){
-      diskDeques0[dequeNum].push_back(pid);
+      diskSets0[dequeNum].insert(pid);
       firstDiskSystemCall = false;
     }
     else {
       if (scanDiskDequesStatus[dequeNum] == 1){
       	//addProcessToWaitingDeque(pid,dequeNum,true);
         processes[pid].locationCode = "d0" + to_string(dequeNum);
-        diskDeques0[dequeNum].push_back(pid);
+        diskSets0[dequeNum].insert(pid);
       }
       else {
       	//addProcessToWaitingDeque(pid,dequeNum,false);
         processes[pid].locationCode = "d1" + to_string(dequeNum);
-        diskDeques1[dequeNum].push_back(pid);
+        diskSets1[dequeNum].insert(pid);
       }
     }
   }

@@ -106,8 +106,7 @@ JobHandling j;
               //If the input is valid, the user will be prompted
               //for system call paramters and the call will be
               //added to the appropriate device deque
-              //setSystemCallVariables(print, input[0], num);
-              setSystemCallVariables(input[0]=='p', input[0], num);
+              setSystemCallVariables(input[0], num);
               cout << "System call added!" << '\n' << '\n';
               if (!readyDeque.empty()){
                 currProcess = readyDeque.front();
@@ -142,14 +141,25 @@ JobHandling j;
           }
           else if (input[0]=='D'){
             if (scanDiskDequesStatus[num-1] == 1){
-              sort(diskDeques1[num-1].begin(),diskDeques1[num-1].end(),sortByHighestTrackFirst);
-              checkForSystemCallinDeque(diskDeques1, num);
+            	if (diskSets1.empty()){
+            		cerr << "There are no queues of this type available" << '\n';
+            		cerr << "Please enter a new command and try again" << '\n';
+            	}
+            	else {
+            		vector<multiset<int,SortByHighCmp>>::iterator it = diskSets1.begin() + (num-1);
+            		checkForAndRemoveSystemCallinSet(it);
+            	}
             }
             else {
-              sort(diskDeques0[num-1].begin(),diskDeques0[num-1].end(),sortByLowestTrackFirst);
-              checkForSystemCallinDeque(diskDeques0, num);
+            	if (diskSets0.empty()){
+            		cerr << "There are no queues of this type available" << '\n';
+            		cerr << "Please enter a new command and try again" << '\n';
+            	}
+            	else {
+            		vector<multiset<int,SortByLowCmp>>::iterator it = diskSets0.begin() + (num-1);
+            		checkForAndRemoveSystemCallinSet(it);
+            	}
             }
-            //checkForSystemCallinDiskSet(num-1,scanDiskDequesStatus[num-1]);
           }
           else if (input[0]=='C') {
             checkForSystemCallinDeque(cdDeques, num);
@@ -296,7 +306,7 @@ JobHandling j;
     a printer device (signified by the print bool), the function will not
     ask for certain parameters
   */
-  void Cpu::setSystemCallVariables(const bool& print, const char& ch, int& num){
+  void Cpu::setSystemCallVariables(const char& ch, int& num){
     string name = "";
     cout << "Enter the file name: ";
     cin >> name;
@@ -326,7 +336,7 @@ JobHandling j;
       is for printer devices, then the type is automatically 'w'
     */
     string typeIn = "";
-    if (!print){
+    if (!(ch=='p')){
       cout << "Enter r if your action is a read or enter w if your action is a write: ";
       cin >> typeIn;
       while (!typeErrorChecking(typeIn)){
@@ -785,3 +795,24 @@ void Cpu::printProcessInfo(const int& pid){
    cerr << "Enter a new track number and try again." << '\n';
    return false;
  }
+
+ 	template <typename T>
+ 	void Cpu::checkForAndRemoveSystemCallinSet(const T& it){
+		if (it->empty()){
+      cerr << "No system calls are currently in the chosen deque" << '\n' << '\n';
+			return;
+		}
+		//Else the system call at the front of the set is removed
+		int finishedProcess = *(it->begin());
+		it->erase(it->begin());
+		if (emptyCpu){
+			currProcess = finishedProcess;
+      emptyCpu = false;
+      processes[finishedProcess].locationCode = "cpu";
+		}
+		else {
+			addProcessToReadyDeque(finishedProcess);
+      processes[finishedProcess].locationCode = "r";
+		}
+    cout << "A system call has completed" << '\n' << '\n';
+ 	}

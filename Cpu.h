@@ -46,7 +46,7 @@ struct Cpu : public Memory {
     a printer device (signified by the print bool), the function will not
     ask for certain parameters
   */
-  void setSystemCallVariables(const bool& print, const char& ch, int& num);
+  void setSystemCallVariables(const char& ch, int& num);
 
   /*
     Used for the running phase input, the function will check
@@ -93,6 +93,9 @@ struct Cpu : public Memory {
   void printProcessInfo(const int& pid);
 
   bool chosenTrackFitsOnDisk(const int& track, const int& diskNum);
+
+ 	template <typename T>
+ 	void checkForAndRemoveSystemCallinSet(const T& it);
 };
 
 #endif
