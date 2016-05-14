@@ -1,5 +1,6 @@
 #include <iomanip>
 #include "Snapshot.h"
+#include "Memory.h"
 
 using namespace std;
 
@@ -151,23 +152,27 @@ void Snapshot::snapshotAux_JobPool(){
 		for (int i = 0; i < scanDiskDequesStatus.size(); ++i){
 			os << "----" << "Scan Deque " << i+1 << '\n';
 			if (scanDiskDequesStatus[i] == 1){
-				snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
+				set<int,sortByHighCmp>::iterator it = diskSets1[i].begin();
+				set<int,sortByHighCmp>::iterator itEnd = diskSets1[i].end());
+
+				snapshotAux_Disk2(it, itEnd);
 				os << '\n';
 				os << "----" << "Waiting Deque " << i+1 << '\n';
-				snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
+				snapshotAux_Disk2(diskSets0[i].begin(), diskSets0[i].end());
 			}
 			else {
-				snapshotAux_Disk2(diskDeques0[i].begin(), diskDeques0[i].end());
+				snapshotAux_Disk2(diskSets0[i].begin(), diskSets0[i].end());
 				os << '\n';
 				os << "----" << "Waiting Deque " << i+1 << '\n';
-				snapshotAux_Disk2(diskDeques1[i].begin(), diskDeques1[i].end());
+				snapshotAux_Disk2(diskSets1[i].begin(), diskSets1[i].end());
 			}
 			os << '\n' << '\n';
 		}
 	}
 
 
-	void Snapshot::snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd){
+	template <typename T>
+	void Snapshot::snapshotAux_Disk2(T& scanIt, T& scanItEnd){
 		while (scanIt != scanItEnd){
 			os << *scanIt << setw(10) << processes[*scanIt].name << setw(10) << "0x"
 	 << hex << processes[*scanIt].physicalAddress

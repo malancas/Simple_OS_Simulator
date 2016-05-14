@@ -1,8 +1,9 @@
 #include "Cpu.h"
+#include "Memory.h"
 using namespace std;
 
 struct Snapshot : public Cpu {
-  
+
   void snapshotHeader();
 
   /*
@@ -22,7 +23,8 @@ struct Snapshot : public Cpu {
 
   void snapshotAux_Disk();
 
-  void snapshotAux_Disk2(deque<int>::iterator scanIt, deque<int>::iterator scanItEnd);
+	template <typename T>
+	void snapshotAux_Disk2(T& scanIt, T& scanItEnd);
 
   void snapshotAux_memoryInformation();
 };
