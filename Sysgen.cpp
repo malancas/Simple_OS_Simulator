@@ -6,7 +6,7 @@
 #include "Memory.h"
 using namespace std;
 
-struct Sysgen : public Memory {
+struct Sysgen {
   //VARIABLES
   /*
     Used in various functions
@@ -15,9 +15,11 @@ struct Sysgen : public Memory {
   */
   int num;
   float floatNum;
+  Memory* mPtr;
 
   //CONSTRUCTORS
-  Sysgen() : num(0) {}
+  Sysgen() : num(0), mPtr(nullptr) {}
+  Sysgen(Memory m) : num(0), mPtr(&m) {}
 
   //FUNCTIONS
   /*
@@ -29,43 +31,43 @@ struct Sysgen : public Memory {
   void getInstallerInput(){
     //Set the number of printer device deques
     getInstallerInput_aux("Enter the number of printer devices: ", 'o');
-    printerDeques.resize(num);
+    mPtr->printerDeques.resize(num);
 
     //Set the number of disk device deques
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
     //diskSets0.resize(num);
     //diskSets1.resize(num);
-    diskDeques0.resize(num);
-    diskDeques1.resize(num);
-    cylinderCount.resize(num);
-    scanDiskDequesStatus.resize(num);
+    mPtr->diskDeques0.resize(num);
+    mPtr->diskDeques1.resize(num);
+    mPtr->cylinderCount.resize(num);
+    mPtr->scanDiskDequesStatus.resize(num);
 
     //The elements are set to false, meaning that scanDiskDeques0 will
     //begin the program as representing the scan deques
-    fill(scanDiskDequesStatus.begin(),scanDiskDequesStatus.end(),false);
+    fill(mPtr->scanDiskDequesStatus.begin(), mPtr->scanDiskDequesStatus.end(),false);
 
     //Set the number of CD device deques
     getInstallerInput_aux("Enter the number of CD devices: ", 'o');
-    cdDeques.resize(num);
+    mPtr->cdDeques.resize(num);
 
     //Set the history parameter
     getInstallerInput_aux("Enter the history parameter: ", 'h');
-    historyParameter = floatNum;
+    mPtr->historyParameter = floatNum;
 
     //Set the inital burst estimate
     getInstallerInput_aux("Enter the initial burst estimate: ", 'i');
-    initialBurstEstimate = floatNum;
-    cout << "Initial burst estimate: " << initialBurstEstimate << '\n';
+    mPtr->initialBurstEstimate = floatNum;
+    cout << "Initial burst estimate: " << mPtr->initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
-    int n = cylinderCount.size();
+    int n = mPtr->cylinderCount.size();
     //The two strings are used to create the message used in the user prompt.
     //The message's content depends on which disk device it asking about.
     string messageBase = "Enter the number of cylinders in disk device: ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
       getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
-      cylinderCount[i] = num;
+      mPtr->cylinderCount[i] = num;
     }
 
     //Set the total memory size in the OS
@@ -76,8 +78,8 @@ struct Sysgen : public Memory {
       cout << message;
     }
     cout << '\n';
-    totalMemorySize = num;
-    freeMemory = num;
+    mPtr->totalMemorySize = num;
+    mPtr->freeMemory = num;
 
     //Set the maximum process size
     num = 0;
@@ -87,7 +89,7 @@ struct Sysgen : public Memory {
       cout << message;
     }
     cout << '\n';
-    maximumProcessSize = num;
+    mPtr->maximumProcessSize = num;
 
     //Set the page size
     num = 0;
@@ -98,20 +100,20 @@ struct Sysgen : public Memory {
       cout << message;
     }
     cout << '\n';
-    pageSize = num;
+    mPtr->pageSize = num;
 
     //The frame table is resized to reflect the number of frames in memory
-    frameTable.resize(totalMemorySize/pageSize);
+    mPtr->frameTable.resize(mPtr->totalMemorySize / mPtr->pageSize);
     
-    for (int i = 0; i < frameTable.size(); ++i){
-      frameTable[i].resize(2);
-      frameTable[i][0] = -1;
-      frameTable[i][1] = -1;
+    for (int i = 0; i < mPtr->frameTable.size(); ++i){
+      mPtr->frameTable[i].resize(2);
+      mPtr->frameTable[i][0] = -1;
+      mPtr->frameTable[i][1] = -1;
     }
 
-    freeFrameList.resize(frameTable.size());
-    for (int i = 0; i < freeFrameList.size(); ++i){
-      freeFrameList[i] = i;
+    mPtr->freeFrameList.resize(mPtr->frameTable.size());
+    for (int i = 0; i < mPtr->freeFrameList.size(); ++i){
+      mPtr->freeFrameList[i] = i;
     }
   } 
 
@@ -134,29 +136,25 @@ struct Sysgen : public Memory {
       istringstream iss{line};
       //Checks if the input can be converted to an int
       if (variableCode == 'o' || variableCode == 'p'){
-       if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
+        if (iss >> num && (iss.eof() || isspace(iss.peek()))) {
           
-         //If it was successfully converted, then checks if
-         //num is negative
-         if (num < 0){
-           cerr << '\n' << "Negative number entered. Please try again" << '\n';
-           return false;
-         }
-
-         if (variableCode == 'p'){
-	   if (totalMemorySize % num){
-	     cerr << "Chosen page number doesn't evenly divide the total system memory." << '\n';
-	     cerr << "Enter a new number and try again." << '\n';
-	     return false;
-	   }
-	   else{
-            if (num > 0 && !(num & (num-1))){
-              return true;
-            }
-            cerr << "Page number entered is not a power of two" << '\n';
+          //If it was successfully converted, then checks if
+          //num is negative
+          if (num < 0){
+            cerr << '\n' << "Negative number entered. Please try again" << '\n';
             return false;
-	   }
-	 }
+          }
+
+          if (variableCode == 'p'){
+	          if (mPtr->totalMemorySize % num){
+	           cerr << "Chosen page number doesn't evenly divide the total system memory." << '\n';
+	           cerr << "Enter a new number and try again." << '\n';
+	           return false;
+	         }
+	         else{
+            numberIsPowerOfTwo(num);
+	         }
+	        }
   
          /*
          If the function is being used to error check input for the history parameter,
@@ -212,19 +210,21 @@ struct Sysgen : public Memory {
   }
 
   bool maximumProcessSizeIsSmallerThanTotalMemory(const int& maxSize){
-    if (maxSize < totalMemorySize){return true;}
+    if (maxSize < mPtr->totalMemorySize){return true;}
     cerr << "The number entered is larger than the total amount of memory" << '\n' << '\n';
     return false;
   }
 
   bool pageSizeIsSmallerThanMaxProcessSize(const int& maxSize){
-    if (maxSize <= maximumProcessSize){return true;}
+    if (maxSize <= mPtr->maximumProcessSize){return true;}
     cerr << "The number entered is larger than the maximum process size" << '\n' << '\n';
     return false;
   }
 
   bool numberIsPowerOfTwo(const int& num){
     if (num > 0 && !(num & (num-1))){return true;}
+
     cerr << "The number entered is not a power of 2" << '\n' << '\n';
+    return false;
   }
 };

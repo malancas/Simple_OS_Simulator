@@ -26,5 +26,6 @@ struct Snapshot : public Cpu {
 	template <typename T>
 	void snapshotAux_Disk2(T& scanIt, T& scanItEnd);
 
+  //Prints average CPU usage time across the system
   void snapshotAux_memoryInformation();
 };

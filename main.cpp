@@ -16,7 +16,7 @@ int main(){
     initialize data structures like device queues
     to set up for the Running phase of the program
   */
-  Sysgen s;
+  Sysgen s(m);
   s.getInstallerInput();
 
   /*Running
@@ -26,8 +26,8 @@ int main(){
     calls. 
   */
   //m.waitForInput();
-  Cpu c;
-  c.waitForInput();
+  //Cpu c;
+  //c.waitForInput();
 
   return 0;
 }
