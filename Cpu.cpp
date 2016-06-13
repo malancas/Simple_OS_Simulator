@@ -20,10 +20,11 @@ Snapshot s;
 JobHandling j;
 
 	Cpu::Cpu() {}
+	Cpu::Cpu(Memory m) : mPtr(&m) {}
 
 	//FUNCTIONS
 	void Cpu::waitForInput(){
-		emptyCpu = true;
+		mPtr->emptyCpu = true;
 		string input = "";
 
 		//If input == q, the function and program will close

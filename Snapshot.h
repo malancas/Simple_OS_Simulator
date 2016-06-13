@@ -1,8 +1,15 @@
-#include "Cpu.h"
+#include <sstream>
 #include "Memory.h"
+
 using namespace std;
 
-struct Snapshot : public Cpu {
+struct Snapshot {
+  Memory* mPtr;
+  ostringstream os;
+
+
+  Snapshot(Memory m);
+
 
   void snapshotHeader();
 
@@ -24,7 +31,7 @@ struct Snapshot : public Cpu {
   void snapshotAux_Disk();
 
 	template <typename T>
-	void snapshotAux_Disk2(T& scanIt, T& scanItEnd);
+	void snapshotAux_Disk2(T& scanIt, const T& scanItEnd);
 
   //Prints average CPU usage time across the system
   void snapshotAux_memoryInformation();

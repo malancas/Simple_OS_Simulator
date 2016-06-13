@@ -7,12 +7,13 @@
 #include <vector>
 #include <algorithm>
 #include "Memory.h"
+
 using namespace std;
 
 struct Process;
 struct Snapshot;
 
-struct Cpu : public Memory {
+struct Cpu {
 	//VARIABLES
 
 	//Used to store integer results of
@@ -26,8 +27,12 @@ struct Cpu : public Memory {
 	//Used to print output from Snapshot function
 	ostringstream os;
 
+	//Used to access and modify variables in the Memory object
+	Memory* mPtr;
+
 	//CONTRUCTORS
 	Cpu();
+	Cpu(Memory m);
 
 	//FUNCTIONS
 	void waitForInput();

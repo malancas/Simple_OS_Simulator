@@ -1,7 +1,12 @@
-#include "Cpu.h"
+#include "Memory.h"
+
 using namespace std;
 
-struct JobHandling : public Cpu {
+struct JobHandling {
+	Memory* mPtr;
+
+	JobHandling(Memory m);
+
 	int searchForAndEraseJobThatFitsInMemory();
 
  	bool checkForJobThatFitsInMemory();
