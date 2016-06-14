@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Memory.h"
+
 using namespace std;
 
   unordered_map<int, Process> Memory::processes = {};
@@ -87,6 +88,10 @@ using namespace std;
     }
   }
 
+
+//int Memory::getPIDFromFrontOfSet()
+
+/*
   bool Memory::sortByLowestTrackFirst(const int& lhs, const int& rhs){
     return processes[lhs].track < processes[rhs].track;
   }
@@ -98,3 +103,4 @@ using namespace std;
 bool Memory::sortByLargestSizeFirst(const int& lhs, const int& rhs){
   return processes[lhs].size > processes[rhs].size;
 }
+*/

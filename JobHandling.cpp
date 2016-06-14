@@ -2,17 +2,16 @@
 #include <algorithm>
 #include <deque>
 #include "JobHandling.h"
-#include "SortBySize.cpp"
 
 using namespace std;
 
-JobHandling::JobHandling(Memory m) : mPtr(&m) {}
+JobHandling::JobHandling(Memory* ptr) : mPtr(ptr) {}
 
 //Returns the pid of the largest process in the job pool that will fit
 //in the remaining free memory available
 int JobHandling::searchForAndEraseJobThatFitsInMemory(){
-  multiset<int, SortBySize>::iterator it = mPtr->jobPool.begin();
-  multiset<int, SortBySize>::iterator itEnd = mPtr->jobPool.end();
+  multiset<int, Memory::SortBySize>::iterator it = mPtr->jobPool.begin();
+  multiset<int, Memory::SortBySize>::iterator itEnd = mPtr->jobPool.end();
   while (it != itEnd){
     if (mPtr->processes[*it].size <= mPtr->freeMemory){
       int chosenPID = *it;

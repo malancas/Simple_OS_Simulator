@@ -9,8 +9,6 @@
 #include <set>
 #include <stdio.h>
 #include "Process.cpp"
-#include "SortByHighTrack.cpp"
-#include "SortByLowTrack.cpp"
 
 using namespace std;
 
@@ -103,7 +101,6 @@ struct Memory {
   static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
 
-
   struct SortByLowTrack{
 		bool operator() (const int& x, const int& y) { return processes[x].track < processes[y].track; }
   };
@@ -111,7 +108,6 @@ struct Memory {
   struct SortByHighTrack{
 		bool operator() (const int& x, const int& y) { return processes[x].track > processes[y].track; }
   };
-
 
   struct SortByLowBurst{
   	bool operator() (const int& x, const int& y) { return processes[x].remainingBurst < processes[y].remainingBurst; }

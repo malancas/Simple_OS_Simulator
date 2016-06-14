@@ -2,12 +2,10 @@
 #include <set>
 #include "Snapshot.h"
 #include "Memory.h"
-#include "SortByHighTrack.cpp"
-#include "SortByLowTrack.cpp"
 
 using namespace std;
 
-Snapshot::Snapshot(Memory m) : mPtr(&m) {}
+Snapshot::Snapshot(Memory* ptr) : mPtr(ptr) {}
 
 /*
 		Prints a header for the snapshot function indicating what each value
@@ -154,11 +152,11 @@ void Snapshot::snapshotAux_JobPool(){
 }
 
 	void Snapshot::snapshotAux_Disk(){
-		multiset<int, SortByHighTrack>::iterator itHigh;
-		multiset<int, SortByHighTrack>::iterator itHighEnd;
+		multiset<int, Memory::SortByHighTrack>::iterator itHigh;
+		multiset<int, Memory::SortByHighTrack>::iterator itHighEnd;
 
-		multiset<int, SortByLowTrack>::iterator itLow;
-  		multiset<int, SortByLowTrack>::iterator itLowEnd;
+		multiset<int, Memory::SortByLowTrack>::iterator itLow;
+  		multiset<int, Memory::SortByLowTrack>::iterator itLowEnd;
 
 		for (int i = 0; i < mPtr->scanDiskDequesStatus.size(); ++i){
 			os << "----" << "Scan Deque " << i+1 << '\n';

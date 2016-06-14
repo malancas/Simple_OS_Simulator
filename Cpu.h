@@ -34,7 +34,7 @@ struct Cpu {
 	JobHandling j;
 
 	//CONTRUCTORS
-	Cpu(Memory m);
+	Cpu(Memory* ptr);
 
 	//FUNCTIONS
 	void waitForInput();

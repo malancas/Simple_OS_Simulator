@@ -12,17 +12,15 @@
 #include <ctype.h>
 #include "Cpu.h"
 #include "Memory.h"
-#include "SortByHighTrack.cpp"
-#include "SortByLowTrack.cpp"
-#include "SortByLowBurst.cpp"
-#include "SortBySize.cpp"
+#include "JobHandling.cpp"
+#include "Snapshot.cpp"
 
 using namespace std;
 
 //Snapshot s;
 //JobHandling j;
 
-	Cpu::Cpu(Memory m) : mPtr(&m), s(m), j(m) {}
+	Cpu::Cpu(Memory* ptr) : mPtr(ptr), s(ptr), j(ptr) {}
 
 	//FUNCTIONS
 	void Cpu::waitForInput(){
@@ -149,7 +147,7 @@ using namespace std;
 								cerr << "Please enter a new command and try again" << '\n';
 							}
 							else {
-								vector<multiset<int,SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num-1);
+								vector<multiset<int,Memory::SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num-1);
 								checkForAndRemoveSystemCallinSet(it);
 							}
 						}
@@ -159,7 +157,7 @@ using namespace std;
 								cerr << "Please enter a new command and try again" << '\n';
 							}
 							else {
-								vector<multiset<int,SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num-1);
+								vector<multiset<int,Memory::SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num-1);
 								checkForAndRemoveSystemCallinSet(it);
 							}
 						}
@@ -627,11 +625,11 @@ using namespace std;
 		//Since every pid is unique, lower_bound or upper_bound can be used below
 		//to find the pid in question
 		else if (locationCode == "r"){
-			set<int,SortByLowBurst>::iterator it = lower_bound(mPtr->readySet.begin(), mPtr->readySet.end(), pid);
+			set<int, Memory::SortByLowBurst>::iterator it = lower_bound(mPtr->readySet.begin(), mPtr->readySet.end(), pid);
 			mPtr->readySet.erase(it);
 		}
 		else if (locationCode == "j"){
-			set<int,SortBySize>::iterator it = lower_bound(mPtr->jobPool.begin(), mPtr->jobPool.end(), pid);
+			set<int, Memory::SortBySize>::iterator it = lower_bound(mPtr->jobPool.begin(), mPtr->jobPool.end(), pid);
 			mPtr->jobPool.erase(it);
 		}
 		else if (locationCode[0] == 'c'){
@@ -653,11 +651,11 @@ using namespace std;
 			int dequeNum = atoi(dequeNum_str.c_str());
 
 			if (locationCode[1] == '1'){
-				set<int,SortByHighTrack>::iterator it = lower_bound(mPtr->diskSets1[dequeNum].begin(), mPtr->diskSets1[dequeNum].end(), pid);
+				set<int,Memory::SortByHighTrack>::iterator it = lower_bound(mPtr->diskSets1[dequeNum].begin(), mPtr->diskSets1[dequeNum].end(), pid);
 				mPtr->diskSets1[dequeNum].erase(it);
 			}
 			else { // if locationCode[1] == '0'
-				set<int,SortByLowTrack>::iterator it = lower_bound(mPtr->diskSets0[dequeNum].begin(), mPtr->diskSets0[dequeNum].end(), pid);
+				set<int,Memory::SortByLowTrack>::iterator it = lower_bound(mPtr->diskSets0[dequeNum].begin(), mPtr->diskSets0[dequeNum].end(), pid);
 				mPtr->diskSets0[dequeNum].erase(it);
 			}
 		}
@@ -792,6 +790,7 @@ void Cpu::printProcessInfo(const int& pid){
 	 cerr << "Enter a new track number and try again." << '\n';
 	 return false;
  }
+ 	
 
 	template <typename T>
 	void Cpu::checkForAndRemoveSystemCallinSet(const T& it){
@@ -813,6 +812,7 @@ void Cpu::printProcessInfo(const int& pid){
 		}
 		cout << "A system call has completed" << '\n' << '\n';
 	}
+
 
 	//Returns the result of the algorithm based on the current process' values
   float Cpu::sjwAlgorithm(){

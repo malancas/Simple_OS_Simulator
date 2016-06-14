@@ -8,7 +8,7 @@ struct Snapshot {
   ostringstream os;
 
 
-  Snapshot(Memory m);
+  Snapshot(Memory* ptr);
 
 
   void snapshotHeader();

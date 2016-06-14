@@ -7,7 +7,7 @@ using namespace std;
 
 int main(){
   Memory m;
-  
+  Memory* mPtr = &m;
   
   /*Sys gen
     This section of the program handles
@@ -16,7 +16,7 @@ int main(){
     initialize data structures like device queues
     to set up for the Running phase of the program
   */
-  Sysgen s(m);
+  Sysgen s(mPtr);
   s.getInstallerInput();
 
   /*Running
@@ -25,9 +25,8 @@ int main(){
     destruction of processes, the CPU, and device system
     calls. 
   */
-  //m.waitForInput();
-  //Cpu c;
-  //c.waitForInput();
+  Cpu c(mPtr);
+  c.waitForInput();
 
   return 0;
 }

@@ -5,7 +5,7 @@ using namespace std;
 struct JobHandling {
 	Memory* mPtr;
 
-	JobHandling(Memory m);
+	JobHandling(Memory* ptr);
 
 	int searchForAndEraseJobThatFitsInMemory();
 
