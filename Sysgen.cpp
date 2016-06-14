@@ -19,7 +19,7 @@ struct Sysgen {
 
   //CONSTRUCTORS
   Sysgen() : num(0), mPtr(nullptr) {}
-  Sysgen(Memory m) : num(0), mPtr(&m) {}
+  Sysgen(Memory* m) : num(0), mPtr(m) {}
 
   //FUNCTIONS
   /*
@@ -35,8 +35,6 @@ struct Sysgen {
 
     //Set the number of disk device deques
     getInstallerInput_aux("Enter the number of disk devices: ", 'o');
-    //diskSets0.resize(num);
-    //diskSets1.resize(num);
     mPtr->diskDeques0.resize(num);
     mPtr->diskDeques1.resize(num);
     mPtr->cylinders.resize(num);

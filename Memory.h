@@ -35,7 +35,7 @@ struct Memory {
   };
 
   //VARIABLES
-  
+
   //Holds boolean values, each corresponding
   //to the disk vector that is acting as the
   //scan vector.
@@ -47,7 +47,7 @@ struct Memory {
     and device deques to deal with ints instead
     of objects
   */
-  unordered_map<int, Process> processes;
+  static unordered_map<int, Process> processes;
 
   /*
     The current value of the counter is assigned

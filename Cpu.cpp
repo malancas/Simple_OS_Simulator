@@ -12,8 +12,8 @@
 #include <ctype.h>
 #include "Cpu.h"
 #include "Memory.h"
-#include "JobHandling.cpp"
-#include "Snapshot.cpp"
+#include "JobHandling.h"
+#include "Snapshot.h"
 
 using namespace std;
 
