@@ -105,6 +105,9 @@ struct Cpu {
 	inline float sjwAlgorithm();
 
 	void addProcessToDiskDeque(const int& pid, const int& dequeNum);
+
+	template <typename T>
+	void checkForDiskSets(const vector<multiset<int,Memory::T>>& diskSets, const int& num);
 };
 
 #endif

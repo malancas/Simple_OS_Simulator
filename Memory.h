@@ -112,15 +112,7 @@ struct Memory {
   
   deque<int> freeFrameList;
   
-  void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
-  
   void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
-  
-  bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
-  
-  bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
-  
-  bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
   
   vector<multiset<int,SortByLowTrack>> diskSets0;
   

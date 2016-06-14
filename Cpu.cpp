@@ -138,25 +138,12 @@ using namespace std;
 						checkForSystemCallinDeque(mPtr->printerDeques, num);
 					}
 					else if (input[0]=='D'){
-						if (mPtr->scanDiskDequesStatus[num-1] == 1){
-							if (mPtr->diskSets1.empty()){
-								cerr << "There are no queues of this type available" << '\n';
-								cerr << "Please enter a new command and try again" << '\n';
-							}
-							else {
-								vector<multiset<int,Memory::SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num-1);
-								checkForAndRemoveSystemCallinSet(it);
-							}
+						int n = num-1;
+						if (mPtr->scanDiskDequesStatus[n] == 1){
+							checkForDiskSets(mPtr->diskSets1, n);
 						}
 						else {
-							if (mPtr->diskSets0.empty()){
-								cerr << "There are no queues of this type available" << '\n';
-								cerr << "Please enter a new command and try again" << '\n';
-							}
-							else {
-								vector<multiset<int,Memory::SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num-1);
-								checkForAndRemoveSystemCallinSet(it);
-							}
+							checkForDiskSets(mPtr->diskSets0, n);
 						}
 					}
 					else if (input[0]=='C') {
@@ -835,3 +822,16 @@ void Cpu::printProcessInfo(const int& pid){
       }
     }
   }
+
+
+template <typename T>
+void Cpu::checkForDiskSets(const vector<multiset<int,Memory::T>>& diskSets, const int& num){
+  	if (diskSets.empty()){
+		cerr << "There are no queues of this type available" << '\n';
+		cerr << "Please enter a new command and try again" << '\n';
+	}
+	else {
+		typename vector<multiset<int,Memory::T>>::iterator it = diskSets.begin() + (num);
+		checkForAndRemoveSystemCallinSet(it);	
+	}
+}
