@@ -1,9 +1,0 @@
-#include <cassert>
-#include "../Cpu.h"
-#include "../Memory.h"
-
-int main(){
-  Memory m;
-  Cpu h;
-
-}
