@@ -12,15 +12,17 @@
 #include <ctype.h>
 #include "Cpu.h"
 #include "Memory.h"
-#include "Snapshot.h"
-#include "JobHandling.h"
+#include "SortByHighTrack.cpp"
+#include "SortByLowTrack.cpp"
+#include "SortByLowBurst.cpp"
+#include "SortBySize.cpp"
+
 using namespace std;
 
-Snapshot s;
-JobHandling j;
+//Snapshot s;
+//JobHandling j;
 
-	Cpu::Cpu() {}
-	Cpu::Cpu(Memory m) : mPtr(&m) {}
+	Cpu::Cpu(Memory m) : mPtr(&m), s(m), j(m) {}
 
 	//FUNCTIONS
 	void Cpu::waitForInput(){
@@ -36,32 +38,32 @@ JobHandling j;
 			//If the Cpu is empty and the user issues an 'A',
 			//a new process is created and added to the Cpu
 			if (input == "A"){
-				if (!emptyCpu){
+				if (!mPtr->emptyCpu){
 					handleInterruptandSystemCall(false);
 					//The current process is readded to the ready deque
-					readySet.insert(currProcess);
+					mPtr->readySet.insert(mPtr->currProcess);
 					//Its location code is changed
-					processes[currProcess].locationCode = "r";
-					emptyCpu = true;
+					mPtr->processes[mPtr->currProcess].locationCode = "r";
+					mPtr->emptyCpu = true;
 				}
 				if (getProcessSize()){
 					cout << "New process made!" << '\n';
-					processes.insert(make_pair(pidCounter,Process(pidCounter,initialBurstEstimate,intResult)));
-					processes[pidCounter].locationCode = "j";
-					jobPool.insert(pidCounter);
+					mPtr->processes.insert(make_pair(mPtr->pidCounter,Process(mPtr->pidCounter, mPtr->initialBurstEstimate, intResult)));
+					mPtr->processes[mPtr->pidCounter].locationCode = "j";
+					mPtr->jobPool.insert(mPtr->pidCounter);
 
-					++(pidCounter);
+					++(mPtr->pidCounter);
 
 					//Looks in the job pool for jobs that
 					//potentially fit in memory
 					j.addAsManyJobsAsPossibleToMemory();
 				}
 				//Choose a process to put in the Cpu
-				if (readyDeque.size()){
-					currProcess = readyDeque.front();
-					processes[currProcess].locationCode = "cpu";
-					readyDeque.pop_front();
-					emptyCpu = false;
+				if (mPtr->readyDeque.size()){
+					mPtr->currProcess = mPtr->readyDeque.front();
+					mPtr->processes[mPtr->currProcess].locationCode = "cpu";
+					mPtr->readyDeque.pop_front();
+					mPtr->emptyCpu = false;
 					cout << "The Cpu is now occupied!" << '\n' << '\n';
 				}
 			}
@@ -73,28 +75,28 @@ JobHandling j;
 
 				j.addAsManyJobsAsPossibleToMemory();
 
-				if (!readyDeque.empty()){
-					currProcess = readyDeque.front();
-					readyDeque.pop_front();
-					emptyCpu = false;
+				if (!mPtr->readyDeque.empty()){
+					mPtr->currProcess = mPtr->readyDeque.front();
+					mPtr->readyDeque.pop_front();
+					mPtr->emptyCpu = false;
 					cout << "A new process has been added to the Cpu." << '\n';
 				}
 				else {
-					emptyCpu = true;
+					mPtr->emptyCpu = true;
 				}
 			}
 
 			//If the user issues a system call in the form of either
 			//p<number>, d<number>, or c<number>
 			else if (input[0]=='p' || input[0]=='d' || input[0]=='c'){
-				if (emptyCpu){
+				if (mPtr->emptyCpu){
 					cerr << "The Cpu is empty, system calls cannot be made." <<'\n';
 					cerr << "Add a process with the A command before issuing a system call." << '\n' << '\n';
 				}
 
 				else {
-					if ((input[0]=='p' && !printerDeques.empty()) || (input[0]=='d' && !diskDeques0.empty())
-					 || (input[0]=='c' && !cdDeques.empty())){
+					if ((input[0]=='p' && !mPtr->printerDeques.empty()) || (input[0]=='d' && !mPtr->diskDeques0.empty())
+					 || (input[0]=='c' && !mPtr->cdDeques.empty())){
 						int num = 0;
 
 						//If the function determines the user's input is valid,
@@ -109,13 +111,13 @@ JobHandling j;
 							//added to the appropriate device deque
 							setSystemCallVariables(input[0], num);
 							cout << "System call added!" << '\n' << '\n';
-							if (!readyDeque.empty()){
-								currProcess = readyDeque.front();
-								readyDeque.pop_front();
-								emptyCpu = false;
+							if (!mPtr->readyDeque.empty()){
+								mPtr->currProcess = mPtr->readyDeque.front();
+								mPtr->readyDeque.pop_front();
+								mPtr->emptyCpu = false;
 							}
 							else {
-								emptyCpu = true;
+								mPtr->emptyCpu = true;
 							}
 						}
 					}
@@ -131,39 +133,39 @@ JobHandling j;
 				int num = 0;
 
 				handleInterruptandSystemCall(false);
-				readySet.insert(currProcess);
-				currProcess = readyDeque.front();
-				readyDeque.pop_front();
+				mPtr->readySet.insert(mPtr->currProcess);
+				mPtr->currProcess = mPtr->readyDeque.front();
+				mPtr->readyDeque.pop_front();
 
 				//If the user's input is determined to be valid
 				if (isSystemCallInputValid(input,num)){
 					if (input[0]=='P'){
-						checkForSystemCallinDeque(printerDeques, num);
+						checkForSystemCallinDeque(mPtr->printerDeques, num);
 					}
 					else if (input[0]=='D'){
-						if (scanDiskDequesStatus[num-1] == 1){
-							if (diskSets1.empty()){
+						if (mPtr->scanDiskDequesStatus[num-1] == 1){
+							if (mPtr->diskSets1.empty()){
 								cerr << "There are no queues of this type available" << '\n';
 								cerr << "Please enter a new command and try again" << '\n';
 							}
 							else {
-								vector<multiset<int,SortByHighCmp>>::iterator it = diskSets1.begin() + (num-1);
+								vector<multiset<int,SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num-1);
 								checkForAndRemoveSystemCallinSet(it);
 							}
 						}
 						else {
-							if (diskSets0.empty()){
+							if (mPtr->diskSets0.empty()){
 								cerr << "There are no queues of this type available" << '\n';
 								cerr << "Please enter a new command and try again" << '\n';
 							}
 							else {
-								vector<multiset<int,SortByLowCmp>>::iterator it = diskSets0.begin() + (num-1);
+								vector<multiset<int,SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num-1);
 								checkForAndRemoveSystemCallinSet(it);
 							}
 						}
 					}
 					else if (input[0]=='C') {
-						checkForSystemCallinDeque(cdDeques, num);
+						checkForSystemCallinDeque(mPtr->cdDeques, num);
 					}
 				}
 			}
@@ -175,17 +177,17 @@ JobHandling j;
 				printed to the terminal
 			*/
 			else if (input == "S"){
-	if (!emptyCpu){
+	if (!mPtr->emptyCpu){
 		handleInterruptandSystemCall(false);
-		readySet.insert(currProcess);
-		currProcess = readyDeque.front();
-		readyDeque.pop_front();
+		mPtr->readySet.insert(mPtr->currProcess);
+		mPtr->currProcess = mPtr->readyDeque.front();
+		mPtr->readyDeque.pop_front();
 	}
 
 				cout << "Enter r, p, c, d, m, or j: ";
 				cin >> input; cout << '\n';
 				if (input != "r" && input != "p" && input != "c" && input != "d" &&
-			input != "m" && input != "j"){
+				input != "m" && input != "j"){
 					cerr << "The characters entered are not supported by Snapshot." << '\n';
 					cerr << "Enter a new command and try again." << '\n' << '\n';
 				}
@@ -227,13 +229,13 @@ JobHandling j;
 	string in;
 	cout << "Enter the pid of the process to kill: ";
 	cin >> in;
-	while (!intOrFloatErrorCheck(in, true, true) && intResult < pidCounter){
+	while (!intOrFloatErrorCheck(in, true, true) && intResult < mPtr->pidCounter){
 		cin >> in;
 	}
-	if (intResult == currProcess){
+	if (intResult == mPtr->currProcess){
 		handleInterruptandSystemCall(true);
 	}
-	else if (!emptyCpu){
+	else if (!mPtr->emptyCpu){
 		handleInterruptandSystemCall(false);
 	}
 
@@ -276,19 +278,19 @@ JobHandling j;
 					of chosen device deques present
 				*/
 				if (input[0] == 'p' || input[0] == 'P'){
-					return checkIfsysCallNumLargerThanDevDeque(printerDeques, num);
+					return checkIfsysCallNumLargerThanDevDeque(mPtr->printerDeques, num);
 
 				}
 				else if (input[0] == 'd' || input[0] == 'D'){
-					if (scanDiskDequesStatus[num-1] == 1){
-						return checkIfsysCallNumLargerThanDevDeque(diskDeques1,num);
+					if (mPtr->scanDiskDequesStatus[num-1] == 1){
+						return checkIfsysCallNumLargerThanDevDeque(mPtr->diskDeques1, num);
 					}
-					return checkIfsysCallNumLargerThanDevDeque(diskDeques0,num);
+					return checkIfsysCallNumLargerThanDevDeque(mPtr->diskDeques0, num);
 
 					//return checkIfsysCallNumLargerThanSet(num);
 				}
 				else { //input[0] == 'c' || input[0] == 'C'
-					return checkIfsysCallNumLargerThanDevDeque(cdDeques, num);
+					return checkIfsysCallNumLargerThanDevDeque(mPtr->cdDeques, num);
 				}
 			}
 		}
@@ -315,19 +317,19 @@ JobHandling j;
 		if (name.length() > 20){
 			name.resize(20);
 		}
-		processes[currProcess].name = name;
+		mPtr->processes[mPtr->currProcess].name = name;
 
 		string memStart = "";
 		int n = 0;
 
 		cout << "Enter the starting location in memory: ";
 		cin >> memStart;
-		while (!isStringValidHexNumber(memStart) || !isLogicalAddressInRange(currProcess,memStart)){
+		while (!isStringValidHexNumber(memStart) || !isLogicalAddressInRange(mPtr->currProcess, memStart)){
 			cin >> memStart;
 		}
-		processes[currProcess].logicalMemoryAddress = memStart;
-		computePhysicalAddress(currProcess, memStart);
-		cout << "Physical address: " << hex << "0x" << processes[currProcess].physicalAddress << '\n' << '\n';
+		mPtr->processes[mPtr->currProcess].logicalMemoryAddress = memStart;
+		computePhysicalAddress(mPtr->currProcess, memStart);
+		cout << "Physical address: " << hex << "0x" << mPtr->processes[mPtr->currProcess].physicalAddress << '\n' << '\n';
 
 		/*
 			If the system call is not for a printing device,
@@ -343,10 +345,10 @@ JobHandling j;
 			while (!typeErrorChecking(typeIn)){
 				cin >> typeIn;
 			}
-			processes[currProcess].type = typeIn;
+			mPtr->processes[mPtr->currProcess].type = typeIn;
 		}
 		else {
-			processes[currProcess].type = "w";
+			mPtr->processes[mPtr->currProcess].type = "w";
 		}
 
 		/*
@@ -355,7 +357,7 @@ JobHandling j;
 			length of the file. The answer will be
 			verified as a valid interger.
 		*/
-		if (strcmp(processes[currProcess].type.c_str(),"w")==0){
+		if (strcmp(mPtr->processes[mPtr->currProcess].type.c_str(),"w")==0){
 			string input;
 
 			cout << '\n' << "Enter the length of the file: ";
@@ -363,7 +365,7 @@ JobHandling j;
 			while (!intOrFloatErrorCheck(input, true, false)){
 				cin >> input;
 			}
-			processes[currProcess].length = intResult;
+			mPtr->processes[mPtr->currProcess].length = intResult;
 		}
 
 		if (ch == 'd'){
@@ -373,7 +375,7 @@ JobHandling j;
 			while (!intOrFloatErrorCheck(input, true, true)|| !chosenTrackFitsOnDisk(intResult, num-1)){
 		cin >> input;
 			}
-			processes[currProcess].track = intResult;
+			mPtr->processes[mPtr->currProcess].track = intResult;
 		}
 
 		/*
@@ -382,15 +384,15 @@ JobHandling j;
 			will be added to the appropiate device deque
 		*/
 		if (ch == 'p'){
-			processes[currProcess].locationCode = "p" + to_string(num-1);
-			(printerDeques[num-1]).push_back(currProcess);
+			mPtr->processes[mPtr->currProcess].locationCode = "p" + to_string(num-1);
+			(mPtr->printerDeques[num-1]).push_back(mPtr->currProcess);
 		}
 		else if (ch == 'd'){
-			addProcessToDiskDeque(currProcess,num-1);
+			addProcessToDiskDeque(mPtr->currProcess, num-1);
 		}
 		else { //ch == 'c'
-			processes[currProcess].locationCode = "c" + to_string(num-1);
-			cdDeques[num-1].push_back(currProcess);
+			mPtr->processes[mPtr->currProcess].locationCode = "c" + to_string(num-1);
+			mPtr->cdDeques[num-1].push_back(mPtr->currProcess);
 		}
 	}
 
@@ -415,14 +417,14 @@ JobHandling j;
 			else {
 				int finishedProcess = devDeques[callNum-1].front();
 				devDeques[callNum-1].pop_front();
-				if (emptyCpu){
-					currProcess = finishedProcess;
-					emptyCpu = false;
-					processes[finishedProcess].locationCode = "cpu";
+				if (mPtr->emptyCpu){
+					mPtr->currProcess = finishedProcess;
+					mPtr->emptyCpu = false;
+					mPtr->processes[finishedProcess].locationCode = "cpu";
 				}
 				else {
-					readySet.insert(finishedProcess);
-					processes[finishedProcess].locationCode = "r";
+					mPtr->readySet.insert(finishedProcess);
+					mPtr->processes[finishedProcess].locationCode = "r";
 				}
 				cout << "A system call has completed" << '\n' << '\n';
 			}
@@ -456,7 +458,7 @@ JobHandling j;
 	}
 
 	bool Cpu::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
-		return cylinderNum < cylinderCount[dequeNum];
+		return cylinderNum < mPtr->cylinderCount[dequeNum];
 	}
 
 
@@ -522,7 +524,7 @@ JobHandling j;
 		}
 
 		//The current process' remaining burst and burst estimate are updated
-		unordered_map<int,Process>::iterator it = processes.find(currProcess);
+		unordered_map<int,Process>::iterator it = mPtr->processes.find(mPtr->currProcess);
 		it->second.totalCpuTime += floatResult;
 
 		if (!burstIsComplete){
@@ -536,22 +538,22 @@ JobHandling j;
 	}
 
 	void Cpu::terminateProcess(){
-		if (emptyCpu){
+		if (mPtr->emptyCpu){
 			cerr << "The Cpu is unoccupied, no process present to be terminated" << '\n' << '\n';
 		}
 		else {
 			//Ask for time in Cpu. Update burst time etc.
 			handleInterruptandSystemCall(true);
 
-			unordered_map<int,Process>::iterator it = processes.find(currProcess);
+			unordered_map<int,Process>::iterator it = mPtr->processes.find(mPtr->currProcess);
 
 			//Memory used by the process is returned to the freeMemory counter
-			freeMemory += it->second.size;
+			mPtr->freeMemory += it->second.size;
 
 			os << "Process terminated" << '\n';
 			os << "------------------" << '\n';
 			os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
-			os << currProcess << setw(10) << it->second.totalCpuTime << setw(20);
+			os << mPtr->currProcess << setw(10) << it->second.totalCpuTime << setw(20);
 			if (it->second.cpuUsageCount > 0){
 				os << (it->second.totalCpuTime / it->second.cpuUsageCount);
 			}
@@ -564,11 +566,11 @@ JobHandling j;
 			//terminated process' corresponding variables. This updates the system's average
 			//total Cpu time
 			if (it->second.cpuUsageCount > 0){
-				systemTotalCpuTime += it->second.totalCpuTime;
-				systemTotalcpuUsageCount += it->second.cpuUsageCount;
+				mPtr->systemTotalCpuTime += it->second.totalCpuTime;
+				mPtr->systemTotalcpuUsageCount += it->second.cpuUsageCount;
 			}
 
-			processes.erase(currProcess);
+			mPtr->processes.erase(mPtr->currProcess);
 
 			os << '\n';
 		}
@@ -589,16 +591,16 @@ JobHandling j;
 		while (!intOrFloatErrorCheck(input, true, false)){
 			cin >> input;
 		}
-		if (intResult > totalMemorySize){
+		if (intResult > mPtr->totalMemorySize){
 			cerr << "Process rejected" << '\n';
-			cerr << "The number entered is larger than total memory size of " << totalMemorySize << '\n';
+			cerr << "The number entered is larger than total memory size of " << mPtr->totalMemorySize << '\n';
 			cerr << "Please announce the arrival of a new process with a different number and and try again." << '\n' << '\n';
 			return false;
 		}
-		if (intResult > maximumProcessSize){
+		if (intResult > mPtr->maximumProcessSize){
 			cerr << "Process rejected" << '\n';
 			cerr << "The number entered is larger than the largest process size specified (" <<
-	maximumProcessSize << ")" << '\n';
+				mPtr->maximumProcessSize << ")" << '\n';
 			cerr << "Please announce the arrival of a new process with a different number and try again." << '\n' << '\n';
 			return false;
 		}
@@ -611,56 +613,56 @@ JobHandling j;
 	*/
 	void Cpu::killProcess(const int& pid){
 		restoreFrameTableAndFreeFrameList(pid);
-		freeMemory += processes[pid].size;
+		mPtr->freeMemory += mPtr->processes[pid].size;
 
-		string locationCode = processes[pid].locationCode;
+		string locationCode = mPtr->processes[pid].locationCode;
 		if (locationCode == "cpu"){
-			if (readyDeque.size()){
-	currProcess = readyDeque.front();
-	readyDeque.pop_front();
+			if (mPtr->readyDeque.size()){
+				mPtr->currProcess = mPtr->readyDeque.front();
+				mPtr->readyDeque.pop_front();
 			}
-			currProcess = -1;
-			emptyCpu = true;
+			mPtr->currProcess = -1;
+			mPtr->emptyCpu = true;
 		}
 		//Since every pid is unique, lower_bound or upper_bound can be used below
 		//to find the pid in question
 		else if (locationCode == "r"){
-			set<int,SortByLowBurst>::iterator it = lower_bound(readySet.begin(), readySet.end(), pid);
-			readySet.erase(it);
+			set<int,SortByLowBurst>::iterator it = lower_bound(mPtr->readySet.begin(), mPtr->readySet.end(), pid);
+			mPtr->readySet.erase(it);
 		}
 		else if (locationCode == "j"){
-			set<int,SortBySize>::iterator it = lower_bound(jobPool.begin(), jobPool.end(), pid);
-			jobPool.erase(it);
+			set<int,SortBySize>::iterator it = lower_bound(mPtr->jobPool.begin(), mPtr->jobPool.end(), pid);
+			mPtr->jobPool.erase(it);
 		}
 		else if (locationCode[0] == 'c'){
 			string dequeNum_str = locationCode.substr(1);
 			int dequeNum = atoi(dequeNum_str.c_str());
 
-			deque<int>::iterator it = lower_bound(cdDeques[dequeNum].begin(), cdDeques[dequeNum].end(), pid);
-			cdDeques[dequeNum].erase(it);
+			deque<int>::iterator it = lower_bound(mPtr->cdDeques[dequeNum].begin(), mPtr->cdDeques[dequeNum].end(), pid);
+			mPtr->cdDeques[dequeNum].erase(it);
 		}
 		else if (locationCode[0] == 'p'){
 			string dequeNum_str = locationCode.substr(1);
 			int dequeNum = atoi(dequeNum_str.c_str());
 
-			deque<int>::iterator it = lower_bound(printerDeques[dequeNum].begin(), printerDeques[dequeNum].end(), pid);
-			printerDeques[dequeNum].erase(it);
+			deque<int>::iterator it = lower_bound(mPtr->printerDeques[dequeNum].begin(), mPtr->printerDeques[dequeNum].end(), pid);
+			mPtr->printerDeques[dequeNum].erase(it);
 		}
 		else { //locationCode[0] == 'd'
 			string dequeNum_str = locationCode.substr(2);
 			int dequeNum = atoi(dequeNum_str.c_str());
 
 			if (locationCode[1] == '1'){
-				set<int,SortByHighCmp>::iterator it = lower_bound(diskSets1[dequeNum].begin(), diskSets1[dequeNum].end(), pid);
-				diskSets1[dequeNum].erase(it);
+				set<int,SortByHighTrack>::iterator it = lower_bound(mPtr->diskSets1[dequeNum].begin(), mPtr->diskSets1[dequeNum].end(), pid);
+				mPtr->diskSets1[dequeNum].erase(it);
 			}
 			else { // if locationCode[1] == '0'
-				set<int,SortByLowCmp>::iterator it = lower_bound(diskSets0[dequeNum].begin(), diskSets0[dequeNum].end(), pid);
-				diskSets0[dequeNum].erase(it);
+				set<int,SortByLowTrack>::iterator it = lower_bound(mPtr->diskSets0[dequeNum].begin(), mPtr->diskSets0[dequeNum].end(), pid);
+				mPtr->diskSets0[dequeNum].erase(it);
 			}
 		}
 		printProcessInfo(intResult);
-		processes.erase(pid);
+		mPtr->processes.erase(pid);
 	}
 
 
@@ -694,7 +696,7 @@ bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
 		sub = hex_str;
 	}
 	int converted = (int)strtol(sub.c_str(),nullptr,16);//convert to decimal
-	if (converted >= 0 && converted <= pageSize * processes[pid].pageTable.size()){
+	if (converted >= 0 && converted <= mPtr->pageSize * mPtr->processes[pid].pageTable.size()){
 		return true;
 	}
 	cerr << "The logical address entered isn't in range of the process' size" << '\n';
@@ -708,7 +710,7 @@ bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
 void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
 	//Use 0 instead of 16 for third parameter if the hex
 	//string begins with 0x
-	unordered_map<int,Process>::iterator it = processes.find(pid);
+	unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
 	int decimalValue;
 	string subbed = "";
 	if (hex_str[0] == '0' && hex_str[1] == 'x'){
@@ -719,46 +721,46 @@ void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
 	}
 	decimalValue = (int)strtol(subbed.c_str(),nullptr,16);
 
-	int offset = decimalValue % pageSize;
+	int offset = decimalValue % mPtr->pageSize;
 
 	int pageCount = it->second.pageTable.size();
 	int correspondingPage;
 	int i = 1;
 	bool found = false;
 	while (i < pageCount+1 && !found){
-		if (decimalValue < i*pageSize){
+		if (decimalValue < i * mPtr->pageSize){
 			correspondingPage = i-1;
 			found = true;
 		}
 		++i;
 	}
 	int physicalPage = it->second.pageTable[correspondingPage];
-	processes[pid].physicalAddress = (physicalPage+1 * pageSize) + offset;
+	mPtr->processes[pid].physicalAddress = (physicalPage+1 * mPtr->pageSize) + offset;
 }
 
 
 void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
-	vector<int>::iterator it = processes[pid].pageTable.begin();
-	vector<int>::iterator itEnd = processes[pid].pageTable.end();
+	vector<int>::iterator it = mPtr->processes[pid].pageTable.begin();
+	vector<int>::iterator itEnd = mPtr->processes[pid].pageTable.end();
 
 	while (it != itEnd){
 		//Reset the pid and page vector slots
 		//to -1
-		frameTable[*it] = {-1,-1};
+		mPtr->frameTable[*it] = {-1,-1};
 
 		//Add the missing frames back to the
 		//freeFrameList
-		freeFrameList.push_back(*it);
+		mPtr->freeFrameList.push_back(*it);
 		++it;
 	}
 }
 
 
 void Cpu::printProcessInfo(const int& pid){
-	unordered_map<int,Process>::iterator it = processes.find(pid);
+	unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
 
 	//Memory used by the process is returned to the freeMemory counter
-	freeMemory += it->second.size;
+	mPtr->freeMemory += it->second.size;
 
 	os << "Process killed" << '\n';
 	os << "------------------" << '\n';
@@ -776,8 +778,8 @@ void Cpu::printProcessInfo(const int& pid){
 	//terminated process' corresponding variables. This updates the system's average
 	//total Cpu time
 	if (it->second.cpuUsageCount > 0){
-		systemTotalCpuTime += it->second.totalCpuTime;
-		systemTotalcpuUsageCount += it->second.cpuUsageCount;
+		mPtr->systemTotalCpuTime += it->second.totalCpuTime;
+		mPtr->systemTotalcpuUsageCount += it->second.cpuUsageCount;
 	}
 	cout << os.str();
 	os.str("");
@@ -785,7 +787,7 @@ void Cpu::printProcessInfo(const int& pid){
 }
 
  bool Cpu::chosenTrackFitsOnDisk(const int& track, const int& diskNum){
-	 if (track < cylinderCount[diskNum]){return true;}
+	 if (track < mPtr->cylinderCount[diskNum]){return true;}
 	 cerr << "The track entered is higher than the number of tracks on the disk" << '\n';
 	 cerr << "Enter a new track number and try again." << '\n';
 	 return false;
@@ -800,14 +802,39 @@ void Cpu::printProcessInfo(const int& pid){
 		//Else the system call at the front of the set is removed
 		int finishedProcess = *(it->begin());
 		it->erase(it->begin());
-		if (emptyCpu){
-			currProcess = finishedProcess;
-			emptyCpu = false;
-			processes[finishedProcess].locationCode = "cpu";
+		if (mPtr->emptyCpu){
+			mPtr->currProcess = finishedProcess;
+			mPtr->emptyCpu = false;
+			mPtr->processes[finishedProcess].locationCode = "cpu";
 		}
 		else {
-			readySet.insert(finishedProcess);
-			processes[finishedProcess].locationCode = "r";
+			mPtr->readySet.insert(finishedProcess);
+			mPtr->processes[finishedProcess].locationCode = "r";
 		}
 		cout << "A system call has completed" << '\n' << '\n';
 	}
+
+	//Returns the result of the algorithm based on the current process' values
+  float Cpu::sjwAlgorithm(){
+    return (1 - mPtr->historyParameter) * mPtr->processes[mPtr->currProcess].burstEstimate + mPtr->historyParameter * floatResult;
+  }
+
+
+  void Cpu::addProcessToDiskDeque(const int& pid, const int& dequeNum){
+    if (mPtr->firstDiskSystemCall){
+      mPtr->diskSets0[dequeNum].insert(pid);
+      mPtr->firstDiskSystemCall = false;
+    }
+    else {
+      if (mPtr->scanDiskDequesStatus[dequeNum] == 1){
+      	//addProcessToWaitingDeque(pid,dequeNum,true);
+        mPtr->processes[pid].locationCode = "d0" + to_string(dequeNum);
+        mPtr->diskSets0[dequeNum].insert(pid);
+      }
+      else {
+      	//addProcessToWaitingDeque(pid,dequeNum,false);
+        mPtr->processes[pid].locationCode = "d1" + to_string(dequeNum);
+        mPtr->diskSets1[dequeNum].insert(pid);
+      }
+    }
+  }

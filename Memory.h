@@ -9,6 +9,9 @@
 #include <set>
 #include <stdio.h>
 #include "Process.cpp"
+#include "SortByHighTrack.cpp"
+#include "SortByLowTrack.cpp"
+
 using namespace std;
 
 struct Memory {
@@ -93,22 +96,22 @@ struct Memory {
   static deque<int> freeFrameList;
 
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
-  void addProcessToDiskDeque(const int& pid, const int& dequeNum);
   void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
   //void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
-  float sjwAlgorithm();
   void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
   static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
   static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
 
-  struct SortByLowCmp{
+
+  struct SortByLowTrack{
 		bool operator() (const int& x, const int& y) { return processes[x].track < processes[y].track; }
   };
 
-  struct SortByHighCmp{
+  struct SortByHighTrack{
 		bool operator() (const int& x, const int& y) { return processes[x].track > processes[y].track; }
   };
+
 
   struct SortByLowBurst{
   	bool operator() (const int& x, const int& y) { return processes[x].remainingBurst < processes[y].remainingBurst; }
@@ -123,8 +126,8 @@ struct Memory {
   {return processes[x].size < processes[y].size;};
 */
 
-  static vector<multiset<int,SortByLowCmp>> diskSets0;
-  static vector<multiset<int,SortByHighCmp>> diskSets1;
+  static vector<multiset<int,SortByLowTrack>> diskSets0;
+  static vector<multiset<int,SortByHighTrack>> diskSets1;
   static set<int,SortByLowBurst> readySet;
   static set<int,SortBySize> jobPool;
 };

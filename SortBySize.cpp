@@ -1,5 +1,7 @@
 #include "Memory.h"
 
+using namespace std;
+
 struct SortBySize{
 	Memory* mPtr;
 

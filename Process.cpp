@@ -6,7 +6,7 @@ using namespace std;
 
 struct Process {
   //VARIABLES
-    
+
   int pid;
     
   //Whether the process is read or write

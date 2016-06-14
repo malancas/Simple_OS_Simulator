@@ -52,38 +52,14 @@ using namespace std;
 	vector<vector<int>> Memory::frameTable = {};
 	deque<int> Memory::freeFrameList = {};
 
-  vector<multiset<int,Memory::SortByLowCmp>> Memory::diskSets0 = {};
-  vector<multiset<int,Memory::SortByHighCmp>> Memory::diskSets1 = {};
+  vector<multiset<int,Memory::SortByLowTrack>> Memory::diskSets0 = {};
+  vector<multiset<int,Memory::SortByHighTrack>> Memory::diskSets1 = {};
   set<int,Memory::SortByLowBurst> Memory::readySet = {};
   set<int,Memory::SortBySize> Memory::jobPool = {};
 
 
   Memory::Memory() {};
 
-  void Memory::addProcessToDiskDeque(const int& pid, const int& dequeNum){
-    if (firstDiskSystemCall){
-      diskSets0[dequeNum].insert(pid);
-      firstDiskSystemCall = false;
-    }
-    else {
-      if (scanDiskDequesStatus[dequeNum] == 1){
-      	//addProcessToWaitingDeque(pid,dequeNum,true);
-        processes[pid].locationCode = "d0" + to_string(dequeNum);
-        diskSets0[dequeNum].insert(pid);
-      }
-      else {
-      	//addProcessToWaitingDeque(pid,dequeNum,false);
-        processes[pid].locationCode = "d1" + to_string(dequeNum);
-        diskSets1[dequeNum].insert(pid);
-      }
-    }
-  }
-
-
-  //Returns the result of the algorithm based on the current process' values
-  float Memory::sjwAlgorithm(){
-    return (1 - historyParameter) * processes[currProcess].burstEstimate + historyParameter * floatResult;
-  }
 
   void Memory::checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum){
     if (!devDeques.empty()){

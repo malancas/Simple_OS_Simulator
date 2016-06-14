@@ -7,11 +7,10 @@
 #include <vector>
 #include <algorithm>
 #include "Memory.h"
+#include "JobHandling.h"
+#include "Snapshot.h"
 
 using namespace std;
-
-struct Process;
-struct Snapshot;
 
 struct Cpu {
 	//VARIABLES
@@ -30,8 +29,11 @@ struct Cpu {
 	//Used to access and modify variables in the Memory object
 	Memory* mPtr;
 
+	Snapshot s;
+
+	JobHandling j;
+
 	//CONTRUCTORS
-	Cpu();
 	Cpu(Memory m);
 
 	//FUNCTIONS
@@ -99,6 +101,10 @@ struct Cpu {
 
 	template <typename T>
 	void checkForAndRemoveSystemCallinSet(const T& it);
+
+	inline float sjwAlgorithm();
+
+	void addProcessToDiskDeque(const int& pid, const int& dequeNum);
 };
 
 #endif
