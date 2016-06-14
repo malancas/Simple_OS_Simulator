@@ -16,10 +16,8 @@ struct Snapshot {
 
   void snapshotHeader();
 
-  /*
-    Prints the data of each process in the chosen device deque
-    Each process gets its own line
-  */
+  //Prints the data of each process in the chosen device deque
+  //Each process gets its own line
   template<typename T>
   void snapshotPrint(T& itB, T& itE);
 

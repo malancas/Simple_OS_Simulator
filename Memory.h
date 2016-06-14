@@ -21,60 +21,55 @@ struct Memory {
     and device deques to deal with ints instead
     of objects
   */
-  static unordered_map<int, Process> processes;
+  unordered_map<int, Process> processes;
 
   /*
     The current value of the counter is assigned
     to new processes by incrementing to insure
     each has a unique PID
   */
-  static int pidCounter;
+  int pidCounter;
 
   /*
     Also represented with α, used in the SJF
     approximation calculation
   */
-  static float historyParameter;
+  float historyParameter;
 
-  /*
-    The initial burst estimate
-  */
-  static float initialBurstEstimate;
+  float initialBurstEstimate;
 
-  static bool firstDiskSystemCall;
+  bool firstDiskSystemCall;
 
-  static float systemTotalCpuTime;
+  float systemTotalCpuTime;
 
-  static int systemTotalcpuUsageCount;
+  int systemTotalcpuUsageCount;
 
-  //Signals whether the CPU is empty
-  static bool emptyCpu;
+  bool emptyCpu;
 
   //Contains the pid of the process
   //currently using the CPU
-  static int currProcess;
+  int currProcess;
 
-  static int intResult;
+  int intResult;
 
-  static float floatResult;
+  float floatResult;
 
-  static int totalMemorySize;
+  int totalMemorySize;
 
-  static int freeMemory;
+  int freeMemory;
 
-  static int maximumProcessSize;
+  int maximumProcessSize;
 
-  static int pageSize;
+  int pageSize;
 
-  /*
-    Number of cylinders in the hard drive
-  */
-  static vector<int> cylinderCount;
+  
+//Represents cylinders in the hard drive
+vector<int> cylinders;
 
   //Holds boolean values, each corresponding
   //to the disk vector that is acting as the
   //scan vector.
-  static vector<bool> scanDiskDequesStatus;
+  vector<bool> scanDiskDequesStatus;
 
   //CONTRUCTORS
   Memory();
@@ -85,21 +80,21 @@ struct Memory {
     device deques specified during the sys gen
     phase. Each of these deques contains PIDS
   */
-  static deque<int> readyDeque;
-  static vector<deque<int>> printerDeques;
-  static vector<deque<int>> cdDeques;
-  static vector<deque<int>> diskDeques0;
-  static vector<deque<int>> diskDeques1;
-  static vector<vector<int>> frameTable;
-  static deque<int> freeFrameList;
+   deque<int> readyDeque;
+   vector<deque<int>> printerDeques;
+   vector<deque<int>> cdDeques;
+   vector<deque<int>> diskDeques0;
+   vector<deque<int>> diskDeques1;
+   vector<vector<int>> frameTable;
+   deque<int> freeFrameList;
 
   //void addProcessToWaitingDeque(const int& pid, const int& dequeNum, const bool& zeroIsWaiting);
   void checkForSystemCallinDiskDeque(const int& callNum, const bool& zeroIsWaiting);
   //void checkForSystemCallinDiskSet(const int& callNum, const bool& zeroIsWaiting);
   void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
-  static bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
-  static bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
-  static bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
+   bool sortByLowestTrackFirst(const int& lhs, const int& rhs);
+   bool sortByHighestTrackFirst(const int& lhs, const int& rhs);
+   bool sortByLargestSizeFirst(const int& lhs, const int& rhs);
 
   struct SortByLowTrack{
 		bool operator() (const int& x, const int& y) { return processes[x].track < processes[y].track; }
@@ -122,10 +117,10 @@ struct Memory {
   {return processes[x].size < processes[y].size;};
 */
 
-  static vector<multiset<int,SortByLowTrack>> diskSets0;
-  static vector<multiset<int,SortByHighTrack>> diskSets1;
-  static set<int,SortByLowBurst> readySet;
-  static set<int,SortBySize> jobPool;
+   vector<multiset<int,SortByLowTrack>> diskSets0;
+   vector<multiset<int,SortByHighTrack>> diskSets1;
+   set<int,SortByLowBurst> readySet;
+   set<int,SortBySize> jobPool;
 };
 
 #endif

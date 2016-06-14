@@ -17,9 +17,6 @@
 
 using namespace std;
 
-//Snapshot s;
-//JobHandling j;
-
 	Cpu::Cpu(Memory* ptr) : mPtr(ptr), s(ptr), j(ptr) {}
 
 	//FUNCTIONS
@@ -456,7 +453,7 @@ using namespace std;
 	}
 
 	bool Cpu::isCylinderChoiceValid(const int& cylinderNum, const int& dequeNum){
-		return cylinderNum < mPtr->cylinderCount[dequeNum];
+		return cylinderNum < mPtr->cylinders[dequeNum];
 	}
 
 
@@ -785,7 +782,7 @@ void Cpu::printProcessInfo(const int& pid){
 }
 
  bool Cpu::chosenTrackFitsOnDisk(const int& track, const int& diskNum){
-	 if (track < mPtr->cylinderCount[diskNum]){return true;}
+	 if (track < mPtr->cylinders[diskNum]){return true;}
 	 cerr << "The track entered is higher than the number of tracks on the disk" << '\n';
 	 cerr << "Enter a new track number and try again." << '\n';
 	 return false;

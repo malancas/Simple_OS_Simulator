@@ -41,7 +41,7 @@ using namespace std;
 
   int Memory::pageSize = 0;
 
-  vector<int> Memory::cylinderCount = {};
+  vector<int> Memory::cylinders = {};
 
   vector<bool> Memory::scanDiskDequesStatus = {};
 

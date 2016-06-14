@@ -39,7 +39,7 @@ struct Sysgen {
     //diskSets1.resize(num);
     mPtr->diskDeques0.resize(num);
     mPtr->diskDeques1.resize(num);
-    mPtr->cylinderCount.resize(num);
+    mPtr->cylinders.resize(num);
     mPtr->scanDiskDequesStatus.resize(num);
 
     //The elements are set to false, meaning that scanDiskDeques0 will
@@ -60,14 +60,14 @@ struct Sysgen {
     cout << "Initial burst estimate: " << mPtr->initialBurstEstimate << '\n';
 
     //Set the number of cylinders in each disk device
-    int n = mPtr->cylinderCount.size();
+    int n = mPtr->cylinders.size();
     //The two strings are used to create the message used in the user prompt.
     //The message's content depends on which disk device it asking about.
     string messageBase = "Enter the number of cylinders in disk device: ";
     string messageEnd = ": ";
     for (int i = 0; i < n; ++i){
       getInstallerInput_aux(messageBase+to_string(i+1)+messageEnd, 'o');
-      mPtr->cylinderCount[i] = num;
+      mPtr->cylinders[i] = num;
     }
 
     //Set the total memory size in the OS
