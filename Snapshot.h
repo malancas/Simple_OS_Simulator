@@ -1,3 +1,6 @@
+#ifndef SNAPSHOT_H
+#define SNAPSHOT_H
+
 #include <sstream>
 #include "Memory.h"
 
@@ -36,3 +39,5 @@ struct Snapshot {
   //Prints average CPU usage time across the system
   void snapshotAux_memoryInformation();
 };
+
+#endif

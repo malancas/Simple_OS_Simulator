@@ -1,3 +1,6 @@
+#ifndef JOBHANDLING_H
+#define JOBHANDLING_H
+
 #include "Memory.h"
 
 using namespace std;
@@ -15,3 +18,5 @@ struct JobHandling {
 
 	void addAsManyJobsAsPossibleToMemory();
 };
+
+#endif
