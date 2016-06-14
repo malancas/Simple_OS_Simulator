@@ -5,7 +5,8 @@ using namespace std;
 
 int main(){
 	Memory m;
-	Cpu c(m);
+	Memory* mptr = &m;
+	Cpu c(mptr);
 
 	return 0;
 }
