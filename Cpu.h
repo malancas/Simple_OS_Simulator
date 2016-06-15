@@ -107,7 +107,7 @@ struct Cpu {
 	void addProcessToDiskDeque(const int& pid, const int& dequeNum);
 
 	template <typename T>
-	void checkForDiskSets(const vector<multiset<int,Memory::T>>& diskSets, const int& num);
+	void checkForDiskSets(const vector<multiset<int,T>>& diskSets, const int& num, const bool& isSet1);
 };
 
 #endif

@@ -140,10 +140,10 @@ using namespace std;
 					else if (input[0]=='D'){
 						int n = num-1;
 						if (mPtr->scanDiskDequesStatus[n] == 1){
-							checkForDiskSets(mPtr->diskSets1, n);
+							checkForDiskSets(mPtr->diskSets1, n, true);
 						}
 						else {
-							checkForDiskSets(mPtr->diskSets0, n);
+							checkForDiskSets(mPtr->diskSets0, n, false);
 						}
 					}
 					else if (input[0]=='C') {
@@ -825,13 +825,19 @@ void Cpu::printProcessInfo(const int& pid){
 
 
 template <typename T>
-void Cpu::checkForDiskSets(const vector<multiset<int,Memory::T>>& diskSets, const int& num){
+void Cpu::checkForDiskSets(const vector<multiset<int,T>>& diskSets, const int& num, const bool& isSet1){
   	if (diskSets.empty()){
 		cerr << "There are no queues of this type available" << '\n';
 		cerr << "Please enter a new command and try again" << '\n';
 	}
 	else {
-		typename vector<multiset<int,Memory::T>>::iterator it = diskSets.begin() + (num);
-		checkForAndRemoveSystemCallinSet(it);	
+		if (isSet1){
+			vector<multiset<int,Memory::SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num);
+			checkForAndRemoveSystemCallinSet(it);	
+		}
+		else {
+			vector<multiset<int,Memory::SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num);
+			checkForAndRemoveSystemCallinSet(it);	
+		}
 	}
 }
