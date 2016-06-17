@@ -14,7 +14,7 @@ struct Snapshot {
   Snapshot(Memory* ptr);
 
 
-  void snapshotHeader();
+  void header();
 
   //Prints the data of each process in the chosen device deque
   //Each process gets its own line
@@ -36,6 +36,8 @@ struct Snapshot {
 
   //Prints average CPU usage time across the system
   void snapshotAux_memoryInformation();
+
+  void handleInputChoice();
 };
 
 #endif

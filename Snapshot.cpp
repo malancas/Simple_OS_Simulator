@@ -11,7 +11,7 @@ Snapshot::Snapshot(Memory* ptr) : mPtr(ptr) {}
 		Prints a header for the snapshot function indicating what each value
 		 being printed signifies
 	*/
-	void Snapshot::snapshotHeader(){
+	void Snapshot::header(){
 		os << "PID " << setw(10) << "Filename " << setw(10) << "MemStart " << setw(10) << "R/W " << setw(10) << "Length " <<
 			setw(10) << "Total Cpu Time " << setw(10) << "Ave Burst Time " << '\n';
 	}
@@ -261,4 +261,40 @@ void Snapshot::snapshotAux_memoryInformation(){
 		++it;
 	}
 	os << '\n' << '\n';
+}
+
+void Snapshot::handleInputChoice(){
+	cout << "Enter r, p, c, d, m, or j: ";
+	cin >> input; cout << '\n';
+	if (input != "r" && input != "p" && input != "c" && input != "d" &&
+		input != "m" && input != "j"){
+		cerr << "The characters entered are not supported by Snapshot." << '\n';
+		cerr << "Enter a new command and try again." << '\n' << '\n';
+	}
+
+	else {
+		if (input == "d") {
+			header();
+			snapshotAux_Disk();
+			snapshotAux_SystemInformation();
+		}
+		else if (input == "r"){
+			snapshotAux_ReadyDeque();
+			snapshotAux_SystemInformation();
+		}
+		else if (input == "j"){
+			snapshotAux_JobPool();
+		}
+		else if (input == "m"){
+			snapshotAux_memoryInformation();
+		}
+		else {
+			header();
+			snapshotAux(input);
+			snapshotAux_SystemInformation();
+		}
+		cout << os.str();
+		os.str("");
+		os.clear();
+	}
 }

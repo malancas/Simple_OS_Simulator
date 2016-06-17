@@ -166,40 +166,7 @@ using namespace std;
 				mPtr->readyDeque.pop_front();
 				}
 
-				cout << "Enter r, p, c, d, m, or j: ";
-				cin >> input; cout << '\n';
-				if (input != "r" && input != "p" && input != "c" && input != "d" &&
-				input != "m" && input != "j"){
-					cerr << "The characters entered are not supported by Snapshot." << '\n';
-					cerr << "Enter a new command and try again." << '\n' << '\n';
-				}
-
-				else {
-					if (input == "d") {
-						s.snapshotHeader();
-						s.snapshotAux_Disk();
-						s.snapshotAux_SystemInformation();
-					}
-					else if (input == "r"){
-						s.snapshotAux_ReadyDeque();
-						s.snapshotAux_SystemInformation();
-					}
-					else if (input == "j"){
-						s.snapshotAux_JobPool();
-					}
-					else if (input == "m"){
-						s.snapshotAux_memoryInformation();
-					//System information/frame table with free frame list
-					}
-					else {
-						s.snapshotHeader();
-						s.snapshotAux(input);
-						s.snapshotAux_SystemInformation();
-					}
-					cout << os.str();
-					os.str("");
-					os.clear();
-				}
+				s.handleInputChoice();
 			}
 			/*
 				If the input's format is K<num>, where <num> is the
