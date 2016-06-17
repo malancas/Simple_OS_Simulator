@@ -112,8 +112,6 @@ struct Memory {
   
   deque<int> freeFrameList;
   
-  void checkForSystemCallinDeque(vector<deque<int>>& devDeques, const int& callNum);
-  
   vector<multiset<int,SortByLowTrack>> diskSets0;
   
   vector<multiset<int,SortByHighTrack>> diskSets1;
