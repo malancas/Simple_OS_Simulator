@@ -159,12 +159,12 @@ using namespace std;
 				printed to the terminal
 			*/
 			else if (input == "S"){
-	if (!mPtr->emptyCpu){
-		handleInterruptandSystemCall(false);
-		mPtr->readySet.insert(mPtr->currProcess);
-		mPtr->currProcess = mPtr->readyDeque.front();
-		mPtr->readyDeque.pop_front();
-	}
+				if (!mPtr->emptyCpu){
+				handleInterruptandSystemCall(false);
+				mPtr->readySet.insert(mPtr->currProcess);
+				mPtr->currProcess = mPtr->readyDeque.front();
+				mPtr->readyDeque.pop_front();
+				}
 
 				cout << "Enter r, p, c, d, m, or j: ";
 				cin >> input; cout << '\n';
@@ -184,21 +184,21 @@ using namespace std;
 						s.snapshotAux_ReadyDeque();
 						s.snapshotAux_SystemInformation();
 					}
-		else if (input == "j"){
-			s.snapshotAux_JobPool();
-		}
-		else if (input == "m"){
-			s.snapshotAux_memoryInformation();
-			//System information/frame table with free frame list
-		}
+					else if (input == "j"){
+						s.snapshotAux_JobPool();
+					}
+					else if (input == "m"){
+						s.snapshotAux_memoryInformation();
+					//System information/frame table with free frame list
+					}
 					else {
 						s.snapshotHeader();
 						s.snapshotAux(input);
 						s.snapshotAux_SystemInformation();
 					}
-		cout << os.str();
-		os.str("");
-		os.clear();
+					cout << os.str();
+					os.str("");
+					os.clear();
 				}
 			}
 			/*
@@ -208,21 +208,21 @@ using namespace std;
 				locations, remove it, and erase the process from the processes map
 			*/
 			else if (input == "K"){
-	string in;
-	cout << "Enter the pid of the process to kill: ";
-	cin >> in;
-	while (!intOrFloatErrorCheck(in, true, true) && intResult < mPtr->pidCounter){
-		cin >> in;
-	}
-	if (intResult == mPtr->currProcess){
-		handleInterruptandSystemCall(true);
-	}
-	else if (!mPtr->emptyCpu){
-		handleInterruptandSystemCall(false);
-	}
+				string in;
+				cout << "Enter the pid of the process to kill: ";
+				cin >> in;
+				while (!intOrFloatErrorCheck(in, true, true) && intResult < mPtr->pidCounter){
+					cin >> in;
+				}
+				if (intResult == mPtr->currProcess){
+					handleInterruptandSystemCall(true);
+				}
+				else if (!mPtr->emptyCpu){
+					handleInterruptandSystemCall(false);
+				}
 
 				killProcess(intResult);
-	j.addAsManyJobsAsPossibleToMemory();
+				j.addAsManyJobsAsPossibleToMemory();
 			}
 			else {
 				cerr << "The characters entered are not a valid command." << '\n';
