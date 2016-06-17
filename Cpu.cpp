@@ -648,132 +648,131 @@ using namespace std;
 	}
 
 
-//Checks if a string is a valid hexadecimal number
-bool Cpu::isStringValidHexNumber(const string& hex_str){
-	string sub = "";
-	if (hex_str[0] == '0' && hex_str[1] == 'x'){
-		sub = hex_str.substr(2);
-	}
-	else {
-		sub = hex_str;
-	}
-	for (auto i: sub){
-		if (!isxdigit(i)){
-			cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
-			cerr << "Enter a new hexadecimal value and try again." << '\n';
-			return false;
+	//Checks if a string is a valid hexadecimal number
+	bool Cpu::isStringValidHexNumber(const string& hex_str){
+		string sub = "";
+		if (hex_str[0] == '0' && hex_str[1] == 'x'){
+			sub = hex_str.substr(2);
 		}
-	}
-	return true;
-}
-
-
-//Checks if the chosen logical address is valid for the process in question
-bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
-	string sub = "";
-	if (hex_str[0] == '0' && hex_str[1] == 'x'){
-		sub = hex_str.substr(2);
-	}
-	else {
-		sub = hex_str;
-	}
-	int converted = (int)strtol(sub.c_str(),nullptr,16);//convert to decimal
-	if (converted >= 0 && converted <= mPtr->pageSize * mPtr->processes[pid].pageTable.size()){
+		else {
+			sub = hex_str;
+		}
+		for (auto i: sub){
+			if (!isxdigit(i)){
+				cerr << "The memory location entered is not a valid hexadecimal number." << '\n';
+				cerr << "Enter a new hexadecimal value and try again." << '\n';
+				return false;
+			}
+		}
 		return true;
 	}
-	cerr << "The logical address entered isn't in range of the process' size" << '\n';
-	cerr << "Enter a new hex value and try again." << '\n';
-	return false;
-}
 
 
-//Uses the logical hex memory to computer a corresponding physical address
-//in decimal
-void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
-	//Use 0 instead of 16 for third parameter if the hex
-	//string begins with 0x
-	unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
-	int decimalValue;
-	string subbed = "";
-	if (hex_str[0] == '0' && hex_str[1] == 'x'){
-		subbed = hex_str.substr(2);
-	}
-	else {
-		subbed = hex_str;
-	}
-	decimalValue = (int)strtol(subbed.c_str(),nullptr,16);
-
-	int offset = decimalValue % mPtr->pageSize;
-
-	int pageCount = it->second.pageTable.size();
-	int correspondingPage;
-	int i = 1;
-	bool found = false;
-	while (i < pageCount+1 && !found){
-		if (decimalValue < i * mPtr->pageSize){
-			correspondingPage = i-1;
-			found = true;
+	//Checks if the chosen logical address is valid for the process in question
+	bool Cpu::isLogicalAddressInRange(const int& pid, const string& hex_str){
+		string sub = "";
+		if (hex_str[0] == '0' && hex_str[1] == 'x'){
+			sub = hex_str.substr(2);
 		}
-		++i;
+		else {
+			sub = hex_str;
+		}
+		int converted = (int)strtol(sub.c_str(),nullptr,16);//convert to decimal
+		if (converted >= 0 && converted <= mPtr->pageSize * mPtr->processes[pid].pageTable.size()){
+			return true;
+		}
+		cerr << "The logical address entered isn't in range of the process' size" << '\n';
+		cerr << "Enter a new hex value and try again." << '\n';
+		return false;
 	}
-	int physicalPage = it->second.pageTable[correspondingPage];
-	mPtr->processes[pid].physicalAddress = (physicalPage+1 * mPtr->pageSize) + offset;
-}
 
 
-void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
-	vector<int>::iterator it = mPtr->processes[pid].pageTable.begin();
-	vector<int>::iterator itEnd = mPtr->processes[pid].pageTable.end();
+	//Uses the logical hex memory to computer a corresponding physical address
+	//in decimal
+	void Cpu::computePhysicalAddress(const int& pid, const string& hex_str){
+		//Use 0 instead of 16 for third parameter if the hex
+		//string begins with 0x
+		unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
+		int decimalValue;
+		string subbed = "";
+		if (hex_str[0] == '0' && hex_str[1] == 'x'){
+			subbed = hex_str.substr(2);
+		}
+		else {
+			subbed = hex_str;
+		}
+		decimalValue = (int)strtol(subbed.c_str(),nullptr,16);
 
-	while (it != itEnd){
-		//Reset the pid and page vector slots
-		//to -1
-		mPtr->frameTable[*it] = {-1,-1};
-
-		//Add the missing frames back to the
-		//freeFrameList
-		mPtr->freeFrameList.push_back(*it);
-		++it;
+		int offset = decimalValue % mPtr->pageSize;
+		int pageCount = it->second.pageTable.size();
+		int correspondingPage;
+		int i = 1;
+		bool found = false;
+		while (i < pageCount+1 && !found){
+			if (decimalValue < i * mPtr->pageSize){
+				correspondingPage = i-1;
+				found = true;
+			}
+			++i;
+		}
+		int physicalPage = it->second.pageTable[correspondingPage];
+		mPtr->processes[pid].physicalAddress = (physicalPage+1 * mPtr->pageSize) + offset;
 	}
-}
 
 
-void Cpu::printProcessInfo(const int& pid){
-	unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
+	void Cpu::restoreFrameTableAndFreeFrameList(const int& pid){
+		vector<int>::iterator it = mPtr->processes[pid].pageTable.begin();
+		vector<int>::iterator itEnd = mPtr->processes[pid].pageTable.end();
 
-	//Memory used by the process is returned to the freeMemory counter
-	mPtr->freeMemory += it->second.size;
+		while (it != itEnd){
+			//Reset the pid and page vector slots
+			//to -1
+			mPtr->frameTable[*it] = {-1,-1};
 
-	os << "Process killed" << '\n';
-	os << "------------------" << '\n';
-	os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
-	os << pid << setw(10) << it->second.totalCpuTime << setw(20);
-	if (it->second.cpuUsageCount > 0){
-		os << (it->second.totalCpuTime / it->second.cpuUsageCount);
+			//Add the missing frames back to the
+			//freeFrameList
+			mPtr->freeFrameList.push_back(*it);
+			++it;
+		}
 	}
-	else {
-		os << "0";
-	}
-	os << '\n' << '\n';
 
-	//The system's total cpu time and cpu usage count variables are updated with the
-	//terminated process' corresponding variables. This updates the system's average
-	//total Cpu time
-	if (it->second.cpuUsageCount > 0){
-		mPtr->systemTotalCpuTime += it->second.totalCpuTime;
-		mPtr->systemTotalcpuUsageCount += it->second.cpuUsageCount;
-	}
-	cout << os.str();
-	os.str("");
-	os.clear();
-}
 
- bool Cpu::chosenTrackFitsOnDisk(const int& track, const int& diskNum){
-	 if (track < mPtr->cylinders[diskNum]){return true;}
-	 cerr << "The track entered is higher than the number of tracks on the disk" << '\n';
-	 cerr << "Enter a new track number and try again." << '\n';
-	 return false;
- }
+	void Cpu::printProcessInfo(const int& pid){
+		unordered_map<int,Process>::iterator it = mPtr->processes.find(pid);
+
+		//Memory used by the process is returned to the freeMemory counter
+		mPtr->freeMemory += it->second.size;
+
+		os << "Process killed" << '\n';
+		os << "------------------" << '\n';
+		os << "PID " << setw(10) << "Total Cpu Time " << setw(10) << "Average Burst Time " << '\n';
+		os << pid << setw(10) << it->second.totalCpuTime << setw(20);
+		if (it->second.cpuUsageCount > 0){
+			os << (it->second.totalCpuTime / it->second.cpuUsageCount);
+		}
+		else {
+			os << "0";
+		}
+		os << '\n' << '\n';
+
+		//The system's total cpu time and cpu usage count variables are updated with the
+		//terminated process' corresponding variables. This updates the system's average
+		//total Cpu time
+		if (it->second.cpuUsageCount > 0){
+			mPtr->systemTotalCpuTime += it->second.totalCpuTime;
+			mPtr->systemTotalcpuUsageCount += it->second.cpuUsageCount;
+		}
+		cout << os.str();
+		os.str("");
+		os.clear();
+	}
+
+ 	bool Cpu::chosenTrackFitsOnDisk(const int& track, const int& diskNum){
+		if (track < mPtr->cylinders[diskNum]){return true;}
+	 	cerr << "The track entered is higher than the number of tracks on the disk" << '\n';
+	 	cerr << "Enter a new track number and try again." << '\n';
+	 	return false;
+ 	}
  	
 
 	template <typename T>
@@ -799,45 +798,43 @@ void Cpu::printProcessInfo(const int& pid){
 
 
 	//Returns the result of the algorithm based on the current process' values
-  float Cpu::sjwAlgorithm(){
-    return (1 - mPtr->historyParameter) * mPtr->processes[mPtr->currProcess].burstEstimate + mPtr->historyParameter * floatResult;
-  }
+	float Cpu::sjwAlgorithm(){
+    	return (1 - mPtr->historyParameter) * mPtr->processes[mPtr->currProcess].burstEstimate + mPtr->historyParameter * floatResult;
+  	}
 
 
-  void Cpu::addProcessToDiskDeque(const int& pid, const int& dequeNum){
-    if (mPtr->firstDiskSystemCall){
-      mPtr->diskSets0[dequeNum].insert(pid);
-      mPtr->firstDiskSystemCall = false;
-    }
-    else {
-      if (mPtr->scanDiskDequesStatus[dequeNum] == 1){
-      	//addProcessToWaitingDeque(pid,dequeNum,true);
-        mPtr->processes[pid].locationCode = "d0" + to_string(dequeNum);
-        mPtr->diskSets0[dequeNum].insert(pid);
-      }
-      else {
-      	//addProcessToWaitingDeque(pid,dequeNum,false);
-        mPtr->processes[pid].locationCode = "d1" + to_string(dequeNum);
-        mPtr->diskSets1[dequeNum].insert(pid);
-      }
-    }
-  }
+  	void Cpu::addProcessToDiskDeque(const int& pid, const int& dequeNum){
+    	if (mPtr->firstDiskSystemCall){
+      		mPtr->diskSets0[dequeNum].insert(pid);
+      		mPtr->firstDiskSystemCall = false;
+    	}
+    	else {
+      		if (mPtr->scanDiskDequesStatus[dequeNum] == 1){
+        		mPtr->processes[pid].locationCode = "d0" + to_string(dequeNum);
+       			mPtr->diskSets0[dequeNum].insert(pid);
+      		}
+      		else {
+        		mPtr->processes[pid].locationCode = "d1" + to_string(dequeNum);
+        		mPtr->diskSets1[dequeNum].insert(pid);
+      		}
+    	}
+  	}
 
 
-template <typename T>
-void Cpu::checkForDiskSets(const vector<multiset<int,T>>& diskSets, const int& num, const bool& isSet1){
-  	if (diskSets.empty()){
-		cerr << "There are no queues of this type available" << '\n';
-		cerr << "Please enter a new command and try again" << '\n';
-	}
-	else {
-		if (isSet1){
-			vector<multiset<int,Memory::SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num);
-			checkForAndRemoveSystemCallinSet(it);	
+	template <typename T>
+	void Cpu::checkForDiskSets(const vector<multiset<int,T>>& diskSets, const int& num, const bool& isSet1){
+  		if (diskSets.empty()){
+			cerr << "There are no queues of this type available" << '\n';
+			cerr << "Please enter a new command and try again" << '\n';
 		}
 		else {
-			vector<multiset<int,Memory::SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num);
-			checkForAndRemoveSystemCallinSet(it);	
+			if (isSet1){
+				vector<multiset<int,Memory::SortByHighTrack>>::iterator it = mPtr->diskSets1.begin() + (num);
+				checkForAndRemoveSystemCallinSet(it);	
+			}
+			else {
+				vector<multiset<int,Memory::SortByLowTrack>>::iterator it = mPtr->diskSets0.begin() + (num);
+				checkForAndRemoveSystemCallinSet(it);	
+			}
 		}
 	}
-}
