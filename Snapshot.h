@@ -19,9 +19,9 @@ struct Snapshot {
   //Prints the data of each process in the chosen device deque
   //Each process gets its own line
   template<typename T>
-  void snapshotPrint(T& itB, T& itE);
+  void insertCDorPrinterDequeContent(T& itB, T& itE);
 
-  void snapshotAux(const string& input);
+  void handleCDorPrinterDequeOutput(const string& input);
 
   void insertSystemInformation();
 
@@ -37,7 +37,7 @@ struct Snapshot {
   //Prints average CPU usage time across the system
   void insertMemoryInformation();
 
-  void handleInputChoice();
+  void handleInputChoiceAndPrint();
 };
 
 #endif

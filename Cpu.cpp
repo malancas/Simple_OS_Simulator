@@ -166,7 +166,7 @@ using namespace std;
 				mPtr->readyDeque.pop_front();
 				}
 
-				s.handleInputChoice();
+				s.handleInputChoiceAndPrint();
 			}
 			/*
 				If the input's format is K<num>, where <num> is the

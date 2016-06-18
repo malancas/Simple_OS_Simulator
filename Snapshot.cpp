@@ -21,7 +21,7 @@ Prints the data of each process in the chosen device deque
 Each process gets its own line
 */
 template<typename T>
-void Snapshot::snapshotPrint(T& itB, T& itE){
+void Snapshot::insertCDorPrinterDequeContent(T& itB, T& itE){
 	while (itB != itE){
 		string ty = mPtr->processes[*itB].type;
 		os << *itB << setw(10) << mPtr->processes[*itB].name << setw(10) <<
@@ -58,7 +58,7 @@ void Snapshot::snapshotPrint(T& itB, T& itE){
 	}
 }
 
-void Snapshot::snapshotAux(const string& input){
+void Snapshot::handleCDorPrinterDequeOutput(const string& input){
 	vector<deque<int>>::iterator itV, itVe;
 	deque<int>::iterator itB, itE;
 	if (input == "c"){
@@ -77,7 +77,7 @@ void Snapshot::snapshotAux(const string& input){
 	int count = 1;
 	while (itV != itVe){
 		os << "----" << input << count << '\n';
-		snapshotPrint(itB, itE);
+		insertCDorPrinterDequeContent(itB, itE);
 		++itV;
 		++count;
 		itB = itV->begin();
@@ -265,7 +265,7 @@ void Snapshot::insertMemoryInformation(){
 	os << '\n' << '\n';
 }
 
-void Snapshot::handleInputChoice(){
+void Snapshot::handleInputChoiceAndPrint(){
 	string input;
 	cout << "Enter r, p, c, d, m, or j: ";
 	cin >> input; cout << '\n';
@@ -294,7 +294,7 @@ void Snapshot::handleInputChoice(){
 		}
 		else {
 			header();
-			snapshotAux(input);
+			handleCDorPrinterDequeOutput(input);
 			insertSystemInformation();
 		}
 		cout << os.str();
