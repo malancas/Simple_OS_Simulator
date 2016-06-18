@@ -23,19 +23,19 @@ struct Snapshot {
 
   void snapshotAux(const string& input);
 
-  void snapshotAux_SystemInformation();
+  void insertSystemInformation();
 
-  void snapshotAux_ReadyDeque();
+  void insertReadyDequeContent();
 
-  void snapshotAux_JobPool();
+  void insertJobPoolContent();
 
-  void snapshotAux_Disk();
+  void insertDiskContent();
 
 	template <typename T>
-	void snapshotAux_Disk2(T& scanIt, const T& scanItEnd);
+	void insertDiskContent2(T& scanIt, const T& scanItEnd);
 
   //Prints average CPU usage time across the system
-  void snapshotAux_memoryInformation();
+  void insertMemoryInformation();
 
   void handleInputChoice();
 };
